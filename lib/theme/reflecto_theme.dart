@@ -71,7 +71,17 @@ class ReflectoTheme {
     );
 
     // Typografie
-    final textTheme = GoogleFonts.interTextTheme().apply(
+    final inter = GoogleFonts.interTextTheme();
+    final lexend = GoogleFonts.lexendTextTheme();
+    final textTheme = inter.copyWith(
+      headlineLarge: lexend.headlineLarge?.copyWith(fontWeight: FontWeight.w700, fontSize: 28),
+      headlineMedium: lexend.headlineMedium?.copyWith(fontWeight: FontWeight.w700, fontSize: 26),
+      titleLarge: lexend.titleLarge?.copyWith(fontWeight: FontWeight.w600, fontSize: 22),
+      titleMedium: lexend.titleMedium?.copyWith(fontWeight: FontWeight.w600, fontSize: 20),
+      bodyLarge: inter.bodyLarge?.copyWith(fontSize: 16, height: 1.5),
+      bodyMedium: inter.bodyMedium?.copyWith(fontSize: 15, height: 1.5),
+      bodySmall: inter.bodySmall?.copyWith(fontSize: 13, height: 1.4, color: ReflectoColors.textSecondary),
+    ).apply(
       bodyColor: ReflectoColors.textPrimary,
       displayColor: ReflectoColors.textPrimary,
     );
@@ -100,8 +110,8 @@ class ReflectoTheme {
       /// Karten
       cardTheme: CardThemeData(
         color: ReflectoColors.backgroundLight,
-        elevation: 6,
-        shadowColor: Colors.black.withValues(alpha: 0.08),
+        elevation: 2,
+        shadowColor: Colors.black.withValues(alpha: 0.06),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         margin: const EdgeInsets.all(0),
       ),
@@ -112,7 +122,7 @@ class ReflectoTheme {
           backgroundColor: ReflectoColors.primaryMid,
           foregroundColor: Colors.white,
           minimumSize: const Size.fromHeight(48),
-          elevation: 6,
+          elevation: 2,
           shadowColor: ReflectoColors.primaryMid.withValues(alpha: 0.25),
           textStyle: const TextStyle(fontWeight: FontWeight.w600),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -235,7 +245,7 @@ class ReflectoTheme {
 
       cardTheme: CardThemeData(
         color: ReflectoColors.darkCard,
-        elevation: 6,
+        elevation: 2,
         shadowColor: Colors.black.withValues(alpha: 0.35),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         margin: const EdgeInsets.all(0),
@@ -246,7 +256,7 @@ class ReflectoTheme {
           backgroundColor: ReflectoColors.primaryMid,
           foregroundColor: Colors.white,
           minimumSize: const Size.fromHeight(48),
-          elevation: 6,
+          elevation: 2,
           shadowColor: ReflectoColors.primaryMid.withValues(alpha: 0.25),
           textStyle: const TextStyle(fontWeight: FontWeight.w600),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -295,3 +305,6 @@ class ReflectoTheme {
   static ThemeData get light2 => light();
   static ThemeData get dark2 => dark();
 }
+
+
+
