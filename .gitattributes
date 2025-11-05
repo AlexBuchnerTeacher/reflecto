@@ -1,0 +1,21 @@
+# Normalize line endings for source files
+*.dart text eol=lf
+*.yaml text eol=lf
+*.yml  text eol=lf
+*.md   text eol=lf
+*.ts   text eol=lf
+*.js   text eol=lf
+*.css  text eol=lf
+*.html text eol=lf
+
+# Treat common binaries correctly
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.ttf  binary
+*.otf  binary
+*.woff binary
+*.woff2 binary
+

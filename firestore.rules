@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+
+      match /entries/{entryId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid &&
+          entryId.matches('^\\d{4}-\\d{2}-\\d{2}$');
+      }
+
+      match /weekly_reflections/{weekId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid &&
+          weekId.matches('^\\d{4}-\\d{2}$');
+      }
+    }
+  }
+}
+

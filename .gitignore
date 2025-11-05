@@ -1,0 +1,36 @@
+# Flutter & Dart
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+.metadata
+build/
+
+# Platform builds
+android/.gradle/
+android/app/**/*.keystore
+ios/Pods/
+ios/.symlinks/
+macos/Pods/
+windows/flutter/ephemeral/
+linux/flutter/ephemeral/
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Coverage & logs
+coverage/
+*.log
+
+# Environment files (optional)
+# .env
+
+# Firebase (keep firebase_options.dart committed; keys are safe for web)
+# firebase_app_id_file.json
+
