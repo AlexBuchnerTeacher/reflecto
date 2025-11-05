@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background rounded square -->
+  <defs>
+    <linearGradient id="g1" x1="64" y1="64" x2="448" y2="448" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2E7DFA"/>
+      <stop offset="1" stop-color="#004FCA"/>
+    </linearGradient>
+    <linearGradient id="highlight" x1="128" y1="80" x2="384" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="topHalf">
+      <rect x="64" y="64" width="384" height="192" />
+    </clipPath>
+  </defs>
+
+  <rect x="32" y="32" width="448" height="448" rx="112" fill="url(#g1)"/>
+
+  <!-- Reflective waves (top half) -->
+  <g clip-path="url(#topHalf)">
+    <circle cx="256" cy="256" r="130" stroke="#EAF3FF" stroke-width="18" opacity="0.35"/>
+    <circle cx="256" cy="256" r="92" stroke="#EAF3FF" stroke-width="14" opacity="0.6"/>
+  </g>
+
+  <!-- Subtle diagonal highlight -->
+  <path d="M96,120 C176,40 336,40 416,120 L416,200 C336,120 176,120 96,200 Z" fill="url(#highlight)"/>
+
+  <!-- Accent dot (Soft Sky) -->
+  <circle cx="360" cy="360" r="16" fill="#A7C5EB"/>
+</svg>
+
