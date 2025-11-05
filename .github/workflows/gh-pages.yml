@@ -30,7 +30,7 @@ jobs:
         run: flutter pub get
 
       - name: Build Flutter Web
-        run: flutter build web --release --web-renderer html --base-href /reflecto/
+        run: flutter build web --release --base-href /reflecto/
 
       - name: Add 404 fallback for SPA routing
         run: cp build/web/index.html build/web/404.html
@@ -41,4 +41,3 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: build/web
           force_orphan: true
-
