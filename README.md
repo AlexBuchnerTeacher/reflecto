@@ -1,5 +1,8 @@
 # Reflecto
 
+[![Flutter CI](https://github.com/AlexBuchnerTeacher/reflecto/actions/workflows/flutter-ci.yml/badge.svg)](https://github.com/AlexBuchnerTeacher/reflecto/actions/workflows/flutter-ci.yml)
+[![Deploy Web](https://github.com/AlexBuchnerTeacher/reflecto/actions/workflows/gh-pages.yml/badge.svg)](https://github.com/AlexBuchnerTeacher/reflecto/actions/workflows/gh-pages.yml)
+
 Reflecto ist eine plattformübergreifende Flutter‑App (Web + Windows) für digitales Journaling und persönliche Entwicklung.
 
 - Flutter: Material 3, Google Fonts (Inter)
@@ -26,3 +29,7 @@ Die zentralen Farben und Themes liegen in `lib/theme/reflecto_theme.dart` (Light
 
 - Standard `.gitignore` und `.gitattributes` sind enthalten (LF‑Zeilenenden für Quelltexte).
 
+## Live
+
+- GitHub Pages: https://alexbuchnerteacher.github.io/reflecto/
+- Hinweis: Für Login auf Web muss die Domain `alexbuchnerteacher.github.io` in Firebase Auth → Authorized domains eingetragen sein.
