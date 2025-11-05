@@ -1,8 +1,9 @@
 name: Deploy Flutter Web to GitHub Pages
 
 on:
-  push:
-    branches: [ main ]
+  workflow_run:
+    workflows: [ "Flutter CI" ]
+    types: [ completed ]
   workflow_dispatch:
 
 permissions:
@@ -11,6 +12,10 @@ permissions:
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
+    concurrency:
+      group: pages-${{ github.ref || github.event.workflow_run.head_branch }}
+      cancel-in-progress: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
