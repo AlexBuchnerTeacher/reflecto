@@ -181,6 +181,42 @@ class FirestoreService {
     }
   }
 
+  /// Markiert die Abendreflexion als abgeschlossen und aktualisiert den Streak.
+  Future<void> markEveningCompletedAndUpdateStreak(String uid, DateTime date) async {
+    try {
+      // Abend als completed markieren
+      await updateField(uid, date, 'evening.completed', true);
+
+      final todayId = _formatDate(date);
+      final yesterday = date.subtract(const Duration(days: 1));
+      final yId = _formatDate(yesterday);
+
+      final ySnap = await entryRef(uid, yesterday).get();
+      final yCompleted = (ySnap.data()?['evening']?['completed'] == true);
+
+      final streakRef = _users.doc(uid).collection('stats').doc('streak');
+      final snap = await streakRef.get();
+      final data = snap.data() ?? <String, dynamic>{};
+      final lastDate = data['lastEntryDate'] as String?;
+      final current = (data['streakCount'] is num) ? (data['streakCount'] as num).toInt() : 0;
+
+      if (lastDate == todayId) {
+        return; // heute bereits gezählt
+      }
+
+      final shouldChain = yCompleted && lastDate == yId;
+      final next = shouldChain ? (current + 1) : 1;
+      await streakRef.set({
+        'streakCount': next,
+        'lastEntryDate': todayId,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } on FirebaseException catch (e) {
+      debugPrint('Firestore error (markEveningCompletedAndUpdateStreak): $e');
+      rethrow;
+    }
+  }
+
   // -------------------------------------------------
   // Zusätzliche bestehende Helfer (Kompatibilität)
   // -------------------------------------------------
