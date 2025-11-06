@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' show FieldValue;
@@ -236,9 +236,39 @@ class _DayScreenState extends ConsumerState<DayScreen> {
     return null;
   }
 
+  List<String> _normalizeStringSlots(dynamic src, {int len = 3}) {
+    final out = List<String>.filled(len, '');
+    if (src is List) {
+      for (var i = 0; i < len && i < src.length; i++) {
+        out[i] = src[i]?.toString() ?? '';
+      }
+    } else if (src is Map) {
+      for (var i = 0; i < len; i++) {
+        final v = src['$i'];
+        if (v != null) out[i] = v.toString();
+      }
+    }
+    return out;
+  }
+
+  List<bool> _normalizeBoolSlots(dynamic src, {int len = 3}) {
+    final out = List<bool>.filled(len, false);
+    if (src is List) {
+      for (var i = 0; i < len && i < src.length; i++) {
+        out[i] = src[i] == true;
+      }
+    } else if (src is Map) {
+      for (var i = 0; i < len; i++) {
+        final v = src['$i'];
+        out[i] = v == true;
+      }
+    }
+    return out;
+  }
+
   void _setCtrl(TextEditingController c, String? v, {FocusNode? focusNode}) {
-    if (v == null) return; // kein Überschreiben mit leer bei fehlendem Feld
-    if (focusNode != null && focusNode.hasFocus) return; // während aktiver Eingabe nicht überschreiben
+    if (v == null) return; // kein Ãœberschreiben mit leer bei fehlendem Feld
+    if (focusNode != null && focusNode.hasFocus) return; // wÃ¤hrend aktiver Eingabe nicht Ã¼berschreiben
     if (c.text != v) {
       final selection = TextSelection.collapsed(offset: v.length);
       c.value = c.value.copyWith(text: v, selection: selection, composing: TextRange.empty);
@@ -254,13 +284,13 @@ class _DayScreenState extends ConsumerState<DayScreen> {
     String text;
     Color color;
     if (pending) {
-      text = 'Synchronisiere…';
+      text = 'Synchronisiereâ€¦';
       color = const Color(0xFF2E7DFA).withValues(alpha: 0.10);
     } else if (fromCache) {
       text = 'Offline';
       color = const Color(0xFFE57A00).withValues(alpha: 0.10);
     } else {
-      text = '✓ Gespeichert';
+      text = 'âœ“ Gespeichert';
       color = const Color(0xFF4CAF50).withValues(alpha: 0.10);
     }
     return Container(
@@ -366,18 +396,97 @@ class _DayScreenState extends ConsumerState<DayScreen> {
         _docCache[_dateId(tomorrow)] = tData;
         final tPending = tDoc.value?.metadata.hasPendingWrites ?? false;
         final tFromCache = tDoc.value?.metadata.isFromCache ?? false;
+
+        // Migrations: normalize arrays to fixed 3-slot shape (only when not pending & not yet migrated)
+        final migratedV1 = (todayData?['migratedV1'] == true);
+        if (!pending && !migratedV1) {
+          final gSrc = _readAt<dynamic>(todayData, ['planning', 'goals']);
+          final gNorm = _normalizeStringSlots(gSrc);
+          final gAllEmpty = gNorm.every((e) => e.isEmpty);
+          _debouncedUpdate(
+            uid: uid,
+            date: _selected,
+            fieldPath: 'planning.goals',
+            value: gAllEmpty ? null : gNorm,
+          );
+
+          final tSrc = _readAt<dynamic>(todayData, ['planning', 'todos']);
+          final tNorm = _normalizeStringSlots(tSrc);
+          final tAllEmpty = tNorm.every((e) => e.isEmpty);
+          _debouncedUpdate(
+            uid: uid,
+            date: _selected,
+            fieldPath: 'planning.todos',
+            value: tAllEmpty ? null : tNorm,
+          );
+
+          final ecSrc = _readAt<dynamic>(todayData, ['evening', 'todosCompletion']);
+          final ecNorm = _normalizeBoolSlots(ecSrc);
+          _debouncedUpdate(
+            uid: uid,
+            date: _selected,
+            fieldPath: 'evening.todosCompletion',
+            value: ecNorm,
+          );
+
+          final gcSrc = _readAt<dynamic>(todayData, ['evening', 'goalsCompletion']);
+          final gcNorm = _normalizeBoolSlots(gcSrc);
+          _debouncedUpdate(
+            uid: uid,
+            date: _selected,
+            fieldPath: 'evening.goalsCompletion',
+            value: gcNorm,
+          );
+          // mark as migrated
+          _debouncedUpdate(
+            uid: uid,
+            date: _selected,
+            fieldPath: 'migratedV1',
+            value: true,
+          );
+        }
+
+        final tMigratedV1 = (tData?['migratedV1'] == true);
+        if (!tPending && !tMigratedV1) {
+          final tgSrc = _readAt<dynamic>(tData, ['planning', 'goals']);
+          final tgNorm = _normalizeStringSlots(tgSrc);
+          final tgAllEmpty = tgNorm.every((e) => e.isEmpty);
+          _debouncedUpdate(
+            uid: uid,
+            date: tomorrow,
+            fieldPath: 'planning.goals',
+            value: tgAllEmpty ? null : tgNorm,
+          );
+
+          final ttSrc = _readAt<dynamic>(tData, ['planning', 'todos']);
+          final ttNorm = _normalizeStringSlots(ttSrc);
+          final ttAllEmpty = ttNorm.every((e) => e.isEmpty);
+          _debouncedUpdate(
+            uid: uid,
+            date: tomorrow,
+            fieldPath: 'planning.todos',
+            value: ttAllEmpty ? null : ttNorm,
+          );
+          // mark as migrated on tomorrow doc as well
+          _debouncedUpdate(
+            uid: uid,
+            date: tomorrow,
+            fieldPath: 'migratedV1',
+            value: true,
+          );
+        }
         final goalsDyn = _readAt<List>(tData, ['planning', 'goals']);
         final todosDyn = _readAt<List>(tData, ['planning', 'todos']);
         final goals = (goalsDyn ?? const <dynamic>[]).map((e) => e?.toString() ?? '').toList();
         final todos = (todosDyn ?? const <dynamic>[]).map((e) => e?.toString() ?? '').toList();
         for (var i = 0; i < 3; i++) {
-          _setCtrl(_goalCtrls[i], i < goals.length ? goals[i] : null, focusNode: _goalNodes[i]);
-          _setCtrl(_todoCtrls[i], i < todos.length ? todos[i] : null, focusNode: _todoNodes[i]);
+          _setCtrl(_goalCtrls[i], i < goals.length ? goals[i] : '', focusNode: _goalNodes[i]);
+          _setCtrl(_todoCtrls[i], i < todos.length ? todos[i] : '', focusNode: _todoNodes[i]);
         }
         _setCtrl(_attitudeCtrl, _readAt<String>(tData, ['planning', 'reflection']), focusNode: _attitudeNode);
         _setCtrl(_notesCtrl, _readAt<String>(tData, ['planning', 'notes']), focusNode: _notesNode);
 
-        // Review der Planung für den ausgewählten Tag
+        // Review der Planung fÃ¼r den ausgewÃ¤hlten Tag
         final curGoals = (_readAt<List>(todayData, ['planning', 'goals']) ?? []).cast<String>();
         final curTodos = (_readAt<List>(todayData, ['planning', 'todos']) ?? []).cast<String>();
         final completionDyn = _readAt<List>(todayData, ['evening', 'todosCompletion']) ?? const <dynamic>[];
@@ -407,6 +516,14 @@ class _DayScreenState extends ConsumerState<DayScreen> {
             }
           }
         }
+
+        // Sichtbare Indizes nur fÃ¼r nicht-leere Ziele/To-dos (max 3)
+        final visibleGoalIdx = List<int>.generate(desiredGoalLen, (i) => i)
+            .where((i) => curGoals[i].trim().isNotEmpty)
+            .toList();
+        final visibleTodoIdx = List<int>.generate(desiredTodoLen, (i) => i)
+            .where((i) => curTodos[i].trim().isNotEmpty)
+            .toList();
 
         final isToday = DateUtils.isSameDay(_selected, DateTime.now());
 
@@ -480,7 +597,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                 children: [
                                   const Expanded(
                                     child: Text(
-                                      '🌅 Morgenreflexion',
+                                      'ðŸŒ… Morgenreflexion',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       softWrap: false,
@@ -498,12 +615,12 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                       child: _progressChip(
                                       'Felder '
                                       '${[_morningFeelingCtrl.text.trim(), _morningGoodCtrl.text.trim(), _morningFocusCtrl.text.trim()].where((e) => e.isNotEmpty).length}/3'
-                                      ' · Ratings '
+                                      ' Â· Ratings '
                                       '${[morningMoodFromSnap, morningEnergyFromSnap, morningFocusFromSnap].where((e) => e != null).length}/3',
                                       ),
                                     ),
                                   ),
-                                  // Statuschip entfällt (nur noch global in AppBar)
+                                  // Statuschip entfÃ¤llt (nur noch global in AppBar)
                                   IconButton(
                                     tooltip: _expMorning ? 'Einklappen' : 'Aufklappen',
                                     icon: Icon(_expMorning ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded),
@@ -511,6 +628,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                   ),
                                 ],
                               ),
+                              const SizedBox(height: 4),
                               AnimatedCrossFade(
                                 crossFadeState: _expMorning ? CrossFadeState.showFirst : CrossFadeState.showSecond,
                                 duration: const Duration(milliseconds: 200),
@@ -521,7 +639,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                     _emojiBar(
                                       context,
                                       label: 'Stimmung',
-                                      emojis: const ['😔','😐','🙂','😊','😎'],
+                                      emojis: const ['ðŸ˜”','ðŸ˜','ðŸ™‚','ðŸ˜Š','ðŸ˜Ž'],
                                       value: morningMoodFromSnap,
                                       onSelect: (v) {
                                         final updater = ref.read(updateDayFieldProvider);
@@ -532,7 +650,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                     _emojiBar(
                                       context,
                                       label: 'Energie',
-                                      emojis: const ['🔋','🔋','🔋','🔋','🔋'],
+                                      emojis: const ['ðŸ”‹','ðŸ”‹','ðŸ”‹','ðŸ”‹','ðŸ”‹'],
                                       value: morningEnergyFromSnap,
                                       onSelect: (v) {
                                         final updater = ref.read(updateDayFieldProvider);
@@ -543,7 +661,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                     _emojiBar(
                                       context,
                                       label: 'Fokus',
-                                      emojis: const ['🎯','🎯','🎯','🎯','🎯'],
+                                      emojis: const ['ðŸŽ¯','ðŸŽ¯','ðŸŽ¯','ðŸŽ¯','ðŸŽ¯'],
                                       value: morningFocusFromSnap,
                                       onSelect: (v) {
                                         final updater = ref.read(updateDayFieldProvider);
@@ -551,7 +669,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                       },
                                     ),
                                     const SizedBox(height: 12),
-                                    _labeledField('Wie fühle ich mich heute?', _morningFeelingCtrl, minLines: 1, maxLines: 4, focusNode: _morningFeelingNode, onChanged: (v) {
+                                    _labeledField('Wie fÃ¼hle ich mich heute?', _morningFeelingCtrl, minLines: 1, maxLines: 2, expandable: true, focusNode: _morningFeelingNode, onChanged: (v) {
                                       _debouncedUpdate(
                                         uid: uid,
                                         date: _selected,
@@ -561,8 +679,8 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                         aggregateBuilder: _aggregateMorning,
                                       );
                                     }),
-                                    const SizedBox(height: 8),
-                                    _labeledField('Was macht den Tag heute gut?', _morningGoodCtrl, minLines: 1, maxLines: 2, focusNode: _morningGoodNode, onChanged: (v) {
+                                    const SizedBox(height: 12),
+                                    _labeledField('Was macht den Tag heute gut?', _morningGoodCtrl, minLines: 1, maxLines: 2, expandable: true, focusNode: _morningGoodNode, onChanged: (v) {
                                       _debouncedUpdate(
                                         uid: uid,
                                         date: _selected,
@@ -572,8 +690,8 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                         aggregateBuilder: _aggregateMorning,
                                       );
                                     }),
-                                    const SizedBox(height: 8),
-                                  _labeledField('Worauf will ich heute besonders achten?', _morningFocusCtrl, minLines: 1, maxLines: 2, focusNode: _morningFocusNode, onChanged: (v) {
+                                    const SizedBox(height: 12),
+                                  _labeledField('Worauf will ich heute besonders achten?', _morningFocusCtrl, minLines: 1, maxLines: 2, expandable: true, focusNode: _morningFocusNode, onChanged: (v) {
                                     _debouncedUpdate(
                                       uid: uid,
                                       date: _selected,
@@ -585,26 +703,26 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                   }),
                                   const SizedBox(height: 12),
                                   const Text('Tagesziele und To-dos', style: TextStyle(fontWeight: FontWeight.w600)),
-                                  const SizedBox(height: 8),
-                                  if (curGoals.isNotEmpty) ...[
+                                  const SizedBox(height: 12),
+                                  if (visibleGoalIdx.isNotEmpty) ...[
                                     const Text('Ziele', style: TextStyle(color: Colors.black54)),
                                     const SizedBox(height: 4),
-                                    for (var i = 0; i < curGoals.length && i < 3; i++)
+                                    for (final i in visibleGoalIdx)
                                       Padding(
                                         padding: const EdgeInsets.symmetric(vertical: 2),
-                                        child: Text('• ${curGoals[i]}'),
+                                        child: Text('â€¢ ${curGoals[i]}'),
                                       ),
                                   ] else ...[
                                     const Text('Keine Ziele vorhanden.', style: TextStyle(color: Colors.black54)),
                                   ],
-                                  const SizedBox(height: 8),
-                                  if (curTodos.isNotEmpty) ...[
+                                  const SizedBox(height: 12),
+                                  if (visibleTodoIdx.isNotEmpty) ...[
                                     const Text('To-dos', style: TextStyle(color: Colors.black54)),
                                     const SizedBox(height: 4),
-                                    for (var i = 0; i < curTodos.length && i < 3; i++)
+                                    for (final i in visibleTodoIdx)
                                       Padding(
                                         padding: const EdgeInsets.symmetric(vertical: 2),
-                                        child: Text('• ${curTodos[i]}'),
+                                        child: Text('â€¢ ${curTodos[i]}'),
                                       ),
                                   ] else ...[
                                     const Text('Keine To-dos vorhanden.', style: TextStyle(color: Colors.black54)),
@@ -628,7 +746,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                 children: [
                                   const Expanded(
                                     child: Text(
-                                      '🌇 Abendreflexion',
+                                      'ðŸŒ‡ Abendreflexion',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       softWrap: false,
@@ -643,17 +761,17 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                   Flexible(
                                     child: FittedBox(
                                       fit: BoxFit.scaleDown,
-                                  child: _progressChip(
+                                      child: _progressChip(
                                         'Ziele '
-                                        '${_yesterdayGoalChecks.where((e) => e).length}/${curGoals.length.clamp(0, 3)}'
-                                        ' · To-dos '
-                                        '${_yesterdayTodoChecks.where((e) => e).length}/${curTodos.length.clamp(0, 3)}'
-                                        ' · Felder '
+                                        '${visibleGoalIdx.where((i) => _yesterdayGoalChecks[i]).length}/${visibleGoalIdx.length}'
+                                        ' Â· To-dos '
+                                        '${visibleTodoIdx.where((i) => _yesterdayTodoChecks[i]).length}/${visibleTodoIdx.length}'
+                                        ' Â· Felder '
                                         '${[_eveningGoodCtrl.text.trim(), _eveningLearnedCtrl.text.trim(), _eveningBetterCtrl.text.trim(), _eveningGratefulCtrl.text.trim()].where((e) => e.isNotEmpty).length}/4',
                                       ),
                                     ),
                                   ),
-                                  // Statuschip entfällt (nur noch global in AppBar)
+                                  // Statuschip entfÃ¤llt (nur noch global in AppBar)
                                   IconButton(
                                     tooltip: _expEvening ? 'Einklappen' : 'Aufklappen',
                                     icon: Icon(_expEvening ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded),
@@ -662,17 +780,18 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                 ],
                               ),
                               const SizedBox(height: 4),
+                              const SizedBox(height: 4),
                               AnimatedCrossFade(
                                 crossFadeState: _expEvening ? CrossFadeState.showFirst : CrossFadeState.showSecond,
                                 duration: const Duration(milliseconds: 200),
                                 firstChild: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text('Reflektiere deinen Tag und schließe ihn bewusst ab.'),
+                                    const Text('Reflektiere deinen Tag und schlieÃŸe ihn bewusst ab.'),
                                     const SizedBox(height: 12),
-                                    const SizedBox(height: 8),
-                                    const Text('Rückblick auf deine Planung', style: TextStyle(fontWeight: FontWeight.w600)),
-                                    const SizedBox(height: 8),
+                                     const SizedBox(height: 12),
+                                    const Text('RÃ¼ckblick auf deine Planung', style: TextStyle(fontWeight: FontWeight.w600)),
+                                     const SizedBox(height: 12),
                                     if (curGoals.isNotEmpty) ...[
                                       const Text('Ziele', style: TextStyle(color: Colors.black54)),
                                       const SizedBox(height: 4),
@@ -695,7 +814,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                         ),
                                     ] else
                                       const Text('Keine Ziele von gestern vorhanden.'),
-                                    const SizedBox(height: 8),
+                                  const SizedBox(height: 12),
                                     if (curTodos.isNotEmpty) ...[
                                       const Text('To-dos', style: TextStyle(color: Colors.black54)),
                                       const SizedBox(height: 4),
@@ -723,7 +842,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                       const Text('Keine To-dos von gestern vorhanden.'),
                                     const SizedBox(height: 12),
 
-                                    _labeledField('Was lief heute gut?', _eveningGoodCtrl, minLines: 1, maxLines: 2, focusNode: _eveningGoodNode, onChanged: (v) {
+                                    _labeledField('Was lief heute gut?', _eveningGoodCtrl, minLines: 1, maxLines: 2, expandable: true, focusNode: _eveningGoodNode, onChanged: (v) {
                                       _debouncedUpdate(
                                         uid: uid,
                                         date: _selected,
@@ -733,8 +852,8 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                         aggregateBuilder: _aggregateEvening,
                                       );
                                     }),
-                                    const SizedBox(height: 8),
-                                    _labeledField('Was habe ich gelernt oder erkannt?', _eveningLearnedCtrl, minLines: 1, maxLines: 2, focusNode: _eveningLearnedNode, onChanged: (v) {
+                                    const SizedBox(height: 12),
+                                    _labeledField('Was habe ich gelernt oder erkannt?', _eveningLearnedCtrl, minLines: 1, maxLines: 2, expandable: true, focusNode: _eveningLearnedNode, onChanged: (v) {
                                       _debouncedUpdate(
                                         uid: uid,
                                         date: _selected,
@@ -744,8 +863,8 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                         aggregateBuilder: _aggregateEvening,
                                       );
                                     }),
-                                    const SizedBox(height: 8),
-                                    _labeledField('Was hätte besser laufen können?', _eveningBetterCtrl, minLines: 1, maxLines: 2, focusNode: _eveningBetterNode, onChanged: (v) {
+                                    const SizedBox(height: 12),
+                                    _labeledField('Was hÃ¤tte besser laufen kÃ¶nnen?', _eveningBetterCtrl, minLines: 1, maxLines: 2, expandable: true, focusNode: _eveningBetterNode, onChanged: (v) {
                                       _debouncedUpdate(
                                         uid: uid,
                                         date: _selected,
@@ -755,8 +874,8 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                         aggregateBuilder: _aggregateEvening,
                                       );
                                     }),
-                                    const SizedBox(height: 8),
-                                    _labeledField('Wofür bin ich dankbar?', _eveningGratefulCtrl, minLines: 1, maxLines: 2, focusNode: _eveningGratefulNode, onChanged: (v) {
+                                    const SizedBox(height: 12),
+                                    _labeledField('WofÃ¼r bin ich dankbar?', _eveningGratefulCtrl, minLines: 1, maxLines: 2, expandable: true, focusNode: _eveningGratefulNode, onChanged: (v) {
                                       _debouncedUpdate(
                                         uid: uid,
                                         date: _selected,
@@ -770,7 +889,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                     _emojiBar(
                                       context,
                                       label: 'Stimmung',
-                                      emojis: const ['😔','😐','🙂','😊','😎'],
+                                      emojis: const ['ðŸ˜”','ðŸ˜','ðŸ™‚','ðŸ˜Š','ðŸ˜Ž'],
                                       value: eveningMoodFromSnap,
                                       onSelect: (v) {
                                         final updater = ref.read(updateDayFieldProvider);
@@ -782,7 +901,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                     _emojiBar(
                                       context,
                                       label: 'Energie',
-                                      emojis: const ['🔋','🔋','🔋','🔋','🔋'],
+                                      emojis: const ['ðŸ”‹','ðŸ”‹','ðŸ”‹','ðŸ”‹','ðŸ”‹'],
                                       value: eveningEnergyFromSnap,
                                       onSelect: (v) {
                                         final updater = ref.read(updateDayFieldProvider);
@@ -794,7 +913,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                     _emojiBar(
                                       context,
                                       label: 'Zufriedenheit',
-                                      emojis: const ['⭐','⭐','⭐','⭐','⭐'],
+                                      emojis: const ['â­','â­','â­','â­','â­'],
                                       value: eveningHappinessFromSnap,
                                       onSelect: (v) {
                                         final updater = ref.read(updateDayFieldProvider);
@@ -821,7 +940,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                 children: [
                                   const Expanded(
                                     child: Text(
-                                      '\u{1F5D3} Planung für morgen',
+                                      '\u{1F5D3} Planung fÃ¼r morgen',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       softWrap: false,
@@ -839,10 +958,28 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                       child: _progressChip(
                                         'Ziele '
                                         '${_goalCtrls.map((c)=>c.text.trim()).where((e)=>e.isNotEmpty).length}/3'
-                                        ' · To-dos '
+                                        ' Â· To-dos '
                                         '${_todoCtrls.map((c)=>c.text.trim()).where((e)=>e.isNotEmpty).length}/3',
                                       ),
                                     ),
+                                  ),
+                                  TextButton.icon(
+                                    onPressed: () {
+                                      final todayGoalsSrc = _readAt<List>(todayData, ['planning', 'goals']) ?? const [];
+                                      final todayTodosSrc = _readAt<List>(todayData, ['planning', 'todos']) ?? const [];
+                                      final todayGoals = _normalizeStringSlots(todayGoalsSrc);
+                                      final todayTodos = _normalizeStringSlots(todayTodosSrc);
+                                      setState(() {
+                                        for (var i = 0; i < 3; i++) {
+                                          _goalCtrls[i].text = todayGoals[i];
+                                          _todoCtrls[i].text = todayTodos[i];
+                                        }
+                                      });
+                                      _saveGoals(uid, tomorrow);
+                                      _saveTodos(uid, tomorrow);
+                                    },
+                                    icon: const Icon(Icons.content_copy_rounded, size: 18),
+                                    label: const Text('Aus heute übernehmen'),
                                   ),
                                   IconButton(
                                     tooltip: _expPlanning ? 'Einklappen' : 'Aufklappen',
@@ -858,37 +995,37 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     const SizedBox(height: 4),
-                                    const Text('Definiere klare Ziele und einen ruhigen Fokus für morgen.'),
+                                    const Text('Definiere klare Ziele und einen ruhigen Fokus fÃ¼r morgen.'),
                                     const SizedBox(height: 12),
                                     const Text('Drei Hauptziele', style: TextStyle(fontWeight: FontWeight.w600)),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 12),
                                     _labeledField('Ziel 1', _goalCtrls[0], minLines: 1, maxLines: 2, focusNode: _goalNodes[0], onChanged: (v) {
                                       _saveGoals(uid, tomorrow);
                                     }),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 12),
                                     _labeledField('Ziel 2', _goalCtrls[1], minLines: 1, maxLines: 2, focusNode: _goalNodes[1], onChanged: (v) {
                                       _saveGoals(uid, tomorrow);
                                     }),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 12),
                                     _labeledField('Ziel 3', _goalCtrls[2], minLines: 1, maxLines: 2, focusNode: _goalNodes[2], onChanged: (v) {
                                       _saveGoals(uid, tomorrow);
                                     }),
                                     const SizedBox(height: 4),
                                     const Text('Drei To-dos', style: TextStyle(fontWeight: FontWeight.w600)),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 12),
                                     _labeledField('To-do 1', _todoCtrls[0], minLines: 1, maxLines: 2, focusNode: _todoNodes[0], onChanged: (v) {
                                       _saveTodos(uid, tomorrow);
                                     }),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 12),
                                     _labeledField('To-do 2', _todoCtrls[1], minLines: 1, maxLines: 2, focusNode: _todoNodes[1], onChanged: (v) {
                                       _saveTodos(uid, tomorrow);
                                     }),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 12),
                                     _labeledField('To-do 3', _todoCtrls[2], minLines: 1, maxLines: 2, focusNode: _todoNodes[2], onChanged: (v) {
                                       _saveTodos(uid, tomorrow);
                                     }),
-                                    const SizedBox(height: 8),
-                                    _labeledField('Reflexion', _attitudeCtrl, minLines: 1, maxLines: 2, focusNode: _attitudeNode, onChanged: (v) {
+                                    const SizedBox(height: 12),
+                                    _labeledField('Reflexion', _attitudeCtrl, minLines: 1, maxLines: 2, expandable: true, focusNode: _attitudeNode, onChanged: (v) {
                                       _debouncedUpdate(
                                         uid: uid,
                                         date: tomorrow,
@@ -896,8 +1033,8 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                         value: v.isEmpty ? null : v,
                                       );
                                     }),
-                                    const SizedBox(height: 8),
-                                    _labeledField('Freies Notizfeld', _notesCtrl, minLines: 1, maxLines: 2, focusNode: _notesNode, onChanged: (v) {
+                                    const SizedBox(height: 12),
+                                    _labeledField('Freies Notizfeld', _notesCtrl, minLines: 1, maxLines: 2, expandable: true, focusNode: _notesNode, onChanged: (v) {
                                       _debouncedUpdate(
                                         uid: uid,
                                         date: tomorrow,
@@ -925,17 +1062,36 @@ class _DayScreenState extends ConsumerState<DayScreen> {
     );
   }
 
-  Widget _labeledField(String label, TextEditingController controller, {int? maxLines = 1, int? minLines, FocusNode? focusNode, required ValueChanged<String> onChanged}) {
+  final Map<TextEditingController, bool> _expandedFields = {};
+
+  Widget _labeledField(String label, TextEditingController controller, {int? maxLines = 1, int? minLines, int? maxLength, bool expandable = false, FocusNode? focusNode, required ValueChanged<String> onChanged}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: 6),
+        if (expandable)
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), minimumSize: const Size(0, 0)),
+              onPressed: () => setState(() => _expandedFields[controller] = !(_expandedFields[controller] ?? false)),
+              child: Builder(
+                builder: (context) {
+                  final expanded = _expandedFields[controller] ?? false;
+                  final textLen = controller.text.trim().length;
+                  final show = textLen >= 50 || expanded;
+                  return show ? Text(expanded ? 'Weniger anzeigen' : 'Mehr anzeigen') : const SizedBox.shrink();
+                },
+              ),
+            ),
+          ),
         TextField(
           controller: controller,
           focusNode: focusNode,
           minLines: minLines,
-          maxLines: maxLines,
+          maxLines: (expandable && (_expandedFields[controller] ?? false)) ? null : maxLines,
+          maxLength: maxLength,
           decoration: const InputDecoration(
             border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
           ),
@@ -970,22 +1126,27 @@ class _DayScreenState extends ConsumerState<DayScreen> {
           runSpacing: 8,
           children: [
             for (var i = 1; i <= emojis.length; i++)
-              GestureDetector(
-                onTap: () => onSelect(i),
-                child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 200),
-                  curve: Curves.easeInOut,
-                  opacity: (value ?? 0) >= i ? 1.0 : 0.6,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: (value ?? 0) >= i ? active.withValues(alpha: 0.12) : Colors.transparent,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: (value ?? 0) >= i ? active : inactive),
-                    ),
-                    child: Text(
-                      emojis[i - 1],
-                      style: const TextStyle(fontSize: 18, fontFamilyFallback: ['Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji']),
+              Semantics(
+                label: '$label: $i von ${emojis.length}',
+                button: true,
+                selected: (value ?? 0) >= i,
+                child: GestureDetector(
+                  onTap: () => onSelect(i),
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeInOut,
+                    opacity: (value ?? 0) >= i ? 1.0 : 0.6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: (value ?? 0) >= i ? active.withValues(alpha: 0.12) : Colors.transparent,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: (value ?? 0) >= i ? active : inactive),
+                      ),
+                      child: Text(
+                        emojis[i - 1],
+                        style: const TextStyle(fontSize: 18, fontFamilyFallback: ['Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji']),
+                      ),
                     ),
                   ),
                 ),
@@ -999,7 +1160,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
   String _aggregateMorning() {
     String part(String title, String v) => v.isEmpty ? '' : '$title: $v';
     final parts = [
-      part('Gefühl', _morningFeelingCtrl.text.trim()),
+      part('GefÃ¼hl', _morningFeelingCtrl.text.trim()),
       part('Gut heute', _morningGoodCtrl.text.trim()),
       part('Fokus', _morningFocusCtrl.text.trim()),
     ].where((e) => e.isNotEmpty).toList();
@@ -1007,22 +1168,24 @@ class _DayScreenState extends ConsumerState<DayScreen> {
   }
 
   void _saveGoals(String uid, DateTime date) {
-    final list = _goalCtrls.map((c) => c.text.trim()).where((e) => e.isNotEmpty).toList();
+    final list = List<String>.generate(3, (i) => _goalCtrls[i].text.trim());
+    final allEmpty = list.every((e) => e.isEmpty);
     _debouncedUpdate(
       uid: uid,
       date: date,
       fieldPath: 'planning.goals',
-      value: list.isEmpty ? null : list,
+      value: allEmpty ? null : list,
     );
   }
 
   void _saveTodos(String uid, DateTime date) {
-    final list = _todoCtrls.map((c) => c.text.trim()).where((e) => e.isNotEmpty).toList();
+    final list = List<String>.generate(3, (i) => _todoCtrls[i].text.trim());
+    final allEmpty = list.every((e) => e.isEmpty);
     _debouncedUpdate(
       uid: uid,
       date: date,
       fieldPath: 'planning.todos',
-      value: list.isEmpty ? null : list,
+      value: allEmpty ? null : list,
     );
   }
 }
