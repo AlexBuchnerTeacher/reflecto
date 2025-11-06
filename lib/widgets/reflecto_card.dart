@@ -31,21 +31,23 @@ class _ReflectoCardState extends State<ReflectoCard> {
 
   @override
   Widget build(BuildContext context) {
-    final baseColor = Theme.of(context).colorScheme.surface;
-    final activeBg = const Color(0xFFF8FBFF);
+    final cs = Theme.of(context).colorScheme;
+    final baseColor = cs.surfaceContainerHigh;
+    final activeBg = cs.surfaceContainerHighest;
     final isActive = widget.isActive;
     final bg = isActive ? activeBg : baseColor;
-    final blur = isActive ? 8.0 : (_hover ? 6.0 : 2.0);
-    const shadowColor = Color(0x262E7DFA); // rgba(46,125,250,0.15)
-    final opacity = isActive ? 1.0 : 0.92;
+    final blur = isActive ? 10.0 : (_hover ? 8.0 : 4.0);
+    final shadowColor = Colors.black.withValues(alpha: Theme.of(context).brightness == Brightness.dark ? 0.35 : 0.08);
+    final borderColor = cs.outlineVariant.withValues(alpha: 0.5);
 
     final card = AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeInOut,
       margin: widget.margin,
       decoration: BoxDecoration(
-        color: bg.withValues(alpha: opacity),
+        color: bg,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: borderColor, width: 1),
         boxShadow: [
           BoxShadow(
             color: shadowColor,
