@@ -34,3 +34,7 @@ coverage/
 # Firebase (keep firebase_options.dart committed; keys are safe for web)
 # firebase_app_id_file.json
 
+# Backups / temp
+*.bak
+*.orig
+*.tmp
