@@ -35,9 +35,9 @@ class _AuthScreenState extends State<AuthScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -77,7 +77,9 @@ class _AuthScreenState extends State<AuthScreen> {
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
                       labelText: 'E-Mail',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(12)),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -88,7 +90,9 @@ class _AuthScreenState extends State<AuthScreen> {
                     obscureText: true,
                     decoration: const InputDecoration(
                       labelText: 'Passwort',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(12)),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -101,7 +105,12 @@ class _AuthScreenState extends State<AuthScreen> {
                           text: 'Einloggen',
                           onPressed: _loading
                               ? null
-                              : () => _handle(() => _auth.signInWithEmail(_emailCtrl.text.trim(), _pwdCtrl.text.trim())),
+                              : () => _handle(
+                                  () => _auth.signInWithEmail(
+                                    _emailCtrl.text.trim(),
+                                    _pwdCtrl.text.trim(),
+                                  ),
+                                ),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -110,7 +119,12 @@ class _AuthScreenState extends State<AuthScreen> {
                           text: 'Registrieren',
                           onPressed: _loading
                               ? null
-                              : () => _handle(() => _auth.registerWithEmail(_emailCtrl.text.trim(), _pwdCtrl.text.trim())),
+                              : () => _handle(
+                                  () => _auth.registerWithEmail(
+                                    _emailCtrl.text.trim(),
+                                    _pwdCtrl.text.trim(),
+                                  ),
+                                ),
                         ),
                       ),
                     ],
@@ -124,7 +138,9 @@ class _AuthScreenState extends State<AuthScreen> {
                   ReflectoButton(
                     text: 'Mit Google anmelden',
                     icon: Icons.login,
-                    onPressed: _loading ? null : () => _handle(_auth.signInWithGoogle),
+                    onPressed: _loading
+                        ? null
+                        : () => _handle(_auth.signInWithGoogle),
                   ),
 
                   if (_loading) ...[

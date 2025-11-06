@@ -51,7 +51,10 @@ class JournalEntry {
     final planning = Planning.fromMap(map['planning'] as Map<String, dynamic>?);
     final morning = Morning.fromMap(map['morning'] as Map<String, dynamic>?);
     final evening = Evening.fromMap(map['evening'] as Map<String, dynamic>?);
-    final ratings = Ratings.fromMap(map['ratings'] as Map<String, dynamic>?, fallback: map);
+    final ratings = Ratings.fromMap(
+      map['ratings'] as Map<String, dynamic>?,
+      fallback: map,
+    );
 
     return JournalEntry(
       id: id,
@@ -102,8 +105,12 @@ class Planning {
 
   factory Planning.fromMap(Map<String, dynamic>? map) {
     if (map == null) return const Planning();
-    final goals = (map['goals'] is List) ? List<String>.from(map['goals']) : <String>[];
-    final todos = (map['todos'] is List) ? List<String>.from(map['todos']) : <String>[];
+    final goals = (map['goals'] is List)
+        ? List<String>.from(map['goals'])
+        : <String>[];
+    final todos = (map['todos'] is List)
+        ? List<String>.from(map['todos'])
+        : <String>[];
     return Planning(
       goals: goals,
       todos: todos,
@@ -113,11 +120,11 @@ class Planning {
   }
 
   Map<String, dynamic> toMap() => {
-        'goals': goals,
-        'todos': todos,
-        'reflection': reflection,
-        'notes': notes,
-      };
+    'goals': goals,
+    'todos': todos,
+    'reflection': reflection,
+    'notes': notes,
+  };
 
   Planning copyWith({
     List<String>? goals,
@@ -140,11 +147,7 @@ class Morning {
   final String goodThing;
   final String focus;
 
-  const Morning({
-    this.mood = '',
-    this.goodThing = '',
-    this.focus = '',
-  });
+  const Morning({this.mood = '', this.goodThing = '', this.focus = ''});
 
   factory Morning.fromMap(Map<String, dynamic>? map) {
     if (map == null) return const Morning();
@@ -156,16 +159,16 @@ class Morning {
   }
 
   Map<String, dynamic> toMap() => {
-        'mood': mood,
-        'goodThing': goodThing,
-        'focus': focus,
-      };
+    'mood': mood,
+    'goodThing': goodThing,
+    'focus': focus,
+  };
 
   Morning copyWith({String? mood, String? goodThing, String? focus}) => Morning(
-        mood: mood ?? this.mood,
-        goodThing: goodThing ?? this.goodThing,
-        focus: focus ?? this.focus,
-      );
+    mood: mood ?? this.mood,
+    goodThing: goodThing ?? this.goodThing,
+    focus: focus ?? this.focus,
+  );
 }
 
 /// Abendreflexion.
@@ -192,6 +195,7 @@ class Evening {
       }
       return const [false, false, false];
     }
+
     return Evening(
       good: (map['good'] ?? '') as String,
       learned: (map['learned'] ?? '') as String,
@@ -202,19 +206,24 @@ class Evening {
   }
 
   Map<String, dynamic> toMap() => {
-        'good': good,
-        'learned': learned,
-        'improve': improve,
-        'gratitude': gratitude,
-        'todosCompletion': todosCompletion,
-      };
+    'good': good,
+    'learned': learned,
+    'improve': improve,
+    'gratitude': gratitude,
+    'todosCompletion': todosCompletion,
+  };
 
-  Evening copyWith({String? good, String? learned, String? improve, String? gratitude}) => Evening(
-        good: good ?? this.good,
-        learned: learned ?? this.learned,
-        improve: improve ?? this.improve,
-        gratitude: gratitude ?? this.gratitude,
-      );
+  Evening copyWith({
+    String? good,
+    String? learned,
+    String? improve,
+    String? gratitude,
+  }) => Evening(
+    good: good ?? this.good,
+    learned: learned ?? this.learned,
+    improve: improve ?? this.improve,
+    gratitude: gratitude ?? this.gratitude,
+  );
 }
 
 /// Tagesbewertungen.
@@ -226,7 +235,10 @@ class Ratings {
 
   const Ratings({this.mood, this.focus, this.energy, this.happiness});
 
-  factory Ratings.fromMap(Map<String, dynamic>? map, {Map<String, dynamic>? fallback}) {
+  factory Ratings.fromMap(
+    Map<String, dynamic>? map, {
+    Map<String, dynamic>? fallback,
+  }) {
     if (map != null) {
       return Ratings(
         mood: (map['mood'] as num?)?.toInt(),
@@ -247,13 +259,14 @@ class Ratings {
   }
 
   Map<String, dynamic> toMap() => {
-        'mood': mood,
-        'focus': focus,
-        'energy': energy,
-        'happiness': happiness,
-      };
+    'mood': mood,
+    'focus': focus,
+    'energy': energy,
+    'happiness': happiness,
+  };
 
-  Ratings copyWith({int? mood, int? focus, int? energy, int? happiness}) => Ratings(
+  Ratings copyWith({int? mood, int? focus, int? energy, int? happiness}) =>
+      Ratings(
         mood: mood ?? this.mood,
         focus: focus ?? this.focus,
         energy: energy ?? this.energy,

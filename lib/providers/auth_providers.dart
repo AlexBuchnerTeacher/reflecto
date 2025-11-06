@@ -9,4 +9,3 @@ final userIdProvider = Provider<String?>((ref) {
   final auth = ref.watch(authStateChangesProvider).value;
   return auth?.uid;
 });
-

@@ -20,6 +20,10 @@ class DayScreen extends ConsumerStatefulWidget {
 
 class _DayScreenState extends ConsumerState<DayScreen> {
   late DateTime _selected;
+  bool _expMorning = false;
+  // ignore: unused_field
+  bool _expPlanning = false;
+  bool _expEvening = false;
 
   // Evening (today)
   final _eveningGoodCtrl = TextEditingController();
@@ -67,6 +71,33 @@ class _DayScreenState extends ConsumerState<DayScreen> {
     final now = DateTime.now();
     final init = widget.initialDate ?? now;
     _selected = DateTime(init.year, init.month, init.day);
+    _setDefaultExpandedForDate();
+  }
+
+  void _setDefaultExpandedForDate() {
+    final today = DateTime.now();
+    final selected = _selected;
+    final isToday = DateUtils.isSameDay(selected, today);
+    final isFuture = selected.isAfter(DateTime(today.year, today.month, today.day));
+    if (isFuture) {
+      _expMorning = false;
+      _expEvening = false;
+      _expPlanning = true;
+    } else if (isToday) {
+      if (DateTime.now().hour < 12) {
+        _expMorning = true;
+        _expPlanning = false;
+        _expEvening = false;
+      } else {
+        _expMorning = false;
+        _expPlanning = false;
+        _expEvening = true;
+      }
+    } else {
+      _expMorning = false;
+      _expPlanning = false;
+      _expEvening = true;
+    }
   }
 
   @override
@@ -202,14 +233,14 @@ class _DayScreenState extends ConsumerState<DayScreen> {
         return null;
       }
     }
-    return cur as T?;
+    if (cur is T) return cur;
+    return null;
   }
 
   void _setCtrl(TextEditingController c, String? v, {FocusNode? focusNode}) {
-    if (v == null) return; // kein Ãœberschreiben mit leer bei fehlendem Feld
-    if (focusNode != null && focusNode.hasFocus) return; // wÃ¤hrend aktiver Eingabe nicht Ã¼berschreiben
+    if (v == null) return; // kein Überschreiben mit leer bei fehlendem Feld
+    if (focusNode != null && focusNode.hasFocus) return; // während aktiver Eingabe nicht überschreiben
     if (c.text != v) {
-      // Auswahl freundlich aktualisieren
       final selection = TextSelection.collapsed(offset: v.length);
       c.value = c.value.copyWith(text: v, selection: selection, composing: TextRange.empty);
     }
@@ -218,6 +249,56 @@ class _DayScreenState extends ConsumerState<DayScreen> {
   String _formatDateLabel(DateTime d) {
     String two(int n) => n.toString().padLeft(2, '0');
     return '${two(d.day)}.${two(d.month)}.${d.year}';
+  }
+
+  Widget _statusChip({required bool pending, required bool fromCache}) {
+    String text;
+    Color color;
+    if (pending) {
+      text = 'Synchronisiere…';
+      color = const Color(0xFF2E7DFA).withValues(alpha: 0.10);
+    } else if (fromCache) {
+      text = 'Offline';
+      color = const Color(0xFFE57A00).withValues(alpha: 0.10);
+    } else {
+      text = '✓ Gespeichert';
+      color = const Color(0xFF4CAF50).withValues(alpha: 0.10);
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFD9E3F0)),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          fontFamilyFallback: ['Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji'],
+        ),
+      ),
+    );
+  }
+
+  Widget _progressChip(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F8FE),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFD9E3F0)),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          fontFamilyFallback: ['Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji'],
+        ),
+      ),
+    );
   }
 
   @override
@@ -251,6 +332,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
           final top = m?['rating${key[0].toUpperCase()}${key.substring(1)}'];
           return (top is num) ? top.toInt() : null;
         }
+        final moodFromSnap = readRating(todayData, 'mood');
         final focusFromSnap = readRating(todayData, 'focus');
         final energyFromSnap = readRating(todayData, 'energy');
         final happinessFromSnap = readRating(todayData, 'happiness');
@@ -258,7 +340,6 @@ class _DayScreenState extends ConsumerState<DayScreen> {
         _ratingFocusLocal ??= focusFromSnap;
         _ratingEnergyLocal ??= energyFromSnap;
         _ratingHappinessLocal ??= happinessFromSnap;
- 
 
         // Morning/Evening current values into controllers (skip while focused)
         _setCtrl(_morningFeelingCtrl, _readAt<String>(todayData, ['morning', 'mood']) ?? _readAt<String>(todayData, ['morning', 'feeling']), focusNode: _morningFeelingNode);
@@ -274,6 +355,8 @@ class _DayScreenState extends ConsumerState<DayScreen> {
         final tData = tDoc.value?.data();
         _docCache[_dateId(_selected)] = todayData;
         _docCache[_dateId(tomorrow)] = tData;
+        final tPending = tDoc.value?.metadata.hasPendingWrites ?? false;
+        final tFromCache = tDoc.value?.metadata.isFromCache ?? false;
         final goalsDyn = _readAt<List>(tData, ['planning', 'goals']);
         final todosDyn = _readAt<List>(tData, ['planning', 'todos']);
         final goals = (goalsDyn ?? const <dynamic>[]).map((e) => e?.toString() ?? '').toList();
@@ -285,19 +368,27 @@ class _DayScreenState extends ConsumerState<DayScreen> {
         _setCtrl(_attitudeCtrl, _readAt<String>(tData, ['planning', 'reflection']), focusNode: _attitudeNode);
         _setCtrl(_notesCtrl, _readAt<String>(tData, ['planning', 'notes']), focusNode: _notesNode);
 
-        // Review der Planung fuer den ausgewaehlten Tag
+        // Review der Planung für den ausgewählten Tag
         final curGoals = (_readAt<List>(todayData, ['planning', 'goals']) ?? []).cast<String>();
         final curTodos = (_readAt<List>(todayData, ['planning', 'todos']) ?? []).cast<String>();
         final completionDyn = _readAt<List>(todayData, ['evening', 'todosCompletion']) ?? const <dynamic>[];
         final completion = completionDyn.map((e) => e == true).toList();
-        _yesterdayGoalChecks = List<bool>.generate(curGoals.length.clamp(0, 3), (i) => false);
-        _yesterdayTodoChecks = List<bool>.generate(curTodos.length.clamp(0, 3), (i) => i < completion.length ? completion[i] : false);
+        final goalsCompletionDyn = _readAt<List>(todayData, ['evening', 'goalsCompletion']) ?? const <dynamic>[];
+        final goalsCompletion = goalsCompletionDyn.map((e) => e == true).toList();
+        final desiredGoalLen = curGoals.length.clamp(0, 3);
+        if (_yesterdayGoalChecks.isEmpty || _yesterdayGoalChecks.length != desiredGoalLen) {
+          _yesterdayGoalChecks = List<bool>.generate(desiredGoalLen, (i) => i < goalsCompletion.length ? goalsCompletion[i] : false);
+        }
+        final desiredTodoLen = curTodos.length.clamp(0, 3);
+        if (_yesterdayTodoChecks.isEmpty || _yesterdayTodoChecks.length != desiredTodoLen) {
+          _yesterdayTodoChecks = List<bool>.generate(desiredTodoLen, (i) => i < completion.length ? completion[i] : false);
+        }
 
         final isToday = DateUtils.isSameDay(_selected, DateTime.now());
 
         return Scaffold(
           appBar: AppBar(
-            title: Text('Tagesansicht - ' + _formatDateLabel(_selected) + (isToday ? ' (heute)' : '')),
+            title: Text('Tagesansicht - ${_formatDateLabel(_selected)}${isToday ? ' (heute)' : ''}'),
             centerTitle: true,
             actions: [
               if (pending || fromCache)
@@ -320,292 +411,417 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            tooltip: 'Gestern',
-                            onPressed: () => setState(() => _selected = _selected.subtract(const Duration(days: 1))),
-                            icon: const Icon(Icons.chevron_left_rounded),
-                          ),
-                          if (!isToday)
-                            TextButton(
-                              onPressed: () {
-                                final t = DateTime.now();
-                                setState(() => _selected = DateTime(t.year, t.month, t.day));
-                              },
-                              child: const Text('Heute'),
-                            ),
-                          IconButton(
-                            tooltip: 'Morgen',
-                            onPressed: () => setState(() => _selected = _selected.add(const Duration(days: 1))),
-                            icon: const Icon(Icons.chevron_right_rounded),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      // Evening reflection (today)
-                      ReflectoCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          spacing: 8,
+                          runSpacing: 4,
                           children: [
-                            const Text('\u{1F307} Abendreflexion', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-                            const SizedBox(height: 4),
-                            const Text('Reflektiere deinen Tag und schlie\u{00DF}e ihn bewusst ab.'),
-                            const SizedBox(height: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                _emojiBar(
-                                  context,
-                                  label: 'Stimmung',
-                                  emojis: const ['\u{1F614}','\u{1F610}','\u{1F642}','\u{1F60A}','\u{1F60E}'],
-                                  value: (todayData?['ratings']?['mood'] as num?)?.toInt(),
-                                  onSelect: (v) {
-                                    final updater = ref.read(updateDayFieldProvider);
-                                    updater(uid, _selected, 'ratings.mood', v).then((_) => _maybeShowSavedSnack());
-                                  },
-                                ),
-                                const SizedBox(height: 12),
-                                _emojiBar(
-                                  context,
-                                  label: 'Energie',
-                                  emojis: const ['\u{1F50B}','\u{1F50B}','\u{1F50B}','\u{1F50B}','\u{1F50B}'],
-                                  value: (todayData?['ratings']?['energy'] as num?)?.toInt(),
-                                  onSelect: (v) {
-                                    final updater = ref.read(updateDayFieldProvider);
-                                    updater(uid, _selected, 'ratings.energy', v).then((_) => _maybeShowSavedSnack());
-                                  },
-                                ),
-                                const SizedBox(height: 12),
-                                _emojiBar(
-                                  context,
-                                  label: 'Fokus',
-                                  emojis: const ['\u{1F3AF}','\u{1F3AF}','\u{1F3AF}','\u{1F3AF}','\u{1F3AF}'],
-                                  value: (todayData?['ratings']?['focus'] as num?)?.toInt(),
-                                  onSelect: (v) {
-                                    final updater = ref.read(updateDayFieldProvider);
-                                    updater(uid, _selected, 'ratings.focus', v).then((_) => _maybeShowSavedSnack());
-                                  },
-                                ),
-                              ],
+                            _statusChip(pending: tPending, fromCache: tFromCache),
+                            IconButton(
+                              tooltip: 'Gestern',
+                              onPressed: () => setState(() {
+                                _selected = _selected.subtract(const Duration(days: 1));
+                                _setDefaultExpandedForDate();
+                              }),
+                              icon: const Icon(Icons.chevron_left_rounded),
                             ),
-                            const SizedBox(height: 12),
-                            const Text('R\u{00FC}ckblick auf deine Planung', style: TextStyle(fontWeight: FontWeight.w600)),
-                            const SizedBox(height: 8),
-                            if (curGoals.isNotEmpty) ...[
-                              const Text('Ziele', style: TextStyle(color: Colors.black54)),
-                              const SizedBox(height: 4),
-                               for (var i = 0; i < curGoals.length && i < 3; i++)
-                                CheckboxListTile(
-                                  contentPadding: EdgeInsets.zero,
-                                  dense: true,
-                                  value: _yesterdayGoalChecks[i],
-                                  onChanged: (v) => setState(() => _yesterdayGoalChecks[i] = v ?? false),
-                                  title: Text(curGoals[i]),
-                                  controlAffinity: ListTileControlAffinity.leading,
-                                ),
-                            ] else const Text('Keine Ziele von gestern vorhanden.'),
-                            const SizedBox(height: 8),
-                            if (curTodos.isNotEmpty) ...[
-                              const Text('To-dos', style: TextStyle(color: Colors.black54)),
-                              const SizedBox(height: 4),
-                               for (var i = 0; i < curTodos.length && i < 3; i++)
-                                CheckboxListTile(
-                                  contentPadding: EdgeInsets.zero,
-                                  dense: true,
-                                  value: _yesterdayTodoChecks[i],
-                                  onChanged: (v) async {
-                                    final val = v ?? false;
-                                    setState(() => _yesterdayTodoChecks[i] = val);
-                                    try {
-                                      await FirestoreService.instance.updateTodoCompletion(uid, _selected, i, val);
-                                      _maybeShowSavedSnack();
-                                    } catch (_) {}
-                                  },
-                                  title: Opacity(
-                                    opacity: _yesterdayTodoChecks[i] ? 0.6 : 1.0,
-                                    child: Text(curTodos[i]),
-                                  ),
-                                  controlAffinity: ListTileControlAffinity.leading,
-                                ),
-                            ] else const Text('Keine To-dos von gestern vorhanden.'),
-                            const SizedBox(height: 12),
-
-                            _labeledField('Was lief heute gut?', _eveningGoodCtrl, focusNode: _eveningGoodNode, onChanged: (v) {
-                              _debouncedUpdate(
-                                uid: uid,
-                                date: _selected,
-                                fieldPath: 'evening.good',
-                                value: v.isEmpty ? null : v,
-                                alsoAggregateTo: 'evening.summary',
-                                aggregateBuilder: _aggregateEvening,
-                              );
-                            }),
-                            const SizedBox(height: 8),
-                            _labeledField('Was habe ich gelernt oder erkannt?', _eveningLearnedCtrl, focusNode: _eveningLearnedNode, onChanged: (v) {
-                              _debouncedUpdate(
-                                uid: uid,
-                                date: _selected,
-                                fieldPath: 'evening.learned',
-                                value: v.isEmpty ? null : v,
-                                alsoAggregateTo: 'evening.summary',
-                                aggregateBuilder: _aggregateEvening,
-                              );
-                            }),
-                            const SizedBox(height: 8),
-                            _labeledField('Was h\u{00E4}tte besser laufen k\u{00F6}nnen?', _eveningBetterCtrl, focusNode: _eveningBetterNode, onChanged: (v) {
-                              _debouncedUpdate(
-                                uid: uid,
-                                date: _selected,
-                                fieldPath: 'evening.improve',
-                                value: v.isEmpty ? null : v,
-                                alsoAggregateTo: 'evening.summary',
-                                aggregateBuilder: _aggregateEvening,
-                              );
-                            }),
-                            const SizedBox(height: 8),
-                            _labeledField('Wof\u{00FC}r bin ich dankbar?', _eveningGratefulCtrl, focusNode: _eveningGratefulNode, onChanged: (v) {
-                              _debouncedUpdate(
-                                uid: uid,
-                                date: _selected,
-                                fieldPath: 'evening.gratitude',
-                                value: v.isEmpty ? null : v,
-                                alsoAggregateTo: 'evening.summary',
-                                aggregateBuilder: _aggregateEvening,
-                              );
-                            }),
-                            const SizedBox(height: 12),
-                            ReflectoRatingBar(
-  focus: (_ratingFocusLocal ?? focusFromSnap),
-  energy: (_ratingEnergyLocal ?? energyFromSnap),
-  happiness: (_ratingHappinessLocal ?? happinessFromSnap),
-                              onFocus: (v) {
-                                setState(() => _ratingFocusLocal = v);
-                                final updater = ref.read(updateDayFieldProvider);
-                                updater(uid, _selected, 'ratings.focus', v)
-                                    .then((_) => _maybeShowSavedSnack())
-                                    .catchError((_) {});
-                              },
-                              onEnergy: (v) {
-                                setState(() => _ratingEnergyLocal = v);
-                                final updater = ref.read(updateDayFieldProvider);
-                                updater(uid, _selected, 'ratings.energy', v)
-                                    .then((_) => _maybeShowSavedSnack())
-                                    .catchError((_) {});
-                              },
-                              onHappiness: (v) {
-                                setState(() => _ratingHappinessLocal = v);
-                                final updater = ref.read(updateDayFieldProvider);
-                                updater(uid, _selected, 'ratings.happiness', v)
-                                    .then((_) => _maybeShowSavedSnack())
-                                    .catchError((_) {});
-                              },
-),
+                            if (!isToday)
+                              TextButton(
+                                onPressed: () {
+                                  final t = DateTime.now();
+                                  setState(() {
+                                    _selected = DateTime(t.year, t.month, t.day);
+                                    _setDefaultExpandedForDate();
+                                  });
+                                },
+                                child: const Text('Heute'),
+                              ),
+                            IconButton(
+                              tooltip: 'Morgen',
+                              onPressed: () => setState(() {
+                                _selected = _selected.add(const Duration(days: 1));
+                                _setDefaultExpandedForDate();
+                              }),
+                              icon: const Icon(Icons.chevron_right_rounded),
+                            ),
                           ],
                         ),
-                      ),
 
-                      const SizedBox(height: 24),
+                        const SizedBox(height: 8),
 
-                      // Planning for tomorrow
-                      ReflectoCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('\u{1F5D3} Planung f\u{00FC}r morgen', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-                            const SizedBox(height: 4),
-                            const Text('Definiere klare Ziele und einen ruhigen Fokus fÃ¼r morgen.'),
-                            const SizedBox(height: 12),
-                            const Text('Drei Hauptziele', style: TextStyle(fontWeight: FontWeight.w600)),
-                            const SizedBox(height: 8),
-                            for (var i = 0; i < 3; i++) ...[
-                              _labeledField('Ziel ${i + 1}', _goalCtrls[i], maxLines: 1, focusNode: _goalNodes[i], onChanged: (v) {
+                        // Morning reflection (today)
+                        ReflectoCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Expanded(
+                                    child: Text(
+                                      '🌅 Morgenreflexion',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      softWrap: false,
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w700,
+                                        fontFamilyFallback: ['Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji'],
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Flexible(
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: _progressChip(
+                                      'Felder '
+                                      '${[_morningFeelingCtrl.text.trim(), _morningGoodCtrl.text.trim(), _morningFocusCtrl.text.trim()].where((e) => e.isNotEmpty).length}/3'
+                                      ' · Ratings '
+                                      '${[moodFromSnap, energyFromSnap, focusFromSnap].where((e) => e != null).length}/3',
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: _statusChip(pending: pending, fromCache: fromCache),
+                                  ),
+                                  IconButton(
+                                    tooltip: _expMorning ? 'Einklappen' : 'Aufklappen',
+                                    icon: Icon(_expMorning ? Icons.expand_less_rounded : Icons.expand_more_rounded),
+                                    onPressed: () => setState(() => _expMorning = !_expMorning),
+                                  ),
+                                ],
+                              ),
+                              AnimatedCrossFade(
+                                crossFadeState: _expMorning ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+                                duration: const Duration(milliseconds: 200),
+                                firstChild: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    const SizedBox(height: 12),
+                                    _emojiBar(
+                                      context,
+                                      label: 'Stimmung',
+                                      emojis: const ['😔','😐','🙂','😊','😎'],
+                                      value: (todayData?['ratings']?['mood'] as num?)?.toInt(),
+                                      onSelect: (v) {
+                                        final updater = ref.read(updateDayFieldProvider);
+                                        updater(uid, _selected, 'ratings.mood', v).then((_) => _maybeShowSavedSnack());
+                                      },
+                                    ),
+                                    const SizedBox(height: 12),
+                                    _emojiBar(
+                                      context,
+                                      label: 'Energie',
+                                      emojis: const ['🔋','🔋','🔋','🔋','🔋'],
+                                      value: (todayData?['ratings']?['energy'] as num?)?.toInt(),
+                                      onSelect: (v) {
+                                        final updater = ref.read(updateDayFieldProvider);
+                                        updater(uid, _selected, 'ratings.energy', v).then((_) => _maybeShowSavedSnack());
+                                      },
+                                    ),
+                                    const SizedBox(height: 12),
+                                    _emojiBar(
+                                      context,
+                                      label: 'Fokus',
+                                      emojis: const ['🎯','🎯','🎯','🎯','🎯'],
+                                      value: (todayData?['ratings']?['focus'] as num?)?.toInt(),
+                                      onSelect: (v) {
+                                        final updater = ref.read(updateDayFieldProvider);
+                                        updater(uid, _selected, 'ratings.focus', v).then((_) => _maybeShowSavedSnack());
+                                      },
+                                    ),
+                                    const SizedBox(height: 12),
+                                    _labeledField('Wie fühle ich mich heute?', _morningFeelingCtrl, focusNode: _morningFeelingNode, onChanged: (v) {
+                                      _debouncedUpdate(
+                                        uid: uid,
+                                        date: _selected,
+                                        fieldPath: 'morning.mood',
+                                        value: v,
+                                        alsoAggregateTo: 'morningAggregate',
+                                        aggregateBuilder: _aggregateMorning,
+                                      );
+                                    }),
+                                    const SizedBox(height: 8),
+                                    _labeledField('Was macht den Tag heute gut?', _morningGoodCtrl, focusNode: _morningGoodNode, onChanged: (v) {
+                                      _debouncedUpdate(
+                                        uid: uid,
+                                        date: _selected,
+                                        fieldPath: 'morning.goodThing',
+                                        value: v,
+                                        alsoAggregateTo: 'morningAggregate',
+                                        aggregateBuilder: _aggregateMorning,
+                                      );
+                                    }),
+                                    const SizedBox(height: 8),
+                                    _labeledField('Worauf will ich heute besonders achten?', _morningFocusCtrl, focusNode: _morningFocusNode, onChanged: (v) {
+                                      _debouncedUpdate(
+                                        uid: uid,
+                                        date: _selected,
+                                        fieldPath: 'morning.focus',
+                                        value: v,
+                                        alsoAggregateTo: 'morningAggregate',
+                                        aggregateBuilder: _aggregateMorning,
+                                      );
+                                    }),
+                                  ],
+                                ),
+                                secondChild: const SizedBox.shrink(),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // Evening reflection (today)
+                        ReflectoCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Expanded(
+                                    child: Text(
+                                      '🌇 Abendreflexion',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      softWrap: false,
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w700,
+                                        fontFamilyFallback: ['Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji'],
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Flexible(
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                  child: _progressChip(
+                                        'Ziele '
+                                        '${_yesterdayGoalChecks.where((e) => e).length}/${curGoals.length.clamp(0, 3)}'
+                                        ' · To-dos '
+                                        '${_yesterdayTodoChecks.where((e) => e).length}/${curTodos.length.clamp(0, 3)}'
+                                        ' · Felder '
+                                        '${[_eveningGoodCtrl.text.trim(), _eveningLearnedCtrl.text.trim(), _eveningBetterCtrl.text.trim(), _eveningGratefulCtrl.text.trim()].where((e) => e.isNotEmpty).length}/4',
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: _statusChip(pending: pending, fromCache: fromCache),
+                                  ),
+                                  IconButton(
+                                    tooltip: _expEvening ? 'Einklappen' : 'Aufklappen',
+                                    icon: Icon(_expEvening ? Icons.expand_less_rounded : Icons.expand_more_rounded),
+                                    onPressed: () => setState(() => _expEvening = !_expEvening),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              AnimatedCrossFade(
+                                crossFadeState: _expEvening ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+                                duration: const Duration(milliseconds: 200),
+                                firstChild: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text('Reflektiere deinen Tag und schließe ihn bewusst ab.'),
+                                    const SizedBox(height: 12),
+                                    const SizedBox(height: 8),
+                                    const Text('Rückblick auf deine Planung', style: TextStyle(fontWeight: FontWeight.w600)),
+                                    const SizedBox(height: 8),
+                                    if (curGoals.isNotEmpty) ...[
+                                      const Text('Ziele', style: TextStyle(color: Colors.black54)),
+                                      const SizedBox(height: 4),
+                                      for (var i = 0; i < curGoals.length && i < 3; i++)
+                                        CheckboxListTile(
+                                          contentPadding: EdgeInsets.zero,
+                                          dense: true,
+                                          value: _yesterdayGoalChecks[i],
+                                          onChanged: (v) async {
+                                            final val = v ?? false;
+                                            setState(() => _yesterdayGoalChecks[i] = val);
+                                            try {
+                                              final updater = ref.read(updateDayFieldProvider);
+                                              await updater(uid, _selected, 'evening.goalsCompletion', List<bool>.from(_yesterdayGoalChecks));
+                                              _maybeShowSavedSnack();
+                                            } catch (_) {}
+                                          },
+                                          title: Text(curGoals[i]),
+                                          controlAffinity: ListTileControlAffinity.leading,
+                                        ),
+                                    ] else
+                                      const Text('Keine Ziele von gestern vorhanden.'),
+                                    const SizedBox(height: 8),
+                                    if (curTodos.isNotEmpty) ...[
+                                      const Text('To-dos', style: TextStyle(color: Colors.black54)),
+                                      const SizedBox(height: 4),
+                                      for (var i = 0; i < curTodos.length && i < 3; i++)
+                                        CheckboxListTile(
+                                          contentPadding: EdgeInsets.zero,
+                                          dense: true,
+                                          value: _yesterdayTodoChecks[i],
+                                          onChanged: (v) async {
+                                            final val = v ?? false;
+                                            setState(() => _yesterdayTodoChecks[i] = val);
+                                            try {
+                                              final updater = ref.read(updateDayFieldProvider);
+                                              await updater(uid, _selected, 'evening.todosCompletion', List<bool>.from(_yesterdayTodoChecks));
+                                              _maybeShowSavedSnack();
+                                            } catch (_) {}
+                                          },
+                                          title: Opacity(
+                                            opacity: _yesterdayTodoChecks[i] ? 0.6 : 1.0,
+                                            child: Text(curTodos[i]),
+                                          ),
+                                          controlAffinity: ListTileControlAffinity.leading,
+                                        ),
+                                    ] else
+                                      const Text('Keine To-dos von gestern vorhanden.'),
+                                    const SizedBox(height: 12),
+
+                                    _labeledField('Was lief heute gut?', _eveningGoodCtrl, focusNode: _eveningGoodNode, onChanged: (v) {
+                                      _debouncedUpdate(
+                                        uid: uid,
+                                        date: _selected,
+                                        fieldPath: 'evening.good',
+                                        value: v.isEmpty ? null : v,
+                                        alsoAggregateTo: 'evening.summary',
+                                        aggregateBuilder: _aggregateEvening,
+                                      );
+                                    }),
+                                    const SizedBox(height: 8),
+                                    _labeledField('Was habe ich gelernt oder erkannt?', _eveningLearnedCtrl, focusNode: _eveningLearnedNode, onChanged: (v) {
+                                      _debouncedUpdate(
+                                        uid: uid,
+                                        date: _selected,
+                                        fieldPath: 'evening.learned',
+                                        value: v.isEmpty ? null : v,
+                                        alsoAggregateTo: 'evening.summary',
+                                        aggregateBuilder: _aggregateEvening,
+                                      );
+                                    }),
+                                    const SizedBox(height: 8),
+                                    _labeledField('Was hätte besser laufen können?', _eveningBetterCtrl, focusNode: _eveningBetterNode, onChanged: (v) {
+                                      _debouncedUpdate(
+                                        uid: uid,
+                                        date: _selected,
+                                        fieldPath: 'evening.improve',
+                                        value: v.isEmpty ? null : v,
+                                        alsoAggregateTo: 'evening.summary',
+                                        aggregateBuilder: _aggregateEvening,
+                                      );
+                                    }),
+                                    const SizedBox(height: 8),
+                                    _labeledField('Wofür bin ich dankbar?', _eveningGratefulCtrl, focusNode: _eveningGratefulNode, onChanged: (v) {
+                                      _debouncedUpdate(
+                                        uid: uid,
+                                        date: _selected,
+                                        fieldPath: 'evening.gratitude',
+                                        value: v.isEmpty ? null : v,
+                                        alsoAggregateTo: 'evening.summary',
+                                        aggregateBuilder: _aggregateEvening,
+                                      );
+                                    }),
+                                    const SizedBox(height: 12),
+                                    ReflectoRatingBar(
+                                      focus: pending ? (_ratingFocusLocal ?? focusFromSnap) : focusFromSnap,
+                                      energy: pending ? (_ratingEnergyLocal ?? energyFromSnap) : energyFromSnap,
+                                      happiness: pending ? (_ratingHappinessLocal ?? happinessFromSnap) : happinessFromSnap,
+                                      onFocus: (v) {
+                                        setState(() => _ratingFocusLocal = v);
+                                        final updater = ref.read(updateDayFieldProvider);
+                                        updater(uid, _selected, 'ratings.focus', v)
+                                            .then((_) => _maybeShowSavedSnack())
+                                            .catchError((_) {});
+                                      },
+                                      onEnergy: (v) {
+                                        setState(() => _ratingEnergyLocal = v);
+                                        final updater = ref.read(updateDayFieldProvider);
+                                        updater(uid, _selected, 'ratings.energy', v)
+                                            .then((_) => _maybeShowSavedSnack())
+                                            .catchError((_) {});
+                                      },
+                                      onHappiness: (v) {
+                                        setState(() => _ratingHappinessLocal = v);
+                                        final updater = ref.read(updateDayFieldProvider);
+                                        updater(uid, _selected, 'ratings.happiness', v)
+                                            .then((_) => _maybeShowSavedSnack())
+                                            .catchError((_) {});
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                secondChild: const SizedBox.shrink(),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Planning for tomorrow
+                        ReflectoCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('\u{1F5D3} Planung für morgen', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, fontFamilyFallback: ['Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji'])),
+                              const SizedBox(height: 4),
+                              const Text('Definiere klare Ziele und einen ruhigen Fokus für morgen.'),
+                              const SizedBox(height: 12),
+                              const Text('Drei Hauptziele', style: TextStyle(fontWeight: FontWeight.w600)),
+                              const SizedBox(height: 8),
+                              _labeledField('Ziel 1', _goalCtrls[0], maxLines: 1, focusNode: _goalNodes[0], onChanged: (v) {
                                 _saveGoals(uid, tomorrow);
                               }),
                               const SizedBox(height: 8),
-                            ],
-                            const SizedBox(height: 4),
-                            const Text('Drei To-dos', style: TextStyle(fontWeight: FontWeight.w600)),
-                            const SizedBox(height: 8),
-                            for (var i = 0; i < 3; i++) ...[
-                              _labeledField('To-do ${i + 1}', _todoCtrls[i], maxLines: 1, focusNode: _todoNodes[i], onChanged: (v) {
+                              _labeledField('Ziel 2', _goalCtrls[1], maxLines: 1, focusNode: _goalNodes[1], onChanged: (v) {
+                                _saveGoals(uid, tomorrow);
+                              }),
+                              const SizedBox(height: 8),
+                              _labeledField('Ziel 3', _goalCtrls[2], maxLines: 1, focusNode: _goalNodes[2], onChanged: (v) {
+                                _saveGoals(uid, tomorrow);
+                              }),
+                              const SizedBox(height: 4),
+                              const Text('Drei To-dos', style: TextStyle(fontWeight: FontWeight.w600)),
+                              const SizedBox(height: 8),
+                              _labeledField('To-do 1', _todoCtrls[0], maxLines: 1, focusNode: _todoNodes[0], onChanged: (v) {
                                 _saveTodos(uid, tomorrow);
                               }),
                               const SizedBox(height: 8),
+                              _labeledField('To-do 2', _todoCtrls[1], maxLines: 1, focusNode: _todoNodes[1], onChanged: (v) {
+                                _saveTodos(uid, tomorrow);
+                              }),
+                              const SizedBox(height: 8),
+                              _labeledField('To-do 3', _todoCtrls[2], maxLines: 1, focusNode: _todoNodes[2], onChanged: (v) {
+                                _saveTodos(uid, tomorrow);
+                              }),
+                              const SizedBox(height: 8),
+                              _labeledField('Reflexion', _attitudeCtrl, maxLines: 1, focusNode: _attitudeNode, onChanged: (v) {
+                                _debouncedUpdate(
+                                  uid: uid,
+                                  date: tomorrow,
+                                  fieldPath: 'planning.reflection',
+                                  value: v.isEmpty ? null : v,
+                                );
+                              }),
+                              const SizedBox(height: 8),
+                              _labeledField('Freies Notizfeld', _notesCtrl, maxLines: null, focusNode: _notesNode, onChanged: (v) {
+                                _debouncedUpdate(
+                                  uid: uid,
+                                  date: tomorrow,
+                                  fieldPath: 'planning.notes',
+                                  value: v.isEmpty ? null : v,
+                                );
+                              }),
                             ],
-                            _labeledField('Reflexion', _attitudeCtrl, maxLines: 1, focusNode: _attitudeNode, onChanged: (v) {
-                              _debouncedUpdate(
-                                uid: uid,
-                                date: tomorrow,
-                                fieldPath: 'planning.reflection',
-                                value: v.isEmpty ? null : v,
-                              );
-                            }),
-                            const SizedBox(height: 8),
-                            _labeledField('Freies Notizfeld', _notesCtrl, maxLines: null, focusNode: _notesNode, onChanged: (v) {
-                              _debouncedUpdate(
-                                uid: uid,
-                                date: tomorrow,
-                                fieldPath: 'planning.notes',
-                                value: v.isEmpty ? null : v,
-                              );
-                            }),
-                          ],
+                          ),
                         ),
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // Morning reflection
-                      ReflectoCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('\u{1F305} Morgenreflexion', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-                            const SizedBox(height: 4),
-                            const Text('Starte bewusst und fokussiert in den Tag.'),
-                            const SizedBox(height: 12),
-                            _labeledField('Wie f\u{00FC}hle ich mich heute?', _morningFeelingCtrl, focusNode: _morningFeelingNode, onChanged: (v) {
-                              _debouncedUpdate(
-                                uid: uid,
-                                date: _selected,
-                                fieldPath: 'morning.mood',
-                                value: v.isEmpty ? null : v,
-                                alsoAggregateTo: 'morning.summary',
-                                aggregateBuilder: _aggregateMorning,
-                              );
-                            }),
-                            const SizedBox(height: 8),
-                            _labeledField('Was macht den Tag heute gut?', _morningGoodCtrl, focusNode: _morningGoodNode, onChanged: (v) {
-                              _debouncedUpdate(
-                                uid: uid,
-                                date: _selected,
-                                fieldPath: 'morning.goodThing',
-                                value: v.isEmpty ? null : v,
-                                alsoAggregateTo: 'morning.summary',
-                                aggregateBuilder: _aggregateMorning,
-                              );
-                            }),
-                            const SizedBox(height: 8),
-                            _labeledField('Worauf will ich heute besonders achten?', _morningFocusCtrl, focusNode: _morningFocusNode, onChanged: (v) {
-                              _debouncedUpdate(
-                                uid: uid,
-                                date: _selected,
-                                fieldPath: 'morning.focus',
-                                value: v.isEmpty ? null : v,
-                                alsoAggregateTo: 'morning.summary',
-                                aggregateBuilder: _aggregateMorning,
-                              );
-                            }),
-                          ],
-                        ),
-                      ),
-                    ],
+                        const SizedBox(height: 24),
+                      ],
+                    ),
                   ),
-                ),
                 ),
               ),
             ),
@@ -646,7 +862,6 @@ class _DayScreenState extends ConsumerState<DayScreen> {
     return parts.join(' | ');
   }
 
-  
   Widget _emojiBar(BuildContext context, {required String label, required List<String> emojis, required int? value, required ValueChanged<int> onSelect}) {
     const active = Color(0xFF2E7DFA);
     const inactive = Color(0xFFD9E3F0);
@@ -673,7 +888,10 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: (value ?? 0) >= i ? active : inactive),
                     ),
-                    child: Text(emojis[i-1], style: const TextStyle(fontSize: 18, fontFamilyFallback: ['Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji'])),
+                    child: Text(
+                      emojis[i - 1],
+                      style: const TextStyle(fontSize: 18, fontFamilyFallback: ['Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji']),
+                    ),
                   ),
                 ),
               ),
@@ -686,7 +904,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
   String _aggregateMorning() {
     String part(String title, String v) => v.isEmpty ? '' : '$title: $v';
     final parts = [
-      part('GefÃ¼hl', _morningFeelingCtrl.text.trim()),
+      part('Gefühl', _morningFeelingCtrl.text.trim()),
       part('Gut heute', _morningGoodCtrl.text.trim()),
       part('Fokus', _morningFocusCtrl.text.trim()),
     ].where((e) => e.isNotEmpty).toList();
@@ -713,17 +931,3 @@ class _DayScreenState extends ConsumerState<DayScreen> {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

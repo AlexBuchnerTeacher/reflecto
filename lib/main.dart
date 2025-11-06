@@ -11,10 +11,10 @@ void main() {
 }
 
 Future<void> _bootstrap() async {
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // Enable offline persistence for Firestore
-  FirebaseFirestore.instance.settings = const Settings(persistenceEnabled: true);
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: true,
+  );
   runApp(const ProviderScope(child: ReflectoApp()));
 }

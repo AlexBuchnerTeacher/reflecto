@@ -8,4 +8,3 @@ Future<UserCredential> signInWithGooglePlatform(FirebaseAuth auth) async {
 }
 
 Future<void> tryGoogleSignOutPlatform() async {}
-

@@ -25,7 +25,12 @@ class ReflectoSparkline extends StatelessWidget {
       height: height,
       width: width,
       child: CustomPaint(
-        painter: _SparklinePainter(points: points, stroke: stroke, smooth: smooth, showDots: showDots),
+        painter: _SparklinePainter(
+          points: points,
+          stroke: stroke,
+          smooth: smooth,
+          showDots: showDots,
+        ),
       ),
     );
   }
@@ -37,7 +42,12 @@ class _SparklinePainter extends CustomPainter {
   final bool smooth;
   final bool showDots;
 
-  _SparklinePainter({required this.points, required this.stroke, required this.smooth, required this.showDots});
+  _SparklinePainter({
+    required this.points,
+    required this.stroke,
+    required this.smooth,
+    required this.showDots,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -49,7 +59,9 @@ class _SparklinePainter extends CustomPainter {
 
     final path = Path();
     if (points.isEmpty) return;
-    final List<int> values = points.map((e) => (e.clamp(0, 5) as num).toInt()).toList();
+    final List<int> values = points
+        .map((e) => (e.clamp(0, 5) as num).toInt())
+        .toList();
     final maxV = 5.0;
     final minV = 0.0;
     final stepX = size.width / (values.length - 1);
@@ -68,7 +80,8 @@ class _SparklinePainter extends CustomPainter {
         final xm = (x0 + x) / 2;
         final ym = (y0 + y) / 2;
         path.quadraticBezierTo(x0, y0, xm, ym);
-        x0 = x; y0 = y;
+        x0 = x;
+        y0 = y;
       }
       path.lineTo(x0, y0);
     } else {
@@ -86,7 +99,9 @@ class _SparklinePainter extends CustomPainter {
     canvas.drawPath(path, p);
 
     if (showDots) {
-      final dotPaint = Paint()..color = stroke..style = PaintingStyle.fill;
+      final dotPaint = Paint()
+        ..color = stroke
+        ..style = PaintingStyle.fill;
       for (int i = 0; i < values.length; i++) {
         final x = i * stepX;
         final y = yFor(values[i].toDouble());
@@ -97,6 +112,9 @@ class _SparklinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _SparklinePainter oldDelegate) {
-    return oldDelegate.points != points || oldDelegate.stroke != stroke || oldDelegate.smooth != smooth || oldDelegate.showDots != showDots;
+    return oldDelegate.points != points ||
+        oldDelegate.stroke != stroke ||
+        oldDelegate.smooth != smooth ||
+        oldDelegate.showDots != showDots;
   }
 }

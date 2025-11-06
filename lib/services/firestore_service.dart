@@ -11,15 +11,17 @@ class FirestoreService {
   static final FirestoreService instance = FirestoreService._();
   factory FirestoreService() => instance;
 
-  final CollectionReference<Map<String, dynamic>> _users =
-      FirebaseFirestore.instance.collection('users');
+  final CollectionReference<Map<String, dynamic>> _users = FirebaseFirestore
+      .instance
+      .collection('users');
 
   DocumentReference<Map<String, dynamic>> entryRef(String uid, DateTime date) {
     return _users.doc(uid).collection('entries').doc(_formatDate(date));
   }
 
   static String _two(int n) => n.toString().padLeft(2, '0');
-  static String _formatDate(DateTime d) => '${d.year}-${_two(d.month)}-${_two(d.day)}';
+  static String _formatDate(DateTime d) =>
+      '${d.year}-${_two(d.month)}-${_two(d.day)}';
 
   /// Erstellt ein leeres Dokument für den Tag, wenn nicht vorhanden.
   Future<void> ensureEntry(String uid, DateTime date) async {
@@ -34,22 +36,14 @@ class FirestoreService {
             'reflection': '',
             'notes': '',
           },
-          'morning': {
-            'mood': '',
-            'goodThing': '',
-            'focus': '',
-          },
+          'morning': {'mood': '', 'goodThing': '', 'focus': ''},
           'evening': {
             'good': '',
             'learned': '',
             'improve': '',
             'gratitude': '',
           },
-          'ratings': {
-            'focus': null,
-            'energy': null,
-            'happiness': null,
-          },
+          'ratings': {'focus': null, 'energy': null, 'happiness': null},
           // Back-Compat: Top-Level Ratings für ältere Stellen
           'ratingFocus': null,
           'ratingEnergy': null,
@@ -64,7 +58,8 @@ class FirestoreService {
   }
 
   /// Alias für Bestandscode.
-  Future<void> createEmptyEntry(String uid, DateTime date) => ensureEntry(uid, date);
+  Future<void> createEmptyEntry(String uid, DateTime date) =>
+      ensureEntry(uid, date);
 
   /// Echtzeit-Stream eines Tagebucheintrags (kann null liefern, wenn nicht vorhanden).
   Stream<JournalEntry?> getDailyEntry(String uid, DateTime date) {
@@ -78,7 +73,12 @@ class FirestoreService {
   }
 
   /// Partielles Update eines Feldes per Pfad (dot-path), setzt updatedAt.
-  Future<void> updateField(String uid, DateTime date, String fieldPath, dynamic value) async {
+  Future<void> updateField(
+    String uid,
+    DateTime date,
+    String fieldPath,
+    dynamic value,
+  ) async {
     final ref = entryRef(uid, date);
     try {
       await ref.update({
@@ -99,7 +99,10 @@ class FirestoreService {
   }
 
   /// Planung des Vortags abrufen.
-  Future<Map<String, dynamic>?> getPlanningOfPreviousDay(String uid, DateTime date) async {
+  Future<Map<String, dynamic>?> getPlanningOfPreviousDay(
+    String uid,
+    DateTime date,
+  ) async {
     try {
       final prev = date.subtract(const Duration(days: 1));
       final snap = await entryRef(uid, prev).get();
@@ -109,8 +112,12 @@ class FirestoreService {
       final planning = data['planning'];
       if (planning is Map<String, dynamic>) {
         return {
-          'goals': (planning['goals'] is List) ? List<String>.from(planning['goals']) : <String>[],
-          'todos': (planning['todos'] is List) ? List<String>.from(planning['todos']) : <String>[],
+          'goals': (planning['goals'] is List)
+              ? List<String>.from(planning['goals'])
+              : <String>[],
+          'todos': (planning['todos'] is List)
+              ? List<String>.from(planning['todos'])
+              : <String>[],
           'reflection': (planning['reflection'] ?? '') as String,
           'notes': (planning['notes'] ?? '') as String,
         };
@@ -123,7 +130,12 @@ class FirestoreService {
   }
 
   /// Aktualisiert den Abhak-Status eines To-do-Eintrags in der Abendreflexion.
-  Future<void> updateTodoCompletion(String uid, DateTime date, int index, bool value) async {
+  Future<void> updateTodoCompletion(
+    String uid,
+    DateTime date,
+    int index,
+    bool value,
+  ) async {
     final ref = entryRef(uid, date);
     final field = 'evening.todosCompletion.$index';
     try {
@@ -143,6 +155,32 @@ class FirestoreService {
     }
   }
 
+  /// Aktualisiert den Abhak-Status eines Ziel-Eintrags (Goals) in der Abendreflexion.
+  Future<void> updateGoalCompletion(
+    String uid,
+    DateTime date,
+    int index,
+    bool value,
+  ) async {
+    final ref = entryRef(uid, date);
+    final field = 'evening.goalsCompletion.$index';
+    try {
+      await ref.update({
+        field: value,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } on FirebaseException catch (e) {
+      if (e.code == 'not-found') {
+        final nested = _mapFromPath(field, value);
+        nested['updatedAt'] = FieldValue.serverTimestamp();
+        await ref.set(nested, SetOptions(merge: true));
+      } else {
+        debugPrint('Firestore error (updateGoalCompletion): $e');
+        rethrow;
+      }
+    }
+  }
+
   // -------------------------------------------------
   // Zusätzliche bestehende Helfer (Kompatibilität)
   // -------------------------------------------------
@@ -154,7 +192,11 @@ class FirestoreService {
   }
 
   static DateTime _mondayOfWeek(DateTime d) {
-    return DateTime(d.year, d.month, d.day).subtract(Duration(days: (d.weekday + 6) % 7));
+    return DateTime(
+      d.year,
+      d.month,
+      d.day,
+    ).subtract(Duration(days: (d.weekday + 6) % 7));
   }
 
   static String weekIdFrom(DateTime d) {
@@ -168,11 +210,22 @@ class FirestoreService {
     final monday = _mondayOfWeek(d);
     final start = DateTime(monday.year, monday.month, monday.day, 0, 0, 0);
     final endBase = monday.add(const Duration(days: 6));
-    final end = DateTime(endBase.year, endBase.month, endBase.day, 23, 59, 59, 999);
+    final end = DateTime(
+      endBase.year,
+      endBase.month,
+      endBase.day,
+      23,
+      59,
+      59,
+      999,
+    );
     return DateTimeRange(start: start, end: end);
   }
 
-  Future<List<JournalEntry>> fetchWeekEntries(String uid, DateTime anyDayInWeek) async {
+  Future<List<JournalEntry>> fetchWeekEntries(
+    String uid,
+    DateTime anyDayInWeek,
+  ) async {
     try {
       final range = weekRangeFrom(anyDayInWeek);
       final startId = _formatDate(range.start);
@@ -183,14 +236,20 @@ class FirestoreService {
           .startAt([startId])
           .endAt([endId])
           .get();
-      return snap.docs.map((d) => JournalEntry.fromMap(d.id, d.data())).toList();
+      return snap.docs
+          .map((d) => JournalEntry.fromMap(d.id, d.data()))
+          .toList();
     } on FirebaseException catch (e) {
       debugPrint('Firestore error (fetchWeekEntries): $e');
       rethrow;
     }
   }
 
-  Future<void> saveWeeklyReflection(String uid, String weekId, Map<String, dynamic> data) async {
+  Future<void> saveWeeklyReflection(
+    String uid,
+    String weekId,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final ref = _users.doc(uid).collection('weekly_reflections').doc(weekId);
       await ref.set({
@@ -203,7 +262,10 @@ class FirestoreService {
     }
   }
 
-  Stream<Map<String, dynamic>?> weeklyReflectionStream(String uid, String weekId) {
+  Stream<Map<String, dynamic>?> weeklyReflectionStream(
+    String uid,
+    String weekId,
+  ) {
     final ref = _users.doc(uid).collection('weekly_reflections').doc(weekId);
     return ref.snapshots().map((s) => s.data());
   }
@@ -259,5 +321,3 @@ class FirestoreService {
     return root;
   }
 }
-
-

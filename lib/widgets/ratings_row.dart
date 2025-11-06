@@ -26,7 +26,11 @@ class RatingsRow extends StatelessWidget {
         for (var i = 1; i <= 5; i++)
           IconButton(
             tooltip: '$label: $i',
-            icon: Icon(i <= (value ?? 0) ? Icons.star_rounded : Icons.star_border_rounded),
+            icon: Icon(
+              i <= (value ?? 0)
+                  ? Icons.star_rounded
+                  : Icons.star_border_rounded,
+            ),
             color: color,
             onPressed: () => onChanged(i),
           ),
@@ -34,4 +38,3 @@ class RatingsRow extends StatelessWidget {
     );
   }
 }
-

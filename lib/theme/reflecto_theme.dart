@@ -54,46 +54,66 @@ class ReflectoTheme {
   /// Light Theme
   static ThemeData light() {
     // Basis ColorScheme
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: ReflectoColors.primaryMid,
-      brightness: Brightness.light,
-    ).copyWith(
-      primary: ReflectoColors.primaryMid,
-      onPrimary: Colors.white,
-      secondary: ReflectoColors.secondaryMid,
-      onSecondary: ReflectoColors.textPrimary,
-      surface: ReflectoColors.backgroundMid,
-      onSurface: ReflectoColors.textPrimary,
-      
-      error: ReflectoColors.warningMid,
-      onError: Colors.white,
-      outline: ReflectoColors.borderMid,
-    );
+    final colorScheme =
+        ColorScheme.fromSeed(
+          seedColor: ReflectoColors.primaryMid,
+          brightness: Brightness.light,
+        ).copyWith(
+          primary: ReflectoColors.primaryMid,
+          onPrimary: Colors.white,
+          secondary: ReflectoColors.secondaryMid,
+          onSecondary: ReflectoColors.textPrimary,
+          surface: ReflectoColors.backgroundMid,
+          onSurface: ReflectoColors.textPrimary,
+
+          error: ReflectoColors.warningMid,
+          onError: Colors.white,
+          outline: ReflectoColors.borderMid,
+        );
 
     // Typografie
     final inter = GoogleFonts.interTextTheme();
     final lexend = GoogleFonts.lexendTextTheme();
-    final textTheme = inter.copyWith(
-      headlineLarge: lexend.headlineLarge?.copyWith(fontWeight: FontWeight.w700, fontSize: 28),
-      headlineMedium: lexend.headlineMedium?.copyWith(fontWeight: FontWeight.w700, fontSize: 26),
-      titleLarge: lexend.titleLarge?.copyWith(fontWeight: FontWeight.w600, fontSize: 22),
-      titleMedium: lexend.titleMedium?.copyWith(fontWeight: FontWeight.w600, fontSize: 20),
-      bodyLarge: inter.bodyLarge?.copyWith(fontSize: 16, height: 1.5),
-      bodyMedium: inter.bodyMedium?.copyWith(fontSize: 15, height: 1.5),
-      bodySmall: inter.bodySmall?.copyWith(fontSize: 13, height: 1.4, color: ReflectoColors.textSecondary),
-    ).apply(
-      bodyColor: ReflectoColors.textPrimary,
-      displayColor: ReflectoColors.textPrimary,
-    );
+    final textTheme = inter
+        .copyWith(
+          headlineLarge: lexend.headlineLarge?.copyWith(
+            fontWeight: FontWeight.w700,
+            fontSize: 28,
+          ),
+          headlineMedium: lexend.headlineMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            fontSize: 26,
+          ),
+          titleLarge: lexend.titleLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+            fontSize: 22,
+          ),
+          titleMedium: lexend.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            fontSize: 20,
+          ),
+          bodyLarge: inter.bodyLarge?.copyWith(fontSize: 16, height: 1.5),
+          bodyMedium: inter.bodyMedium?.copyWith(fontSize: 15, height: 1.5),
+          bodySmall: inter.bodySmall?.copyWith(
+            fontSize: 13,
+            height: 1.4,
+            color: ReflectoColors.textSecondary,
+          ),
+        )
+        .apply(
+          bodyColor: ReflectoColors.textPrimary,
+          displayColor: ReflectoColors.textPrimary,
+        );
 
     // Eingabefelder
     OutlineInputBorder outlineBorder(Color c) => OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: c, width: 1.2),
-        );
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: c, width: 1.2),
+    );
 
     return ThemeData(
       useMaterial3: true,
+      fontFamilyFallback: const ['Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji'],
       colorScheme: colorScheme,
       scaffoldBackgroundColor: ReflectoColors.backgroundMid,
 
@@ -125,7 +145,9 @@ class ReflectoTheme {
           elevation: 2,
           shadowColor: ReflectoColors.primaryMid.withValues(alpha: 0.25),
           textStyle: const TextStyle(fontWeight: FontWeight.w600),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
         ),
       ),
 
@@ -133,8 +155,13 @@ class ReflectoTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: ReflectoColors.backgroundLight,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        hintStyle: TextStyle(color: ReflectoColors.textSecondary.withValues(alpha: 0.8)),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 12,
+        ),
+        hintStyle: TextStyle(
+          color: ReflectoColors.textSecondary.withValues(alpha: 0.8),
+        ),
         labelStyle: const TextStyle(color: ReflectoColors.textSecondary),
         enabledBorder: outlineBorder(ReflectoColors.borderMid),
         focusedBorder: outlineBorder(ReflectoColors.primaryMid),
@@ -152,14 +179,14 @@ class ReflectoTheme {
         actionTextColor: ReflectoColors.secondaryMid,
       ),
 
-      
-
       /// Zusätzliche Button-Themes
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: ReflectoColors.primaryMid,
           side: BorderSide(color: ReflectoColors.primaryMid, width: 1.2),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
           textStyle: const TextStyle(fontWeight: FontWeight.w600),
           minimumSize: const Size.fromHeight(44),
         ),
@@ -185,12 +212,16 @@ class ReflectoTheme {
         space: 24,
       ),
       switchTheme: SwitchThemeData(
-        thumbColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected)
-            ? ReflectoColors.primaryMid
-            : ReflectoColors.borderDark),
-        trackColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected)
-            ? ReflectoColors.primaryMid.withValues(alpha: 0.4)
-            : ReflectoColors.borderMid),
+        thumbColor: WidgetStateProperty.resolveWith(
+          (s) => s.contains(WidgetState.selected)
+              ? ReflectoColors.primaryMid
+              : ReflectoColors.borderDark,
+        ),
+        trackColor: WidgetStateProperty.resolveWith(
+          (s) => s.contains(WidgetState.selected)
+              ? ReflectoColors.primaryMid.withValues(alpha: 0.4)
+              : ReflectoColors.borderMid,
+        ),
       ),
 
       /// BottomNavigation
@@ -205,21 +236,22 @@ class ReflectoTheme {
 
   /// Dark Theme
   static ThemeData dark() {
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: ReflectoColors.primaryMid,
-      brightness: Brightness.dark,
-    ).copyWith(
-      primary: ReflectoColors.primaryMid,
-      onPrimary: Colors.white,
-      secondary: ReflectoColors.darkSecondary,
-      onSecondary: ReflectoColors.darkText,
-      surface: ReflectoColors.darkBackground,
-      onSurface: ReflectoColors.darkText,
-      
-      error: ReflectoColors.warningDark,
-      onError: Colors.white,
-      outline: ReflectoColors.borderDark,
-    );
+    final colorScheme =
+        ColorScheme.fromSeed(
+          seedColor: ReflectoColors.primaryMid,
+          brightness: Brightness.dark,
+        ).copyWith(
+          primary: ReflectoColors.primaryMid,
+          onPrimary: Colors.white,
+          secondary: ReflectoColors.darkSecondary,
+          onSecondary: ReflectoColors.darkText,
+          surface: ReflectoColors.darkBackground,
+          onSurface: ReflectoColors.darkText,
+
+          error: ReflectoColors.warningDark,
+          onError: Colors.white,
+          outline: ReflectoColors.borderDark,
+        );
 
     final textTheme = GoogleFonts.interTextTheme().apply(
       bodyColor: ReflectoColors.darkText,
@@ -227,12 +259,13 @@ class ReflectoTheme {
     );
 
     OutlineInputBorder outlineBorder(Color c) => OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: c, width: 1.2),
-        );
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: c, width: 1.2),
+    );
 
     return ThemeData(
       useMaterial3: true,
+      fontFamilyFallback: const ['Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji'],
       colorScheme: colorScheme,
       scaffoldBackgroundColor: ReflectoColors.darkBackground,
       textTheme: textTheme,
@@ -259,15 +292,22 @@ class ReflectoTheme {
           elevation: 2,
           shadowColor: ReflectoColors.primaryMid.withValues(alpha: 0.25),
           textStyle: const TextStyle(fontWeight: FontWeight.w600),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
         ),
       ),
 
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: ReflectoColors.darkCard,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        hintStyle: TextStyle(color: ReflectoColors.darkText.withValues(alpha: 0.7)),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 12,
+        ),
+        hintStyle: TextStyle(
+          color: ReflectoColors.darkText.withValues(alpha: 0.7),
+        ),
         labelStyle: const TextStyle(color: ReflectoColors.darkText),
         enabledBorder: outlineBorder(ReflectoColors.borderDark),
         focusedBorder: outlineBorder(ReflectoColors.primaryMid),
@@ -283,8 +323,6 @@ class ReflectoTheme {
         elevation: 4,
         actionTextColor: ReflectoColors.darkSecondary,
       ),
-
-      
 
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         selectedItemColor: ReflectoColors.primaryMid,
@@ -305,6 +343,3 @@ class ReflectoTheme {
   static ThemeData get light2 => light();
   static ThemeData get dark2 => dark();
 }
-
-
-

@@ -32,11 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: IndexedStack(
         index: _index,
-        children: const [
-          DayScreen(),
-          WeekScreen(),
-          SettingsScreen(),
-        ],
+        children: const [DayScreen(), WeekScreen(), SettingsScreen()],
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _index,

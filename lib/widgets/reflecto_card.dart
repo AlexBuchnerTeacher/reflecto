@@ -72,7 +72,10 @@ class _ReflectoCardState extends State<ReflectoCard> {
                       ),
                     if (widget.subtitle != null) ...[
                       const SizedBox(height: 4),
-                      Text(widget.subtitle!, style: Theme.of(context).textTheme.bodyMedium),
+                      Text(
+                        widget.subtitle!,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
                     ],
                   ],
                 ),

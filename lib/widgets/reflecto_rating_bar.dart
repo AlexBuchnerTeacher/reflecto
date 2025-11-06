@@ -26,12 +26,22 @@ class ReflectoRatingBar extends StatelessWidget {
     Widget row(String label, int? value, ValueChanged<int> onChanged) {
       return Row(
         children: [
-          SizedBox(width: 120, child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600))),
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
           const SizedBox(width: 8),
           for (var i = 1; i <= 5; i++)
             IconButton(
               tooltip: '$label: $i',
-              icon: Icon(i <= (value ?? 0) ? Icons.star_rounded : Icons.star_border_rounded),
+              icon: Icon(
+                i <= (value ?? 0)
+                    ? Icons.star_rounded
+                    : Icons.star_border_rounded,
+              ),
               color: i <= (value ?? 0) ? active : inactive,
               onPressed: () => onChanged(i),
             ),
@@ -49,4 +59,3 @@ class ReflectoRatingBar extends StatelessWidget {
     );
   }
 }
-

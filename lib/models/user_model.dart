@@ -32,8 +32,8 @@ class AppUser {
       createdAt: map['createdAt'] is DateTime
           ? map['createdAt'] as DateTime
           : map['createdAt'] != null
-              ? DateTime.tryParse(map['createdAt'].toString())
-              : null,
+          ? DateTime.tryParse(map['createdAt'].toString())
+          : null,
     );
   }
 }

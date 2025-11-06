@@ -4,12 +4,21 @@ import '../models/journal_entry.dart';
 // Removed unused Firestore import
 
 class ExportImportService {
-  Map<String, dynamic> buildWeekExportJson(String weekId, DateTimeRange range, List<JournalEntry> entries, Map<String, dynamic> aggregates) {
+  Map<String, dynamic> buildWeekExportJson(
+    String weekId,
+    DateTimeRange range,
+    List<JournalEntry> entries,
+    Map<String, dynamic> aggregates,
+  ) {
     List<Map<String, dynamic>> items = [];
     for (var i = 0; i < 7; i++) {
       final day = range.start.add(Duration(days: i));
-      final id = '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
-      final e = entries.firstWhere((x) => x.id == id, orElse: () => JournalEntry(id: id));
+      final id =
+          '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
+      final e = entries.firstWhere(
+        (x) => x.id == id,
+        orElse: () => JournalEntry(id: id),
+      );
       items.add({
         'date': id,
         'planning': e.planning,
@@ -19,14 +28,14 @@ class ExportImportService {
           'focus': e.ratingFocus,
           'energy': e.ratingEnergy,
           'happiness': e.ratingHappiness,
-        }
+        },
       });
     }
     return {
       'weekId': weekId,
       'range': {
         'start': range.start.toIso8601String().substring(0, 10),
-        'end': range.end.toIso8601String().substring(0, 10)
+        'end': range.end.toIso8601String().substring(0, 10),
       },
       'entries': items,
       'aggregates': {
@@ -34,7 +43,7 @@ class ExportImportService {
         'energyAvg': aggregates['energyAvg'],
         'happinessAvg': aggregates['happinessAvg'],
         'moodCurve': aggregates['moodCurve'],
-      }
+      },
     };
   }
 
