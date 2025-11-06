@@ -30,10 +30,16 @@ jobs:
         run: flutter pub get
 
       - name: Format check
-        run: flutter format --set-exit-if-changed .
+        run: dart format --output=none --set-exit-if-changed .
 
-      - name: Analyze
-        run: flutter analyze
+      - name: Analyze (fatal infos)
+        run: flutter analyze --fatal-infos
 
-      - name: Run tests
-        run: flutter test --no-pub
+      - name: Run tests with coverage
+        run: flutter test --no-pub --coverage
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-lcov
+          path: coverage/lcov.info
