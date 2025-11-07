@@ -37,7 +37,7 @@ jobs:
 
       - name: Build Flutter Web (PR preview)
         if: ${{ github.event_name == 'pull_request' }}
-        run: flutter build web --release --base-href ./
+        run: flutter build web --release --base-href /reflecto/pr-${{ github.event.number }}/
 
       - name: Build Flutter Web (main)
         if: ${{ github.event_name == 'push' }}
