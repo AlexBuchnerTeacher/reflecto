@@ -37,7 +37,9 @@ class _ReflectoCardState extends State<ReflectoCard> {
     final isActive = widget.isActive;
     final bg = isActive ? activeBg : baseColor;
     final blur = isActive ? 10.0 : (_hover ? 8.0 : 4.0);
-    final shadowColor = Colors.black.withValues(alpha: Theme.of(context).brightness == Brightness.dark ? 0.35 : 0.08);
+    final shadowColor = Colors.black.withValues(
+      alpha: Theme.of(context).brightness == Brightness.dark ? 0.35 : 0.08,
+    );
     final borderColor = cs.outlineVariant.withValues(alpha: 0.5);
 
     final card = AnimatedContainer(

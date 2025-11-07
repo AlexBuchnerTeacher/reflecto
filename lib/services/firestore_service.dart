@@ -182,7 +182,10 @@ class FirestoreService {
   }
 
   /// Markiert die Abendreflexion als abgeschlossen und aktualisiert den Streak.
-  Future<void> markEveningCompletedAndUpdateStreak(String uid, DateTime date) async {
+  Future<void> markEveningCompletedAndUpdateStreak(
+    String uid,
+    DateTime date,
+  ) async {
     try {
       // Abend als completed markieren
       await updateField(uid, date, 'evening.completed', true);
@@ -198,7 +201,9 @@ class FirestoreService {
       final snap = await streakRef.get();
       final data = snap.data() ?? <String, dynamic>{};
       final lastDate = data['lastEntryDate'] as String?;
-      final current = (data['streakCount'] is num) ? (data['streakCount'] as num).toInt() : 0;
+      final current = (data['streakCount'] is num)
+          ? (data['streakCount'] as num).toInt()
+          : 0;
 
       if (lastDate == todayId) {
         return; // heute bereits gezählt
