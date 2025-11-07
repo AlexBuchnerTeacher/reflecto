@@ -316,16 +316,32 @@ class FirestoreService {
       final ref = _users.doc(user.uid);
       final snap = await ref.get();
       if (!snap.exists) {
-        await ref.set({
-          ...user.toMap(),
+        // Create: write only known non-null fields + server timestamps.
+        final create = <String, dynamic>{
+          'uid': user.uid,
+          if (user.displayName != null) 'displayName': user.displayName,
+          if (user.email != null) 'email': user.email,
+          if (user.photoUrl != null) 'photoUrl': user.photoUrl,
           'createdAt': FieldValue.serverTimestamp(),
           'lastLoginAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
+        };
+        await ref.set(create, SetOptions(merge: true));
       } else {
-        await ref.set({
-          ...user.toMap(),
+        // Update: avoid overwriting createdAt; write only provided non-null fields.
+        final update = <String, dynamic>{
+          if (user.displayName != null) 'displayName': user.displayName,
+          if (user.email != null) 'email': user.email,
+          if (user.photoUrl != null) 'photoUrl': user.photoUrl,
           'lastLoginAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
+        };
+        if (update.isNotEmpty) {
+          await ref.set(update, SetOptions(merge: true));
+        } else {
+          // Still refresh lastLoginAt if nothing else changes
+          await ref.set({
+            'lastLoginAt': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+        }
       }
     } on FirebaseException catch (e) {
       debugPrint('Firestore error (saveUserData): $e');

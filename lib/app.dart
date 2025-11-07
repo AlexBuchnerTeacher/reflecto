@@ -4,18 +4,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'theme/reflecto_theme.dart';
 import 'screens/auth_screen.dart';
 import 'screens/home_screen.dart';
+import 'providers/settings_providers.dart';
 
-class ReflectoApp extends StatelessWidget {
+class ReflectoApp extends ConsumerWidget {
   const ReflectoApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final appMode = ref.watch(themeModeProvider);
     return MaterialApp(
       title: 'Reflecto',
       debugShowCheckedModeBanner: false,
       theme: ReflectoTheme.light(),
       darkTheme: ReflectoTheme.dark(),
-      themeMode: ThemeMode.system,
+      themeMode: switch (appMode) {
+        AppThemeMode.system => ThemeMode.system,
+        AppThemeMode.light => ThemeMode.light,
+        AppThemeMode.dark => ThemeMode.dark,
+      },
+      // Use provider's material theme mode mapped from state
       home: Consumer(
         builder: (context, ref, _) {
           final authStream = FirebaseAuth.instance.authStateChanges();
