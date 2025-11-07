@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:intl/intl.dart';
 
 import '../widgets/reflecto_button.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import '../models/user_model.dart';
 import '../providers/settings_providers.dart';
+import '../utils/build_info.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -22,6 +24,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _nameCtrl = TextEditingController();
   String? _email;
   String? _version;
+  String? _buildInfo;
 
   @override
   void initState() {

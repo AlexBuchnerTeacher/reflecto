@@ -34,7 +34,13 @@ jobs:
         run: flutter pub get
 
       - name: Build Flutter Web (main)
-        run: flutter build web --release --base-href /reflecto/ --pwa-strategy=none
+        run: |
+          flutter build web --release \
+            --base-href /reflecto/ \
+            --pwa-strategy=none \
+            --dart-define=BUILD_CHANNEL=main \
+            --dart-define=GIT_SHA=${{ github.sha }} \
+            --dart-define=BUILD_TIME=${{ github.run_started_at }}
 
       - name: Unregister any existing service workers
         run: |
