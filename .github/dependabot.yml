@@ -6,6 +6,9 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 5
     labels: ["deps", "prio:low"]
+    ignore:
+      - dependency-name: "flutter_riverpod"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -13,4 +16,3 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 5
     labels: ["deps", "prio:low"]
-
