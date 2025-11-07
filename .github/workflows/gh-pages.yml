@@ -35,8 +35,18 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build Flutter Web
-        run: flutter build web --release --base-href /reflecto/
+      - name: Build Flutter Web (PR preview)
+        if: ${{ github.event_name == 'pull_request' }}
+        run: flutter build web --release --base-href /reflecto/pr-${{ github.event.number }}/ --pwa-strategy=none
+
+      - name: Build Flutter Web (main)
+        if: ${{ github.event_name == 'push' }}
+        run: flutter build web --release --base-href /reflecto/ --pwa-strategy=none
+
+      - name: Unregister any existing service workers
+        run: |
+          SNIPPET='<script>try{if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister().catch(()=>{})));}}catch(e){}</script>'
+          sed -i "s#</head>#$SNIPPET</head>#" build/web/index.html
 
       - name: Add 404 fallback for SPA routing
         run: cp build/web/index.html build/web/404.html
@@ -52,6 +62,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     needs: build
     runs-on: ubuntu-latest
+    if: ${{ !(github.event_name == 'pull_request' && github.actor == 'dependabot[bot]') }}
     steps:
       - name: Setup Pages
         uses: actions/configure-pages@v5
