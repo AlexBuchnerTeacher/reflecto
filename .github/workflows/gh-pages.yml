@@ -35,7 +35,12 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build Flutter Web
+      - name: Build Flutter Web (PR preview)
+        if: ${{ github.event_name == 'pull_request' }}
+        run: flutter build web --release --base-href ./
+
+      - name: Build Flutter Web (main)
+        if: ${{ github.event_name == 'push' }}
         run: flutter build web --release --base-href /reflecto/
 
       - name: Add 404 fallback for SPA routing
@@ -52,6 +57,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     needs: build
     runs-on: ubuntu-latest
+    if: ${{ !(github.event_name == 'pull_request' && github.actor == 'dependabot[bot]') }}
     steps:
       - name: Setup Pages
         uses: actions/configure-pages@v5
