@@ -1,0 +1,44 @@
+name: Seed Milestones
+
+on:
+  workflow_dispatch:
+    inputs:
+      versions:
+        description: "Comma-separated versions (e.g. v1.1,v1.2)"
+        required: false
+        default: "v1.1,v1.2"
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const input = core.getInput('versions');
+            const versions = input.split(',').map(s => s.trim()).filter(Boolean);
+            const { data: existing } = await github.rest.issues.listMilestones({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100,
+            });
+            const names = new Set(existing.map(m => m.title));
+            for (const v of versions) {
+              if (!names.has(v)) {
+                await github.rest.issues.createMilestone({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: v,
+                  state: 'open',
+                });
+                core.info(`Created milestone ${v}`);
+              } else {
+                core.info(`Milestone ${v} already exists`);
+              }
+            }
+
