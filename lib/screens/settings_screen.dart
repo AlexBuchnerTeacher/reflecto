@@ -173,27 +173,29 @@ class _ThemeSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final mode = ref.watch(themeModeProvider);
     void setMode(AppThemeMode m) => ref.read(themeModeProvider.notifier).set(m);
-    return Column(
-      children: [
-        RadioListTile<AppThemeMode>(
+    return SegmentedButton<AppThemeMode>(
+      segments: const [
+        ButtonSegment(
           value: AppThemeMode.system,
-          groupValue: mode,
-          onChanged: (v) => v == null ? null : setMode(v),
-          title: const Text('Systemmodus verwenden'),
+          label: Text('System'),
+          icon: Icon(Icons.settings_suggest_outlined),
         ),
-        RadioListTile<AppThemeMode>(
+        ButtonSegment(
           value: AppThemeMode.light,
-          groupValue: mode,
-          onChanged: (v) => v == null ? null : setMode(v),
-          title: const Text('Helles Design'),
+          label: Text('Hell'),
+          icon: Icon(Icons.light_mode_outlined),
         ),
-        RadioListTile<AppThemeMode>(
+        ButtonSegment(
           value: AppThemeMode.dark,
-          groupValue: mode,
-          onChanged: (v) => v == null ? null : setMode(v),
-          title: const Text('Dunkles Design'),
+          label: Text('Dunkel'),
+          icon: Icon(Icons.dark_mode_outlined),
         ),
       ],
+      selected: {mode},
+      onSelectionChanged: (set) {
+        final sel = set.first;
+        setMode(sel);
+      },
     );
   }
 }
