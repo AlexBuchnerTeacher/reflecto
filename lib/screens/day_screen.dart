@@ -249,8 +249,9 @@ class _DayScreenState extends ConsumerState<DayScreen> {
 
   void _setCtrl(TextEditingController c, String? v, {FocusNode? focusNode}) {
     if (v == null) return; // kein Überschreiben mit leer bei fehlendem Feld
-    if (focusNode != null && focusNode.hasFocus)
+    if (focusNode != null && focusNode.hasFocus) {
       return; // während aktiver Eingabe nicht überschreiben
+    }
     if (c.text != v) {
       final selection = TextSelection.collapsed(offset: v.length);
       c.value = c.value.copyWith(
