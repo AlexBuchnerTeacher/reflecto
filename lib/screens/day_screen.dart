@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' show FieldValue;
@@ -809,9 +809,13 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                     ),
                                     const SizedBox(height: 8),
                                     if (curGoals.isNotEmpty) ...[
-                                      const Text(
+                                      Text(
                                         'Ziele',
-                                        style: TextStyle(color: Colors.black54),
+                                        style: TextStyle(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
                                       ),
                                       const SizedBox(height: 4),
                                       for (final i
@@ -829,16 +833,24 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                           child: Text('\u2022 ${curGoals[i]}'),
                                         ),
                                     ] else ...[
-                                      const Text(
+                                      Text(
                                         'Keine Ziele vorhanden.',
-                                        style: TextStyle(color: Colors.black54),
+                                        style: TextStyle(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
                                       ),
                                     ],
                                     const SizedBox(height: 8),
                                     if (curTodos.isNotEmpty) ...[
-                                      const Text(
+                                      Text(
                                         'To-dos',
-                                        style: TextStyle(color: Colors.black54),
+                                        style: TextStyle(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
                                       ),
                                       const SizedBox(height: 4),
                                       for (final i
@@ -856,9 +868,13 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                           child: Text('\u2022 ${curTodos[i]}'),
                                         ),
                                     ] else ...[
-                                      const Text(
+                                      Text(
                                         'Keine To-dos vorhanden.',
-                                        style: TextStyle(color: Colors.black54),
+                                        style: TextStyle(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
                                       ),
                                     ],
                                   ],
@@ -947,9 +963,13 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                     ),
                                     const SizedBox(height: 8),
                                     if (curGoals.isNotEmpty) ...[
-                                      const Text(
+                                      Text(
                                         'Ziele',
-                                        style: TextStyle(color: Colors.black54),
+                                        style: TextStyle(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
                                       ),
                                       const SizedBox(height: 4),
                                       for (final i
@@ -995,9 +1015,13 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                       ),
                                     const SizedBox(height: 8),
                                     if (curTodos.isNotEmpty) ...[
-                                      const Text(
+                                      Text(
                                         'To-dos',
-                                        style: TextStyle(color: Colors.black54),
+                                        style: TextStyle(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
                                       ),
                                       const SizedBox(height: 4),
                                       for (final i
