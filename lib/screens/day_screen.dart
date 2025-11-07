@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' show FieldValue;
@@ -318,14 +318,14 @@ class _DayScreenState extends ConsumerState<DayScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: cs.surfaceVariant,
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: cs.outlineVariant, width: 1),
       ),
       child: Text(
         text,
         style: TextStyle(
-          color: cs.onSurfaceVariant,
+          color: cs.onSurface,
           fontSize: 12,
           fontWeight: FontWeight.w600,
           fontFamilyFallback: const [
