@@ -140,7 +140,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: ReflectoButton(
-                  text: _loading ? 'Speichern…' : 'Profil speichern',
+                  text: _loading ? 'SpeichernÃ¢â‚¬Â¦' : 'Profil speichern',
                   icon: Icons.save_outlined,
                   onPressed: _loading ? null : _saveProfile,
                 ),
@@ -153,12 +153,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               // Version
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [const Text('Version'), Text(_version ?? '…')],
+                children: [const Text('Version'), Text(_version ?? 'Ã¢â‚¬Â¦')],
               ),
 
               const SizedBox(height: 24),
               ReflectoButton(
-                text: _loading ? 'Abmelden…' : 'Abmelden',
+                text: _loading ? 'AbmeldenÃ¢â‚¬Â¦' : 'Abmelden',
                 icon: Icons.logout,
                 onPressed: _loading ? null : _signOut,
               ),
