@@ -72,6 +72,44 @@ class _DayScreenState extends ConsumerState<DayScreen> {
   bool _statusPulse = false;
   Timer? _statusPulseTimer;
 
+  Future<void> _carryOverOne({
+    required String uid,
+    required bool isGoal,
+    required String text,
+  }) async {
+    final t = text.trim();
+    if (t.isEmpty) return;
+    final ctrls = isGoal ? _goalCtrls : _todoCtrls;
+    final existing = ctrls.map((c) => c.text.trim()).toList();
+    if (!existing.contains(t)) {
+      final emptyIdx = ctrls.indexWhere((c) => c.text.trim().isEmpty);
+      if (emptyIdx != -1) {
+        ctrls[emptyIdx].text = t;
+      } else if (ctrls.isNotEmpty) {
+        ctrls[ctrls.length - 1].text = t; // fallback: überschreibe letzten Slot
+      }
+    }
+    final out = ctrls
+        .map((c) => c.text.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+    final updater = ref.read(updateDayFieldProvider);
+    {
+      final next = DateTime(
+        _selected.year,
+        _selected.month,
+        _selected.day,
+      ).add(const Duration(days: 1));
+      await updater(
+        uid,
+        next,
+        isGoal ? 'planning.goals' : 'planning.todos',
+        out,
+      );
+    }
+    _maybeShowSavedSnack();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -1017,6 +1055,21 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                             } catch (_) {}
                                           },
                                           title: Text(curGoals[i]),
+                                          secondary: !_yesterdayGoalChecks[i]
+                                              ? IconButton(
+                                                  tooltip:
+                                                      'Für morgen übernehmen',
+                                                  icon: const Icon(
+                                                    Icons.redo_rounded,
+                                                  ),
+                                                  onPressed: () =>
+                                                      _carryOverOne(
+                                                        uid: uid,
+                                                        isGoal: true,
+                                                        text: curGoals[i],
+                                                      ),
+                                                )
+                                              : null,
                                           controlAffinity:
                                               ListTileControlAffinity.leading,
                                         ),
@@ -1074,6 +1127,21 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                                 : 1.0,
                                             child: Text(curTodos[i]),
                                           ),
+                                          secondary: !_yesterdayTodoChecks[i]
+                                              ? IconButton(
+                                                  tooltip:
+                                                      'Für morgen übernehmen',
+                                                  icon: const Icon(
+                                                    Icons.redo_rounded,
+                                                  ),
+                                                  onPressed: () =>
+                                                      _carryOverOne(
+                                                        uid: uid,
+                                                        isGoal: false,
+                                                        text: curTodos[i],
+                                                      ),
+                                                )
+                                              : null,
                                           controlAffinity:
                                               ListTileControlAffinity.leading,
                                         ),
@@ -1083,6 +1151,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                       ),
                                     const SizedBox(height: 12),
 
+                                    // Entfernt: großer Sammel-Übernahme-Button
                                     _labeledField(
                                       'Was lief heute gut?',
                                       _eveningGoodCtrl,
@@ -1096,11 +1165,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                           fieldPath: 'evening.good',
                                           value: v.isEmpty ? null : v,
                                         );
-                                        FirestoreService()
-                                            .markEveningCompletedAndUpdateStreak(
-                                              uid,
-                                              _selected,
-                                            );
+                                        // Abschluss des Abends erfolgt nun explizit über Button
                                       },
                                     ),
                                     const SizedBox(height: 8),
@@ -1117,11 +1182,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                           fieldPath: 'evening.learned',
                                           value: v.isEmpty ? null : v,
                                         );
-                                        FirestoreService()
-                                            .markEveningCompletedAndUpdateStreak(
-                                              uid,
-                                              _selected,
-                                            );
+                                        // Abschluss des Abends erfolgt nun explizit über Button
                                       },
                                     ),
                                     const SizedBox(height: 8),
@@ -1138,11 +1199,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                           fieldPath: 'evening.improve',
                                           value: v.isEmpty ? null : v,
                                         );
-                                        FirestoreService()
-                                            .markEveningCompletedAndUpdateStreak(
-                                              uid,
-                                              _selected,
-                                            );
+                                        // Abschluss des Abends erfolgt nun explizit über Button
                                       },
                                     ),
                                     const SizedBox(height: 8),
@@ -1159,14 +1216,125 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                           fieldPath: 'evening.gratitude',
                                           value: v.isEmpty ? null : v,
                                         );
-                                        FirestoreService()
-                                            .markEveningCompletedAndUpdateStreak(
-                                              uid,
-                                              _selected,
-                                            );
+                                        // Abschluss des Abends erfolgt nun explizit über Button
                                       },
                                     ),
                                     const SizedBox(height: 12),
+                                    // Abend explizit abschließen
+                                    Builder(
+                                      builder: (context) {
+                                        final eveningCompleted =
+                                            (_readAt<bool>(todayData, [
+                                              'evening',
+                                              'completed',
+                                            ]) ??
+                                            false);
+
+                                        // Kriterien für Abschluss:
+                                        // - mindestens 1 Ziel abgehakt
+                                        // - mindestens 2 To-dos abgehakt
+                                        // - mindestens 2 der 4 Abend-Textfelder gefüllt
+                                        int countTextFilled = 0;
+                                        final goodFilled =
+                                            _readAt<String>(todayData, [
+                                              'evening',
+                                              'good',
+                                            ])?.trim().isNotEmpty ??
+                                            false;
+                                        final learnedFilled =
+                                            _readAt<String>(todayData, [
+                                              'evening',
+                                              'learned',
+                                            ])?.trim().isNotEmpty ??
+                                            false;
+                                        final improveFilled =
+                                            _readAt<String>(todayData, [
+                                              'evening',
+                                              'improve',
+                                            ])?.trim().isNotEmpty ??
+                                            false;
+                                        final gratitudeFilled =
+                                            _readAt<String>(todayData, [
+                                              'evening',
+                                              'gratitude',
+                                            ])?.trim().isNotEmpty ??
+                                            false;
+                                        for (final b in [
+                                          goodFilled,
+                                          learnedFilled,
+                                          improveFilled,
+                                          gratitudeFilled,
+                                        ]) {
+                                          if (b) countTextFilled++;
+                                        }
+
+                                        int goalsChecked = 0;
+                                        int todosChecked = 0;
+                                        // Sichtbare Indizes analog zur Anzeige (max 3, nicht-leer)
+                                        final goalIdx =
+                                            List<int>.generate(
+                                              curGoals.length.clamp(0, 3),
+                                              (i) => i,
+                                            ).where(
+                                              (i) =>
+                                                  curGoals[i].trim().isNotEmpty,
+                                            );
+                                        for (final i in goalIdx) {
+                                          if (i < _yesterdayGoalChecks.length &&
+                                              _yesterdayGoalChecks[i])
+                                            goalsChecked++;
+                                        }
+                                        final todoIdx =
+                                            List<int>.generate(
+                                              curTodos.length.clamp(0, 3),
+                                              (i) => i,
+                                            ).where(
+                                              (i) =>
+                                                  curTodos[i].trim().isNotEmpty,
+                                            );
+                                        for (final i in todoIdx) {
+                                          if (i < _yesterdayTodoChecks.length &&
+                                              _yesterdayTodoChecks[i])
+                                            todosChecked++;
+                                        }
+
+                                        final meets =
+                                            !eveningCompleted &&
+                                            goalsChecked >= 1 &&
+                                            todosChecked >= 2 &&
+                                            countTextFilled >= 2;
+
+                                        return Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: FilledButton.icon(
+                                            icon: Icon(
+                                              eveningCompleted
+                                                  ? Icons.check_circle
+                                                  : Icons.check_circle_outline,
+                                            ),
+                                            label: Text(
+                                              eveningCompleted
+                                                  ? 'Abend abgeschlossen'
+                                                  : 'Abend abschließen',
+                                            ),
+                                            onPressed: meets
+                                                ? () async {
+                                                    try {
+                                                      await FirestoreService()
+                                                          .markEveningCompletedAndUpdateStreak(
+                                                            uid,
+                                                            _selected,
+                                                          );
+                                                      if (mounted)
+                                                        setState(() {});
+                                                    } catch (_) {}
+                                                  }
+                                                : null,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    const SizedBox(height: 8),
                                     _emojiBar(
                                       context,
                                       label: 'Stimmung',

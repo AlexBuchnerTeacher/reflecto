@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'day_screen.dart';
-import 'week_screen.dart';
-import 'settings_screen.dart';
+import './day_screen.dart';
+import './week_screen.dart';
+import './settings_screen.dart' as settings;
 
 class HomeScreen extends StatefulWidget {
   static const routeName = '/home';
@@ -80,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(
             child: IndexedStack(
               index: _index,
-              children: const [DayScreen(), WeekScreen(), SettingsScreen()],
+              children: [DayScreen(), WeekScreen(), settings.SettingsScreen()],
             ),
           ),
         ],

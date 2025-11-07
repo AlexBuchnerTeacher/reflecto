@@ -44,20 +44,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _loadVersion() async {
     final info = await PackageInfo.fromPlatform();
     if (!mounted) return;
-    final version = '${info.version}+${info.buildNumber}';
-    String displayTime = kBuildTime;
-    if (displayTime.isEmpty) {
-      displayTime = DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now());
-    }
-    final build = [
-      kBuildChannel.isEmpty ? 'local' : kBuildChannel,
-      if (shortGitSha().isNotEmpty) shortGitSha(),
-      displayTime,
-    ].where((e) => e.isNotEmpty).join(' ');
-    setState(() {
-      _version = version;
-      _buildInfo = build;
-    });
+    setState(() => _version = '${info.version}+${info.buildNumber}');
   }
 
   Future<void> _signOut() async {
@@ -117,16 +104,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
               ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [const Text('Version'), Text(_version ?? '…')],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [const Text('Build'), Text(_buildInfo ?? '')],
-              ),
               const SizedBox(height: 24),
 
               // Theme
@@ -163,7 +140,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: ReflectoButton(
-                  text: _loading ? 'Speichern…' : 'Profil speichern',
+                  text: _loading ? 'SpeichernÃ¢â‚¬Â¦' : 'Profil speichern',
                   icon: Icons.save_outlined,
                   onPressed: _loading ? null : _saveProfile,
                 ),
@@ -176,12 +153,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               // Version
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [const Text('Version'), Text(_version ?? '…')],
+                children: [const Text('Version'), Text(_version ?? 'Ã¢â‚¬Â¦')],
               ),
 
               const SizedBox(height: 24),
               ReflectoButton(
-                text: _loading ? 'Abmelden…' : 'Abmelden',
+                text: _loading ? 'AbmeldenÃ¢â‚¬Â¦' : 'Abmelden',
                 icon: Icons.logout,
                 onPressed: _loading ? null : _signOut,
               ),

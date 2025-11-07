@@ -209,7 +209,9 @@ class FirestoreService {
         return; // heute bereits gezählt
       }
 
-      final shouldChain = yCompleted && lastDate == yId;
+      // Kette fortsetzen, wenn gestern abgeschlossen war und entweder
+      // lastDate genau gestern war (normaler Fluss) ODER lastDate noch fehlt (Neustart mit vorhandenem gestrigem Abschluss)
+      final shouldChain = yCompleted && (lastDate == yId || lastDate == null);
       final next = shouldChain ? (current + 1) : 1;
       await streakRef.set({
         'streakCount': next,
