@@ -268,31 +268,42 @@ class _DayScreenState extends ConsumerState<DayScreen> {
   }
 
   Widget _statusChip({required bool pending, required bool fromCache}) {
-    String text;
-    Color color;
+    final cs = Theme.of(context).colorScheme;
+    late String text;
+    late Color bg;
+    late Color fg;
+    late Color border;
+
     if (pending) {
       text = 'Synchronisiere\u2026';
-      color = const Color(0xFF2E7DFA).withValues(alpha: 0.10);
+      bg = cs.primaryContainer;
+      fg = cs.onPrimaryContainer;
+      border = cs.primary;
     } else if (fromCache) {
       text = 'Offline';
-      color = const Color(0xFFE57A00).withValues(alpha: 0.10);
+      bg = cs.tertiaryContainer;
+      fg = cs.onTertiaryContainer;
+      border = cs.tertiary;
     } else {
       text = '\u2713 Gespeichert';
-      color = const Color(0xFF4CAF50).withValues(alpha: 0.10);
+      bg = cs.secondaryContainer;
+      fg = cs.onSecondaryContainer;
+      border = cs.secondary;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color,
+        color: bg,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFD9E3F0)),
+        border: Border.all(color: border.withValues(alpha: 0.35), width: 1),
       ),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
+          color: fg,
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          fontFamilyFallback: [
+          fontFamilyFallback: const [
             'Segoe UI Emoji',
             'Apple Color Emoji',
             'Noto Color Emoji',
@@ -303,19 +314,21 @@ class _DayScreenState extends ConsumerState<DayScreen> {
   }
 
   Widget _progressChip(String text) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F8FE),
+        color: cs.surfaceVariant,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFD9E3F0)),
+        border: Border.all(color: cs.outlineVariant, width: 1),
       ),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
+          color: cs.onSurfaceVariant,
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          fontFamilyFallback: [
+          fontFamilyFallback: const [
             'Segoe UI Emoji',
             'Apple Color Emoji',
             'Noto Color Emoji',
@@ -1434,8 +1447,11 @@ class _DayScreenState extends ConsumerState<DayScreen> {
     required int? value,
     required ValueChanged<int> onSelect,
   }) {
-    const active = Color(0xFF2E7DFA);
-    const inactive = Color(0xFFD9E3F0);
+    final cs = Theme.of(context).colorScheme;
+    final activeBorder = cs.primary;
+    final inactiveBorder = cs.outlineVariant;
+    final activeBg = cs.primaryContainer;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1451,25 +1467,26 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                 child: AnimatedOpacity(
                   duration: const Duration(milliseconds: 200),
                   curve: Curves.easeInOut,
-                  opacity: (value ?? 0) >= i ? 1.0 : 0.6,
+                  opacity: (value ?? 0) >= i ? 1.0 : 0.7,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: (value ?? 0) >= i
-                          ? active.withValues(alpha: 0.12)
-                          : Colors.transparent,
+                      color: (value ?? 0) >= i ? activeBg : Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: (value ?? 0) >= i ? active : inactive,
+                        color: (value ?? 0) >= i
+                            ? activeBorder
+                            : inactiveBorder,
                       ),
                     ),
                     child: Text(
                       emojis[i - 1],
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
+                        color: (value ?? 0) >= i ? cs.onPrimaryContainer : null,
                         fontFamilyFallback: [
                           'Segoe UI Emoji',
                           'Apple Color Emoji',
