@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' show FieldValue;
 
 import '../widgets/reflecto_card.dart';
-import '../widgets/reflecto_snackbar.dart';
 import '../providers/auth_providers.dart';
 import '../providers/entry_providers.dart';
 import '../services/firestore_service.dart';
@@ -70,6 +69,8 @@ class _DayScreenState extends ConsumerState<DayScreen> {
   int? _ratingFocusLocal;
   int? _ratingEnergyLocal;
   int? _ratingHappinessLocal;
+  bool _statusPulse = false;
+  Timer? _statusPulseTimer;
 
   @override
   void initState() {
@@ -113,6 +114,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
     for (final t in _debouncers.values) {
       t.cancel();
     }
+    _statusPulseTimer?.cancel();
     _eveningGoodCtrl.dispose();
     _eveningLearnedCtrl.dispose();
     _eveningBetterCtrl.dispose();
@@ -159,11 +161,16 @@ class _DayScreenState extends ConsumerState<DayScreen> {
   }
 
   void _maybeShowSavedSnack() {
+    // Statt Snackbar: Status-Chip kurz hervorheben
     final now = DateTime.now();
     if (_lastSnackAt == null ||
-        now.difference(_lastSnackAt!).inMilliseconds > 1000) {
+        now.difference(_lastSnackAt!).inMilliseconds > 500) {
       _lastSnackAt = now;
-      if (mounted) ReflectoSnackbar.showSaved(context);
+      _statusPulseTimer?.cancel();
+      if (mounted) setState(() => _statusPulse = true);
+      _statusPulseTimer = Timer(const Duration(milliseconds: 1200), () {
+        if (mounted) setState(() => _statusPulse = false);
+      });
     }
   }
 
@@ -290,12 +297,16 @@ class _DayScreenState extends ConsumerState<DayScreen> {
       fg = cs.onSecondaryContainer;
       border = cs.secondary;
     }
+    final borderAlpha = _statusPulse ? 0.6 : 0.35;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: border.withValues(alpha: 0.35), width: 1),
+        border: Border.all(
+          color: border.withValues(alpha: borderAlpha),
+          width: 1.2,
+        ),
       ),
       child: Text(
         text,
