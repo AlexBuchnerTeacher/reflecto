@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'day_screen.dart';
@@ -47,12 +47,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 stream: stream,
                 builder: (context, snap) {
                   final doc = snap.data;
-                  final cnt = (doc?.data()?['streakCount'] as num?)?.toInt() ?? 0;
+                  final cnt =
+                      (doc?.data()?['streakCount'] as num?)?.toInt() ?? 0;
                   if (cnt <= 0) return const SizedBox(height: 8);
                   final cs = Theme.of(context).colorScheme;
                   return Container(
                     margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                     decoration: BoxDecoration(
                       color: cs.secondaryContainer,
                       borderRadius: BorderRadius.circular(14),
@@ -62,7 +66,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         const Text('\u{1F525}', style: TextStyle(fontSize: 16)),
                         const SizedBox(width: 6),
-                        Text('Streak: $cnt Tage in Folge', style: const TextStyle(fontWeight: FontWeight.w700)),
+                        Text(
+                          'Streak: $cnt Tage in Folge',
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
                       ],
                     ),
                   );
@@ -99,4 +106,3 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-

@@ -113,7 +113,11 @@ class ReflectoTheme {
 
     return ThemeData(
       useMaterial3: true,
-      fontFamilyFallback: const ['Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji'],
+      fontFamilyFallback: const [
+        'Segoe UI Emoji',
+        'Apple Color Emoji',
+        'Noto Color Emoji',
+      ],
       colorScheme: colorScheme,
       scaffoldBackgroundColor: ReflectoColors.backgroundMid,
 
@@ -265,7 +269,11 @@ class ReflectoTheme {
 
     return ThemeData(
       useMaterial3: true,
-      fontFamilyFallback: const ['Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji'],
+      fontFamilyFallback: const [
+        'Segoe UI Emoji',
+        'Apple Color Emoji',
+        'Noto Color Emoji',
+      ],
       colorScheme: colorScheme,
       scaffoldBackgroundColor: ReflectoColors.darkBackground,
       textTheme: textTheme,

@@ -43,3 +43,12 @@ jobs:
         with:
           name: coverage-lcov
           path: coverage/lcov.info
+
+      - name: Build Flutter Web (release)
+        run: flutter build web --release --base-href /reflecto/
+
+      - name: Upload web build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: build/web

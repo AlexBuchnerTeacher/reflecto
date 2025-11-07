@@ -1,0 +1,50 @@
+name: Bug Report
+description: Melde einen Fehler in Reflecto
+labels: ["type:bug"]
+assignees: []
+body:
+  - type: textarea
+    attributes:
+      label: Beschreibung
+      description: Kurze, klare Fehlerbeschreibung.
+      placeholder: Was ist passiert? Was hast du erwartet?
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Schritte zum Reproduzieren
+      description: Liste die Schritte, um den Fehler auszulösen.
+      placeholder: |
+        1. Gehe zu …
+        2. Klicke auf …
+        3. Beobachte …
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Erwartetes Verhalten
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Screenshots/Logs
+      description: Füge relevante Screenshots oder Logauszüge hinzu.
+      render: shell
+
+  - type: input
+    attributes:
+      label: App-Version (Build)
+      placeholder: z. B. 1.0.0+1
+
+  - type: input
+    attributes:
+      label: Gerät/OS
+      placeholder: z. B. Pixel 7, Android 14 / iPhone 14, iOS 17
+
+  - type: textarea
+    attributes:
+      label: Weitere Hinweise
+

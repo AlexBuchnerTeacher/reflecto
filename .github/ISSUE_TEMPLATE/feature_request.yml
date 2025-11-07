@@ -1,0 +1,37 @@
+name: Feature Request
+description: Schlage eine neue Funktion/Verbesserung vor
+labels: ["type:feature"]
+assignees: []
+body:
+  - type: textarea
+    attributes:
+      label: Problem / Ziel
+      description: Welches Problem löst die Funktion? Welchen Nutzen bringt sie?
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Lösungsidee
+      description: Beschreibe die gewünschte Lösung/UX möglichst konkret.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Alternativen
+      description: Welche Alternativen wurden in Betracht gezogen?
+
+  - type: textarea
+    attributes:
+      label: Screens/Mokups (optional)
+
+  - type: checkboxes
+    attributes:
+      label: Scope
+      options:
+        - label: UI/UX
+        - label: State/Logic (Riverpod)
+        - label: Daten (Firebase)
+        - label: Build/CI
+

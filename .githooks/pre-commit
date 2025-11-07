@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "[pre-commit] Checking Dart formatting..."
+if ! command -v dart >/dev/null 2>&1; then
+  echo "[pre-commit] 'dart' not found in PATH. Skipping format check."
+  exit 0
+fi
+
+# Check formatting without changing files first
+if ! dart format -o none --set-exit-if-changed .; then
+  echo "[pre-commit] Applying dart format changes..."
+  dart format .
+  # Stage all formatting changes so they are included in the commit
+  git add -A
+  echo "[pre-commit] Formatting applied. Please re-run your commit."
+  exit 1
+fi
+
+echo "[pre-commit] OK: formatting is clean."
+

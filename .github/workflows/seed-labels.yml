@@ -1,0 +1,62 @@
+name: Seed Labels
+
+on:
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const desired = [
+              { name: 'type:bug',       color: 'd73a4a', description: 'Fehler / Bug' },
+              { name: 'type:feature',   color: '0e8a16', description: 'Neue Funktion' },
+              { name: 'type:chore',     color: 'ededed', description: 'Wartung / Aufräumen' },
+              { name: 'docs',           color: '0075ca', description: 'Dokumentation' },
+              { name: 'tests',          color: '5319e7', description: 'Tests' },
+              { name: 'prio:high',      color: 'b60205', description: 'Hohe Priorität' },
+              { name: 'prio:med',       color: 'fbca04', description: 'Mittlere Priorität' },
+              { name: 'prio:low',       color: 'c2e0c6', description: 'Niedrige Priorität' },
+              { name: 'area:ui',        color: '1d76db', description: 'UI/UX' },
+              { name: 'area:state',     color: '5319e7', description: 'State/Logic (Riverpod)' },
+              { name: 'area:data',      color: '0e8a16', description: 'Daten/Firebase' },
+              { name: 'good first issue', color: '7057ff', description: 'Einstiegsfreundlich' },
+            ];
+
+            const { data: existing } = await github.rest.issues.listLabelsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+            const map = new Map(existing.map(l => [l.name, l]));
+
+            for (const label of desired) {
+              if (map.has(label.name)) {
+                // Update color/description if different
+                const cur = map.get(label.name);
+                if ((cur.color || '').toLowerCase() !== label.color.toLowerCase() || (cur.description || '') !== label.description) {
+                  await github.rest.issues.updateLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    name: label.name,
+                    color: label.color,
+                    description: label.description,
+                  });
+                }
+              } else {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: label.name,
+                  color: label.color,
+                  description: label.description,
+                });
+              }
+            }
+
