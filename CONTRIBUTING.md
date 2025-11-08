@@ -85,3 +85,17 @@ Hinweise:
 ---
 
 Fragen/Änderungen am Prozess bitte per Issue/PR vorschlagen.
+
+## 🔧 Commit-Template aktivieren
+
+Dieses Repository bringt eine Commit-Vorlage mit (Conventional + Emoji): `.github/commit_template.txt`.
+
+- Aktivierung (Repo-lokal):
+  - `git config commit.template .github/commit_template.txt`
+- Optional (global für alle Repos):
+  - `git config --global commit.template ~/.git-commit-template.txt`
+  - Datei kopieren: `cp .github/commit_template.txt ~/.git-commit-template.txt`
+
+Hinweise:
+- Pre-commit-Hooks können Formatierungen anpassen und einen erneuten Commit verlangen.
+- VS Code: Der integrierte Git-Editor öffnet die Vorlage beim Commit automatisch.

@@ -43,3 +43,8 @@ Kernpunkte:
 - Über Feature-/Fix-Branches arbeiten; keine Direkt-Commits auf `main`.
 - Kleine, fokussierte PRs; CI (analyze/lint/tests) muss grün sein.
 - Conventional Commits mit Emojis (siehe Tabelle in CONTRIBUTING.md).
+
+Commit-Template (Conventional + Emoji) aktivieren:
+
+- Repo-lokal: `git config commit.template .github/commit_template.txt`
+- Optional global: Datei nach `~/.git-commit-template.txt` kopieren und `git config --global commit.template ~/.git-commit-template.txt`
