@@ -44,16 +44,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _loadVersion() async {
     final info = await PackageInfo.fromPlatform();
     if (!mounted) return;
-    final version = '${info.version}+${info.buildNumber}';
+    // Show semantic version (from pubspec) and keep build/meta in separate row.
+    final version = info.version;
     String displayTime = kBuildTime;
     if (displayTime.isEmpty) {
       displayTime = DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now());
     }
-    final build = [
-      kBuildChannel.isEmpty ? 'local' : kBuildChannel,
+    // Compose build string: buildNumber + channel + shortSha + time (where available)
+    final buildParts = <String>[
+      if (info.buildNumber.isNotEmpty && info.buildNumber != '0')
+        info.buildNumber,
+      if ((kBuildChannel).isNotEmpty) kBuildChannel else 'local',
       if (shortGitSha().isNotEmpty) shortGitSha(),
       displayTime,
-    ].where((e) => e.isNotEmpty).join(' ');
+    ];
+    final build = buildParts.where((e) => e.isNotEmpty).join(' ');
     setState(() {
       _version = version;
       _buildInfo = build;
@@ -120,7 +125,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [const Text('Version'), Text(_version ?? '…')],
+                children: [const Text('Version'), Text(_version ?? '\u2026')],
               ),
               const SizedBox(height: 8),
               Row(
@@ -163,7 +168,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: ReflectoButton(
-                  text: _loading ? 'Speichern…' : 'Profil speichern',
+                  text: _loading ? 'Speichern\u2026' : 'Profil speichern',
                   icon: Icons.save_outlined,
                   onPressed: _loading ? null : _saveProfile,
                 ),
@@ -176,14 +181,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               // Version
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [const Text('Version'), Text(_version ?? '…')],
+                // Version
+                /* removed duplicate version row */
+                /*
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [const Text('Version'), Text(_version ?? '\u2026')],
               ),
-
-              const SizedBox(height: 24),
-              ReflectoButton(
-                text: _loading ? 'Abmelden…' : 'Abmelden',
-                icon: Icons.logout,
-                onPressed: _loading ? null : _signOut,
+              */
               ),
             ],
           ),
