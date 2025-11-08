@@ -1,0 +1,35 @@
+# Commit Template (Reflecto)
+#
+# Format (Conventional + Emoji):
+# <emoji> <type>(<scope>): <subject>
+#
+# Beispiele
+# ✨ feat(streak): Add Streak Counter mit SharedPrefs
+# 🐛 fix(day): Fix NullCheck in DayScreen
+# 🔧 chore(rules): Update Firestore Security Rules
+# 🧱 refactor(ui): Struktur von Widgets vereinfacht
+# 📄 docs(readme): Ergänze Setup-Anleitung
+# 🚀 release: v1.2.0
+#
+# Body (optional, warum/wie):
+# - Kontext und Motivation
+# - technische Notizen / Migrationshinweise
+#
+# Footer (optional):
+# fixes #123  (schließt Issue automatisch)
+# refs #456
+
+
+# ⚙️ Typischer Codex-Workflow in VS Code
+# | Schritt                 | Befehl / Prompt an Codex                                       | Ergebnis                |
+# | ----------------------- | -------------------------------------------------------------- | ----------------------- |
+# | 🆕 Feature starten      | „@workspace checkout new branch feature/streak_counter“        | erstellt Branch         |
+# | 💾 Änderungen committen | „commit all changes with message: ✨ Add streak counter widget“ | sauberer Commit         |
+# | 🚀 Pushen               | „push current branch to origin“                                | branch online           |
+# | 🔄 PR öffnen            | „open pull request to dev with description“                    | GitHub PR wird angelegt |
+# | ✅ Merge durchführen     | „merge dev into main and tag v1.3.0“                           | Release-Merge & Tag     |
+
+# Hinweise
+# - Subjekt im Imperativ, max. ~72 Zeichen
+# - Eine Änderung pro Commit (so weit sinnvoll)
+# - Deutsche Umlaute/Emoji ok; bei Problemen Unicode-Escapes verwenden

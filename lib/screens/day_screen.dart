@@ -1281,8 +1281,9 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                             );
                                         for (final i in goalIdx) {
                                           if (i < _yesterdayGoalChecks.length &&
-                                              _yesterdayGoalChecks[i])
+                                              _yesterdayGoalChecks[i]) {
                                             goalsChecked++;
+                                          }
                                         }
                                         final todoIdx =
                                             List<int>.generate(
@@ -1294,8 +1295,9 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                             );
                                         for (final i in todoIdx) {
                                           if (i < _yesterdayTodoChecks.length &&
-                                              _yesterdayTodoChecks[i])
+                                              _yesterdayTodoChecks[i]) {
                                             todosChecked++;
+                                          }
                                         }
 
                                         final meets =
@@ -1325,8 +1327,9 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                                             uid,
                                                             _selected,
                                                           );
-                                                      if (mounted)
+                                                      if (mounted) {
                                                         setState(() {});
+                                                      }
                                                     } catch (_) {}
                                                   }
                                                 : null,
