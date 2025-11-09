@@ -6,6 +6,19 @@ Alle nennenswerten Änderungen an Reflecto. Siehe Releases für automatisch gene
 
 –
 
+## v1.2.1
+
+- Streak-System
+  - Riverpod `streakInfoProvider` + Mapping-Tests zur Anzeige in Home/Day
+  - Service `markEveningCompletedAndUpdateStreak` zählt anhand des Tagesabstands und pflegt `longestStreak`
+  - Snackbar beim Abendabschluss („🔥 +1 Tag!“) und Fix für den 1-Tag-Reset (Issue #18)
+- Tagesansicht
+  - AppBar-Titel vereinfacht („Tagesansicht“); Datum nur noch über die Chips
+  - Streak-Zeile im DayScreen entfernt (Anzeige zentral auf dem HomeScreen)
+- Cleanup
+  - Konfliktmarker entfernt, ungenutzte Helper/Imports bereinigt
+  - Locale-Init (`intl`) abgesichert
+
 ## v1.2.0
 
 - UI/Tagesansicht
@@ -43,4 +56,3 @@ Alle nennenswerten Änderungen an Reflecto. Siehe Releases für automatisch gene
   - Analyzer-Warnungen/Deprecations bereinigt
 
 Vollständige Release-Notes: https://github.com/AlexBuchnerTeacher/reflecto/releases/tag/v1.1.0
-
