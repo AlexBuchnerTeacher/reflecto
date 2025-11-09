@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../providers/streak_providers.dart';
 import './day_screen.dart';
 import './week_screen.dart';
@@ -35,47 +34,33 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Column(
         children: [
-          Builder(
-            builder: (context) {
-              final uid = FirebaseAuth.instance.currentUser?.uid;
-              if (uid == null) return const SizedBox.shrink();
-              final stream = FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(uid)
-                  .collection('stats')
-                  .doc('streak')
-                  .snapshots();
-              return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                stream: stream,
-                builder: (context, snap) {
-                  final doc = snap.data;
-                  final cnt =
-                      (doc?.data()?['streakCount'] as num?)?.toInt() ?? 0;
-                  if (cnt <= 0) return const SizedBox(height: 8);
-                  final cs = Theme.of(context).colorScheme;
-                  return Container(
-                    margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
+          Consumer(
+            builder: (context, ref, _) {
+              final info = ref.watch(streakInfoProvider);
+              final cnt = info?.current ?? 0;
+              if (cnt <= 0) return const SizedBox(height: 8);
+              final cs = Theme.of(context).colorScheme;
+              return Container(
+                margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: cs.secondaryContainer,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('\u{1F525}', style: TextStyle(fontSize: 16)),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Streak: $cnt Tage in Folge',
+                      style: const TextStyle(fontWeight: FontWeight.w700),
                     ),
-                    decoration: BoxDecoration(
-                      color: cs.secondaryContainer,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text('\u{1F525}', style: TextStyle(fontSize: 16)),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Streak: $cnt Tage in Folge',
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+                  ],
+                ),
               );
             },
           ),
