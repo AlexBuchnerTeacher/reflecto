@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../providers/streak_providers.dart';
 import './day_screen.dart';
 import './week_screen.dart';
 import './settings_screen.dart' as settings;
