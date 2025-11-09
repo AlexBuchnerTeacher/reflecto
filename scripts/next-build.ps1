@@ -1,5 +1,5 @@
 param(
-  [Parameter(Position=0)] [ValidateSet('apk','ipa')] [string] $Target = 'apk',
+  [Parameter(Position=0)] [ValidateSet('apk','ipa','web')] [string] $Target = 'web',
   [Parameter()] [string] $Channel = 'local',
   [Parameter()] [string] $Version,
   [switch] $NoTime
@@ -42,7 +42,8 @@ if ($Target -eq 'apk') {
   flutter build apk --release --build-name $Version --build-number $next @defines
 } elseif ($Target -eq 'ipa') {
   flutter build ipa --release --build-name $Version --build-number $next @defines
+} elseif ($Target -eq 'web') {
+  flutter build web --release --base-href /reflecto/ --pwa-strategy=none @defines
 }
 
 Write-Host "Done. Version=$Version BuildNumber=$next Channel=$Channel SHA=$sha"
-
