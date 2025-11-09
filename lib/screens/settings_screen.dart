@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:intl/intl.dart';
 
 import '../widgets/reflecto_button.dart';
-import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import '../models/user_model.dart';
 import '../providers/settings_providers.dart';
@@ -18,7 +18,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  final _auth = AuthService();
   bool _loading = false;
   final _nameCtrl = TextEditingController();
   String? _email;
@@ -45,33 +44,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (!mounted) return;
     // Show semantic version (from pubspec) and keep build/meta in separate row.
     final version = info.version;
-    final displayTime =
-        kBuildTime; // nur anzeigen, wenn Build-Time gesetzt wurde
+    String displayTime = kBuildTime;
+    if (displayTime.isEmpty) {
+      displayTime = DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now());
+    }
     // Compose build string: buildNumber + channel + shortSha + time (where available)
-    final resolvedBuildNumber = (kBuildNumber.isNotEmpty)
-        ? kBuildNumber
-        : info.buildNumber;
     final buildParts = <String>[
-      if (resolvedBuildNumber.isNotEmpty && resolvedBuildNumber != '0')
-        resolvedBuildNumber,
+      if (info.buildNumber.isNotEmpty && info.buildNumber != '0')
+        info.buildNumber,
       if ((kBuildChannel).isNotEmpty) kBuildChannel else 'local',
       if (shortGitSha().isNotEmpty) shortGitSha(),
-      if (displayTime.isNotEmpty) displayTime,
+      displayTime,
     ];
     final build = buildParts.where((e) => e.isNotEmpty).join(' ');
     setState(() {
       _version = version;
       _buildInfo = build;
     });
-  }
-
-  Future<void> _signOut() async {
-    setState(() => _loading = true);
-    try {
-      await _auth.signOut();
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
   }
 
   Future<void> _saveProfile() async {
@@ -178,14 +167,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const Divider(),
               const SizedBox(height: 12),
 
-              // Abmelden
-              Align(
-                alignment: Alignment.centerLeft,
-                child: ReflectoButton(
-                  text: _loading ? 'Abmelden\u2026' : 'Abmelden',
-                  icon: Icons.logout_outlined,
-                  onPressed: _loading ? null : _signOut,
-                ),
+              // Version
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // Version
+                /* removed duplicate version row */
+                /*
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [const Text('Version'), Text(_version ?? '\u2026')],
+              ),
+              */
               ),
             ],
           ),
