@@ -26,3 +26,4 @@ Alle nennenswerten Änderungen an Reflecto. Siehe Releases für automatisch gene
   - Analyzer-Warnungen/Deprecations bereinigt
 
 Vollständige Release-Notes: https://github.com/AlexBuchnerTeacher/reflecto/releases/tag/v1.1.0
+

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:intl/intl.dart';
 
 import '../widgets/reflecto_button.dart';
 import '../services/auth_service.dart';
@@ -46,17 +45,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (!mounted) return;
     // Show semantic version (from pubspec) and keep build/meta in separate row.
     final version = info.version;
-    String displayTime = kBuildTime;
-    if (displayTime.isEmpty) {
-      displayTime = DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now());
-    }
+    final displayTime =
+        kBuildTime; // nur anzeigen, wenn Build-Time gesetzt wurde
     // Compose build string: buildNumber + channel + shortSha + time (where available)
+    final resolvedBuildNumber = (kBuildNumber.isNotEmpty)
+        ? kBuildNumber
+        : info.buildNumber;
     final buildParts = <String>[
-      if (info.buildNumber.isNotEmpty && info.buildNumber != '0')
-        info.buildNumber,
+      if (resolvedBuildNumber.isNotEmpty && resolvedBuildNumber != '0')
+        resolvedBuildNumber,
       if ((kBuildChannel).isNotEmpty) kBuildChannel else 'local',
       if (shortGitSha().isNotEmpty) shortGitSha(),
-      displayTime,
+      if (displayTime.isNotEmpty) displayTime,
     ];
     final build = buildParts.where((e) => e.isNotEmpty).join(' ');
     setState(() {
@@ -178,17 +178,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const Divider(),
               const SizedBox(height: 12),
 
-              // Version
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                // Version
-                /* removed duplicate version row */
-                /*
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [const Text('Version'), Text(_version ?? '\u2026')],
-              ),
-              */
+              // Abmelden
+              Align(
+                alignment: Alignment.centerLeft,
+                child: ReflectoButton(
+                  text: _loading ? 'Abmelden\u2026' : 'Abmelden',
+                  icon: Icons.logout_outlined,
+                  onPressed: _loading ? null : _signOut,
+                ),
               ),
             ],
           ),
