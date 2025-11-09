@@ -2,8 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' show FieldValue;
-import 'package:cloud_firestore/cloud_firestore.dart' as cf;
-import 'package:firebase_auth/firebase_auth.dart' as fa;
+import '../providers/streak_providers.dart';
 import 'package:intl/intl.dart';
 
 import '../widgets/reflecto_card.dart';
@@ -784,43 +783,24 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                             child: _weekCarousel(_selected),
                           ),
                           const SizedBox(height: 8),
-                          // Streak-Kontextzeile (optional)
-                          Builder(
-                            builder: (context) {
-                              final uid =
-                                  fa.FirebaseAuth.instance.currentUser?.uid;
-                              if (uid == null) return const SizedBox.shrink();
-                              final streakStream = cf.FirebaseFirestore.instance
-                                  .collection('users')
-                                  .doc(uid)
-                                  .collection('stats')
-                                  .doc('streak')
-                                  .snapshots();
-                              return StreamBuilder<
-                                cf.DocumentSnapshot<Map<String, dynamic>>
-                              >(
-                                stream: streakStream,
-                                builder: (context, snap) {
-                                  final cnt =
-                                      (snap.data?.data()?['streakCount']
-                                              as num?)
-                                          ?.toInt() ??
-                                      0;
-                                  if (cnt <= 0) return const SizedBox.shrink();
-                                  return Padding(
-                                    padding: const EdgeInsets.only(
-                                      top: 4.0,
-                                      bottom: 4.0,
-                                    ),
-                                    child: Text(
-                                      '🔥 $cnt Tage in Folge',
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  );
-                                },
+                          // Streak-Kontextzeile (optional, via Provider)
+                          Consumer(
+                            builder: (context, ref, _) {
+                              final info = ref.watch(streakInfoProvider);
+                              final cnt = info?.current ?? 0;
+                              if (cnt <= 0) return const SizedBox.shrink();
+                              return Padding(
+                                padding: const EdgeInsets.only(
+                                  top: 4.0,
+                                  bottom: 4.0,
+                                ),
+                                child: Text(
+                                  '🔥 $cnt Tage in Folge',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                               );
                             },
                           ),
