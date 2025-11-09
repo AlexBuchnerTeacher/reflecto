@@ -5,7 +5,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:intl/intl.dart';
 
 import '../widgets/reflecto_button.dart';
-import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import '../models/user_model.dart';
 import '../providers/settings_providers.dart';
@@ -19,7 +18,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  final _auth = AuthService();
   bool _loading = false;
   final _nameCtrl = TextEditingController();
   String? _email;
@@ -63,15 +61,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       _version = version;
       _buildInfo = build;
     });
-  }
-
-  Future<void> _signOut() async {
-    setState(() => _loading = true);
-    try {
-      await _auth.signOut();
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
   }
 
   Future<void> _saveProfile() async {
