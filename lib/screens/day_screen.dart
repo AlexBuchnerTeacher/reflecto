@@ -308,8 +308,17 @@ class _DayScreenState extends ConsumerState<DayScreen> {
   }
 
   String _formatDateLabel(DateTime d) {
-    String two(int n) => n.toString().padLeft(2, '0');
-    return '${two(d.day)}.${two(d.month)}.${d.year}';
+    // Deutsches Langformat, z. B. "Freitag, 8. November 2025"
+    try {
+      // Lazy import via intl already in pubspec
+      // Using DateFormat here to avoid extra utils dependency in this file
+      // while keeping behavior localized.
+      // If intl locale data not initialized, fall back to dd.MM.yyyy
+      return DateFormat.yMMMMEEEEd('de_DE').format(d);
+    } catch (_) {
+      String two(int n) => n.toString().padLeft(2, '0');
+      return '${two(d.day)}.${two(d.month)}.${d.year}';
+    }
   }
 
   Widget _statusChip({required bool pending, required bool fromCache}) {
@@ -593,11 +602,74 @@ class _DayScreenState extends ConsumerState<DayScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            title: Text(
-              'Tagesansicht - ${_formatDateLabel(_selected)}${isToday ? ' (heute)' : ''}',
+            title: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              switchInCurve: Curves.easeOut,
+              switchOutCurve: Curves.easeIn,
+              child: Text(
+                'Tagesansicht – ${_formatDateLabel(_selected)}${isToday ? ' (heute)' : ''}',
+                key: ValueKey(
+                  'title-${_selected.year}-${_selected.month}-${_selected.day}',
+                ),
+              ),
             ),
             centerTitle: true,
             actions: [
+              IconButton(
+                tooltip: 'Datum wählen',
+                icon: const Icon(Icons.calendar_month_rounded),
+                onPressed: () async {
+                  final picked = await showModalBottomSheet<DateTime?>(
+                    context: context,
+                    showDragHandle: true,
+                    builder: (ctx) {
+                      DateTime temp = _selected;
+                      return SafeArea(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CalendarDatePicker(
+                              initialDate: _selected,
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime(2100),
+                              onDateChanged: (d) {
+                                temp = DateTime(d.year, d.month, d.day);
+                              },
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx, null),
+                                    child: const Text('Abbrechen'),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  FilledButton(
+                                    onPressed: () => Navigator.pop(ctx, temp),
+                                    child: const Text('Übernehmen'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                  if (picked != null) {
+                    setState(() {
+                      _selected = DateTime(
+                        picked.year,
+                        picked.month,
+                        picked.day,
+                      );
+                      _setDefaultExpandedForDate();
+                    });
+                  }
+                },
+              ),
               Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: _statusChip(
