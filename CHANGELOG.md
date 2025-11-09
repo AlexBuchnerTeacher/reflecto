@@ -2,6 +2,19 @@
 
 Alle nennenswerten Änderungen an Reflecto. Siehe Releases für automatisch generierte Notes.
 
+## Unreleased
+
+- UI/Tagesansicht
+  - Deutsches Datumsformat (AppBar) mit `intl` + Locale‑Init (de_DE)
+  - Kalender‑Bottom‑Sheet zur Datumsauswahl
+  - 7‑Tage‑Leiste (ChoiceChips) + Swipe‑Navigation (±1 Tag)
+  - Heutiger Tag hervorgehoben (Punkt/Umrandung)
+  - Streak‑Kontextzeile „🔥 X Tage in Folge“
+- Settings
+  - Unbenutzte Sign‑Out‑Methode/Import entfernt
+- Build
+  - Version lokal/CI vereinheitlicht, siehe #16
+
 ## v1.1.0
 
 - Einstellungen
