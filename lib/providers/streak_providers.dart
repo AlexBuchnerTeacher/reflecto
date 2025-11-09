@@ -13,6 +13,18 @@ class StreakInfo {
   });
 }
 
+StreakInfo? streakInfoFromData(Map<String, dynamic>? data) {
+  if (data == null) return null;
+  final current = (data['streakCount'] is num)
+      ? (data['streakCount'] as num).toInt()
+      : 0;
+  final longest = (data['longestStreak'] is num)
+      ? (data['longestStreak'] as num).toInt()
+      : current;
+  final lastDate = data['lastEntryDate'] as String?;
+  return StreakInfo(current: current, longest: longest, lastDate: lastDate);
+}
+
 final streakDocProvider =
     StreamProvider<DocumentSnapshot<Map<String, dynamic>>?>((ref) {
       final user = FirebaseAuth.instance.currentUser;
@@ -28,13 +40,5 @@ final streakDocProvider =
 final streakInfoProvider = Provider<StreakInfo?>((ref) {
   final snap = ref.watch(streakDocProvider).valueOrNull;
   final data = snap?.data();
-  if (data == null) return null;
-  final current = (data['streakCount'] is num)
-      ? (data['streakCount'] as num).toInt()
-      : 0;
-  final longest = (data['longestStreak'] is num)
-      ? (data['longestStreak'] as num).toInt()
-      : current;
-  final lastDate = data['lastEntryDate'] as String?;
-  return StreakInfo(current: current, longest: longest, lastDate: lastDate);
+  return streakInfoFromData(data);
 });
