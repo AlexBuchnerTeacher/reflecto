@@ -3,6 +3,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'firebase_options.dart';
+import 'package:intl/date_symbol_data_local.dart' as intl_data;
+import 'package:intl/intl.dart' as intl;
 import 'app.dart';
 
 void main() {
@@ -16,5 +18,12 @@ Future<void> _bootstrap() async {
   FirebaseFirestore.instance.settings = const Settings(
     persistenceEnabled: true,
   );
+  try {
+    // Initialize german locale data for intl (used in DayScreen)
+    intl.Intl.defaultLocale = 'de_DE';
+    await intl_data.initializeDateFormatting('de_DE', null);
+  } catch (_) {
+    // Keep running even if locale init fails; DateFormat falls back.
+  }
   runApp(const ProviderScope(child: ReflectoApp()));
 }
