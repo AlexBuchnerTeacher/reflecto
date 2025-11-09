@@ -5,7 +5,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:intl/intl.dart';
 
 import '../widgets/reflecto_button.dart';
-import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import '../models/user_model.dart';
 import '../providers/settings_providers.dart';
