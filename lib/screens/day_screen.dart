@@ -761,48 +761,6 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                             child: _weekCarousel(_selected),
                           ),
                           const SizedBox(height: 8),
-                          Wrap(
-                            alignment: WrapAlignment.center,
-                            spacing: 8,
-                            runSpacing: 4,
-                            children: [
-                              IconButton(
-                                tooltip: 'Gestern',
-                                onPressed: () => setState(() {
-                                  _selected = _selected.subtract(
-                                    const Duration(days: 1),
-                                  );
-                                  _setDefaultExpandedForDate();
-                                }),
-                                icon: const Icon(Icons.chevron_left_rounded),
-                              ),
-                              if (!isToday)
-                                TextButton(
-                                  onPressed: () {
-                                    final t = DateTime.now();
-                                    setState(() {
-                                      _selected = DateTime(
-                                        t.year,
-                                        t.month,
-                                        t.day,
-                                      );
-                                      _setDefaultExpandedForDate();
-                                    });
-                                  },
-                                  child: const Text('Heute'),
-                                ),
-                              IconButton(
-                                tooltip: 'Morgen',
-                                onPressed: () => setState(() {
-                                  _selected = _selected.add(
-                                    const Duration(days: 1),
-                                  );
-                                  _setDefaultExpandedForDate();
-                                }),
-                                icon: const Icon(Icons.chevron_right_rounded),
-                              ),
-                            ],
-                          ),
 
                           const SizedBox(height: 24),
 

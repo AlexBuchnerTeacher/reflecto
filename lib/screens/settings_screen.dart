@@ -19,7 +19,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  final _auth = AuthService();
   bool _loading = false;
   final _nameCtrl = TextEditingController();
   String? _email;
@@ -63,15 +62,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       _version = version;
       _buildInfo = build;
     });
-  }
-
-  Future<void> _signOut() async {
-    setState(() => _loading = true);
-    try {
-      await _auth.signOut();
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
   }
 
   Future<void> _saveProfile() async {
