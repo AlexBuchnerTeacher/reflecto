@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:intl/intl.dart';
 
 import '../widgets/reflecto_button.dart';
 import '../services/auth_service.dart';
@@ -44,16 +43,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _loadVersion() async {
     final info = await PackageInfo.fromPlatform();
     if (!mounted) return;
-    final version = '${info.version}+${info.buildNumber}';
-    String displayTime = kBuildTime;
-    if (displayTime.isEmpty) {
-      displayTime = DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now());
-    }
-    final build = [
-      kBuildChannel.isEmpty ? 'local' : kBuildChannel,
+    // Show semantic version (from pubspec) and keep build/meta in separate row.
+    final version = info.version;
+    final displayTime =
+        kBuildTime; // nur anzeigen, wenn Build-Time gesetzt wurde
+    // Compose build string: buildNumber + channel + shortSha + time (where available)
+    final resolvedBuildNumber = (kBuildNumber.isNotEmpty)
+        ? kBuildNumber
+        : info.buildNumber;
+    final buildParts = <String>[
+      if (resolvedBuildNumber.isNotEmpty && resolvedBuildNumber != '0')
+        resolvedBuildNumber,
+      if ((kBuildChannel).isNotEmpty) kBuildChannel else 'local',
       if (shortGitSha().isNotEmpty) shortGitSha(),
-      displayTime,
-    ].where((e) => e.isNotEmpty).join(' ');
+      if (displayTime.isNotEmpty) displayTime,
+    ];
+    final build = buildParts.where((e) => e.isNotEmpty).join(' ');
     setState(() {
       _version = version;
       _buildInfo = build;
@@ -120,7 +125,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [const Text('Version'), Text(_version ?? '…')],
+                children: [const Text('Version'), Text(_version ?? '\u2026')],
               ),
               const SizedBox(height: 8),
               Row(
@@ -163,7 +168,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: ReflectoButton(
-                  text: _loading ? 'Speichern…' : 'Profil speichern',
+                  text: _loading ? 'Speichern\u2026' : 'Profil speichern',
                   icon: Icons.save_outlined,
                   onPressed: _loading ? null : _saveProfile,
                 ),
@@ -173,17 +178,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const Divider(),
               const SizedBox(height: 12),
 
-              // Version
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [const Text('Version'), Text(_version ?? '…')],
-              ),
-
-              const SizedBox(height: 24),
-              ReflectoButton(
-                text: _loading ? 'Abmelden…' : 'Abmelden',
-                icon: Icons.logout,
-                onPressed: _loading ? null : _signOut,
+              // Abmelden
+              Align(
+                alignment: Alignment.centerLeft,
+                child: ReflectoButton(
+                  text: _loading ? 'Abmelden\u2026' : 'Abmelden',
+                  icon: Icons.logout_outlined,
+                  onPressed: _loading ? null : _signOut,
+                ),
               ),
             ],
           ),

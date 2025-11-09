@@ -7,6 +7,10 @@ const String kBuildTime = String.fromEnvironment(
   'BUILD_TIME',
   defaultValue: '',
 );
+const String kBuildNumber = String.fromEnvironment(
+  'BUILD_NUMBER',
+  defaultValue: '',
+);
 
 String shortGitSha([int length = 7]) {
   final s = kGitSha;
