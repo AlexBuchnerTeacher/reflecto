@@ -789,13 +789,16 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                               final info = ref.watch(streakInfoProvider);
                               final cnt = info?.current ?? 0;
                               if (cnt <= 0) return const SizedBox.shrink();
+                              final longest = info?.longest ?? cnt;
+                              final isRecord = longest > 0 && cnt >= longest;
+                              final suffix = isRecord ? ' (Rekord!)' : '';
                               return Padding(
                                 padding: const EdgeInsets.only(
                                   top: 4.0,
                                   bottom: 4.0,
                                 ),
                                 child: Text(
-                                  '🔥 $cnt Tage in Folge',
+                                  '🔥 $cnt Tage in Folge$suffix',
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w600,
@@ -1487,6 +1490,15 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                                             );
                                                         if (mounted) {
                                                           setState(() {});
+                                                          ScaffoldMessenger.of(
+                                                            context,
+                                                          ).showSnackBar(
+                                                            const SnackBar(
+                                                              content: Text(
+                                                                '🔥 +1 Tag! Streak aktualisiert.',
+                                                              ),
+                                                            ),
+                                                          );
                                                         }
                                                       } catch (_) {}
                                                     }

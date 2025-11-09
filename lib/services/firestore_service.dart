@@ -204,6 +204,9 @@ class FirestoreService {
       final current = (data['streakCount'] is num)
           ? (data['streakCount'] as num).toInt()
           : 0;
+      final longest = (data['longestStreak'] is num)
+          ? (data['longestStreak'] as num).toInt()
+          : 0;
 
       if (lastDate == todayId) {
         return; // heute bereits gezählt
@@ -213,8 +216,10 @@ class FirestoreService {
       // lastDate genau gestern war (normaler Fluss) ODER lastDate noch fehlt (Neustart mit vorhandenem gestrigem Abschluss)
       final shouldChain = yCompleted && (lastDate == yId || lastDate == null);
       final next = shouldChain ? (current + 1) : 1;
+      final nextLongest = next > longest ? next : longest;
       await streakRef.set({
         'streakCount': next,
+        'longestStreak': nextLongest,
         'lastEntryDate': todayId,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
