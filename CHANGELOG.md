@@ -6,6 +6,11 @@ Alle nennenswerten Änderungen an Reflecto. Siehe Releases für automatisch gene
 
 –
 
+## v1.2.2
+
+- Fix: doppelte Streak-Anzeige – Streak im DayScreen entfernt; Anzeige zentral im HomeScreen (fixes #49)
+- Feature: Auto-Streak – Abendabschluss automatisch, sobald mind. 1 Ziel und 1 To-do erledigt sind; Button entfernt
+
 ## v1.2.1
 
 - Streak-System
