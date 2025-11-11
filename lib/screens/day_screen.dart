@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' show FieldValue;
-import '../providers/streak_providers.dart';
 import 'package:intl/intl.dart';
 
 import '../widgets/reflecto_card.dart';
@@ -782,33 +781,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                             alignment: Alignment.center,
                             child: _weekCarousel(_selected),
                           ),
-                          const SizedBox(height: 8),
-                          // Streak-Kontextzeile (optional, via Provider)
-                          Consumer(
-                            builder: (context, ref, _) {
-                              final info = ref.watch(streakInfoProvider);
-                              final cnt = info?.current ?? 0;
-                              if (cnt <= 0) return const SizedBox.shrink();
-                              final longest = info?.longest ?? cnt;
-                              final isRecord = longest > 0 && cnt >= longest;
-                              final suffix = isRecord ? ' (Rekord!)' : '';
-                              return Padding(
-                                padding: const EdgeInsets.only(
-                                  top: 4.0,
-                                  bottom: 4.0,
-                                ),
-                                child: Text(
-                                  '🔥 $cnt Tage in Folge$suffix',
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 8),
-
+                          // Streak-Anzeige entfernt: wird zentral im HomeScreen gezeigt
                           const SizedBox(height: 24),
 
                           // Morning reflection (today)
