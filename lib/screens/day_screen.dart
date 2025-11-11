@@ -1179,6 +1179,79 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                                   ),
                                                 );
                                                 _maybeShowSavedSnack();
+                                                // Auto-Abschluss: mind. 1 Ziel und 1 To-do erledigt
+                                                final eveningCompleted =
+                                                    (_readAt<bool>(todayData, [
+                                                      'evening',
+                                                      'completed',
+                                                    ]) ??
+                                                    false);
+                                                if (!eveningCompleted) {
+                                                  int goalsChecked = 0;
+                                                  int todosChecked = 0;
+                                                  final goalIdx =
+                                                      List<int>.generate(
+                                                        curGoals.length.clamp(
+                                                          0,
+                                                          3,
+                                                        ),
+                                                        (i) => i,
+                                                      ).where(
+                                                        (i) => curGoals[i]
+                                                            .trim()
+                                                            .isNotEmpty,
+                                                      );
+                                                  for (final gi in goalIdx) {
+                                                    if (gi <
+                                                            _yesterdayGoalChecks
+                                                                .length &&
+                                                        _yesterdayGoalChecks[gi]) {
+                                                      goalsChecked++;
+                                                    }
+                                                  }
+                                                  final todoIdx =
+                                                      List<int>.generate(
+                                                        curTodos.length.clamp(
+                                                          0,
+                                                          3,
+                                                        ),
+                                                        (i) => i,
+                                                      ).where(
+                                                        (i) => curTodos[i]
+                                                            .trim()
+                                                            .isNotEmpty,
+                                                      );
+                                                  for (final ti in todoIdx) {
+                                                    if (ti <
+                                                            _yesterdayTodoChecks
+                                                                .length &&
+                                                        _yesterdayTodoChecks[ti]) {
+                                                      todosChecked++;
+                                                    }
+                                                  }
+                                                  if (goalsChecked >= 1 &&
+                                                      todosChecked >= 1) {
+                                                    try {
+                                                      await FirestoreService()
+                                                          .markEveningCompletedAndUpdateStreak(
+                                                            uid,
+                                                            _selected,
+                                                          );
+                                                      if (mounted) {
+                                                        setState(() {});
+                                                        ScaffoldMessenger.of(
+                                                          context,
+                                                        ).showSnackBar(
+                                                          const SnackBar(
+                                                            content: Text(
+                                                              '🔥 +1 Tag! Streak aktualisiert.',
+                                                            ),
+                                                          ),
+                                                        );
+                                                      }
+                                                    } catch (_) {}
+                                                  }
+                                                }
                                               } catch (_) {}
                                             },
                                             title: Text(curGoals[i]),
@@ -1246,6 +1319,79 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                                   ),
                                                 );
                                                 _maybeShowSavedSnack();
+                                                // Auto-Abschluss: mind. 1 Ziel und 1 To-do erledigt
+                                                final eveningCompleted =
+                                                    (_readAt<bool>(todayData, [
+                                                      'evening',
+                                                      'completed',
+                                                    ]) ??
+                                                    false);
+                                                if (!eveningCompleted) {
+                                                  int goalsChecked = 0;
+                                                  int todosChecked = 0;
+                                                  final goalIdx =
+                                                      List<int>.generate(
+                                                        curGoals.length.clamp(
+                                                          0,
+                                                          3,
+                                                        ),
+                                                        (i) => i,
+                                                      ).where(
+                                                        (i) => curGoals[i]
+                                                            .trim()
+                                                            .isNotEmpty,
+                                                      );
+                                                  for (final gi in goalIdx) {
+                                                    if (gi <
+                                                            _yesterdayGoalChecks
+                                                                .length &&
+                                                        _yesterdayGoalChecks[gi]) {
+                                                      goalsChecked++;
+                                                    }
+                                                  }
+                                                  final todoIdx =
+                                                      List<int>.generate(
+                                                        curTodos.length.clamp(
+                                                          0,
+                                                          3,
+                                                        ),
+                                                        (i) => i,
+                                                      ).where(
+                                                        (i) => curTodos[i]
+                                                            .trim()
+                                                            .isNotEmpty,
+                                                      );
+                                                  for (final ti in todoIdx) {
+                                                    if (ti <
+                                                            _yesterdayTodoChecks
+                                                                .length &&
+                                                        _yesterdayTodoChecks[ti]) {
+                                                      todosChecked++;
+                                                    }
+                                                  }
+                                                  if (goalsChecked >= 1 &&
+                                                      todosChecked >= 1) {
+                                                    try {
+                                                      await FirestoreService()
+                                                          .markEveningCompletedAndUpdateStreak(
+                                                            uid,
+                                                            _selected,
+                                                          );
+                                                      if (mounted) {
+                                                        setState(() {});
+                                                        ScaffoldMessenger.of(
+                                                          context,
+                                                        ).showSnackBar(
+                                                          const SnackBar(
+                                                            content: Text(
+                                                              '🔥 +1 Tag! Streak aktualisiert.',
+                                                            ),
+                                                          ),
+                                                        );
+                                                      }
+                                                    } catch (_) {}
+                                                  }
+                                                }
                                               } catch (_) {}
                                             },
                                             title: Opacity(
@@ -1347,139 +1493,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                         },
                                       ),
                                       const SizedBox(height: 12),
-                                      // Abend explizit abschließen
-                                      Builder(
-                                        builder: (context) {
-                                          final eveningCompleted =
-                                              (_readAt<bool>(todayData, [
-                                                'evening',
-                                                'completed',
-                                              ]) ??
-                                              false);
-
-                                          // Kriterien für Abschluss:
-                                          // - mindestens 1 Ziel abgehakt
-                                          // - mindestens 2 To-dos abgehakt
-                                          // - mindestens 2 der 4 Abend-Textfelder gefüllt
-                                          int countTextFilled = 0;
-                                          final goodFilled =
-                                              _readAt<String>(todayData, [
-                                                'evening',
-                                                'good',
-                                              ])?.trim().isNotEmpty ??
-                                              false;
-                                          final learnedFilled =
-                                              _readAt<String>(todayData, [
-                                                'evening',
-                                                'learned',
-                                              ])?.trim().isNotEmpty ??
-                                              false;
-                                          final improveFilled =
-                                              _readAt<String>(todayData, [
-                                                'evening',
-                                                'improve',
-                                              ])?.trim().isNotEmpty ??
-                                              false;
-                                          final gratitudeFilled =
-                                              _readAt<String>(todayData, [
-                                                'evening',
-                                                'gratitude',
-                                              ])?.trim().isNotEmpty ??
-                                              false;
-                                          for (final b in [
-                                            goodFilled,
-                                            learnedFilled,
-                                            improveFilled,
-                                            gratitudeFilled,
-                                          ]) {
-                                            if (b) countTextFilled++;
-                                          }
-
-                                          int goalsChecked = 0;
-                                          int todosChecked = 0;
-                                          // Sichtbare Indizes analog zur Anzeige (max 3, nicht-leer)
-                                          final goalIdx =
-                                              List<int>.generate(
-                                                curGoals.length.clamp(0, 3),
-                                                (i) => i,
-                                              ).where(
-                                                (i) => curGoals[i]
-                                                    .trim()
-                                                    .isNotEmpty,
-                                              );
-                                          for (final i in goalIdx) {
-                                            if (i <
-                                                    _yesterdayGoalChecks
-                                                        .length &&
-                                                _yesterdayGoalChecks[i]) {
-                                              goalsChecked++;
-                                            }
-                                          }
-                                          final todoIdx =
-                                              List<int>.generate(
-                                                curTodos.length.clamp(0, 3),
-                                                (i) => i,
-                                              ).where(
-                                                (i) => curTodos[i]
-                                                    .trim()
-                                                    .isNotEmpty,
-                                              );
-                                          for (final i in todoIdx) {
-                                            if (i <
-                                                    _yesterdayTodoChecks
-                                                        .length &&
-                                                _yesterdayTodoChecks[i]) {
-                                              todosChecked++;
-                                            }
-                                          }
-
-                                          final meets =
-                                              !eveningCompleted &&
-                                              goalsChecked >= 1 &&
-                                              todosChecked >= 2 &&
-                                              countTextFilled >= 2;
-
-                                          return Align(
-                                            alignment: Alignment.centerLeft,
-                                            child: FilledButton.icon(
-                                              icon: Icon(
-                                                eveningCompleted
-                                                    ? Icons.check_circle
-                                                    : Icons
-                                                          .check_circle_outline,
-                                              ),
-                                              label: Text(
-                                                eveningCompleted
-                                                    ? 'Abend abgeschlossen'
-                                                    : 'Abend abschließen',
-                                              ),
-                                              onPressed: meets
-                                                  ? () async {
-                                                      try {
-                                                        await FirestoreService()
-                                                            .markEveningCompletedAndUpdateStreak(
-                                                              uid,
-                                                              _selected,
-                                                            );
-                                                        if (mounted) {
-                                                          setState(() {});
-                                                          ScaffoldMessenger.of(
-                                                            context,
-                                                          ).showSnackBar(
-                                                            const SnackBar(
-                                                              content: Text(
-                                                                '🔥 +1 Tag! Streak aktualisiert.',
-                                                              ),
-                                                            ),
-                                                          );
-                                                        }
-                                                      } catch (_) {}
-                                                    }
-                                                  : null,
-                                            ),
-                                          );
-                                        },
-                                      ),
+                                      // Abendabschluss: erfolgt automatisch, sobald mind. 1 Ziel und 1 To-do erledigt sind
                                       const SizedBox(height: 8),
                                       _emojiBar(
                                         context,
