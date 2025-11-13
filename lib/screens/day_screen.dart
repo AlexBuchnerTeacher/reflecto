@@ -678,7 +678,8 @@ class _DayScreenState extends ConsumerState<DayScreen> {
             actions: const [],
           ),
           body: SafeArea(
-            child: Center(
+            child: Align(
+              alignment: Alignment.topCenter,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 820),
                 child: FocusTraversalGroup(
@@ -689,7 +690,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                         alignment: Alignment.center,
                         child: _weekCarousel(_selected),
                       ),
-                      SizedBox(height: ReflectoSpacing.s12),
+                      SizedBox(height: ReflectoSpacing.s8),
                       Expanded(
                         child: GestureDetector(
                           onHorizontalDragEnd: (d) {
