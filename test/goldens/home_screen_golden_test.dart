@@ -7,6 +7,7 @@ import 'package:reflecto/providers/streak_providers.dart' as streak;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  // Keine Firebase-Initialisierung notwendig: HomeScreen fängt fehlende Init ab.
   const runGoldens = bool.hasEnvironment('RUN_GOLDENS');
 
   Future<void> pumpWithSize(
