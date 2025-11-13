@@ -772,7 +772,8 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                       }
                     },
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(16),
+                      // Kompakteres Layout im Headerbereich
+                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -782,7 +783,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                             child: _weekCarousel(_selected),
                           ),
                           // Streak-Anzeige entfernt: wird zentral im HomeScreen gezeigt
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 12),
 
                           // Morning reflection (today)
                           ReflectoCard(
