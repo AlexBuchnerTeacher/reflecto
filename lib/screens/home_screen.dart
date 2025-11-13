@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/streak_providers.dart';
 import '../providers/entry_providers.dart';
 import './day_screen.dart';
 import './week_screen.dart';
@@ -24,7 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       user = FirebaseAuth.instance.currentUser;
     } catch (_) {
-      user = null; // erlaubt Widget-Tests ohne Firebase-Init
+      user = null;
     }
     final firstName = (user?.displayName?.trim().isNotEmpty ?? false)
         ? (user!.displayName!.split(' ').first)
@@ -33,16 +32,14 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Text(
           firstName.isNotEmpty
-              ? 'Willkommen zur\u00FCck, $firstName \u{1F44B}'
-              : 'Willkommen zur\u00FCck \u{1F44B}',
+              ? 'Willkommen zurück, $firstName'
+              : 'Willkommen zurück',
         ),
         centerTitle: true,
         actions: [
           Consumer(
             builder: (context, ref, _) {
-              final snap = ref
-                  .watch(dayDocProvider(DateTime.now()))
-                  .valueOrNull;
+              final snap = ref.watch(todayDocProvider).valueOrNull;
               final pending = snap?.metadata.hasPendingWrites ?? false;
               final fromCache = snap?.metadata.isFromCache ?? false;
               final cs = Theme.of(context).colorScheme;
@@ -51,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
               late Color fg;
               late Color border;
               if (pending) {
-                text = 'Synchronisiere…';
+                text = 'Synchronisiere...';
                 bg = cs.primaryContainer;
                 fg = cs.onPrimaryContainer;
                 border = cs.primary;
@@ -61,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 fg = cs.onTertiaryContainer;
                 border = cs.tertiary;
               } else {
-                text = '✓ Gespeichert';
+                text = '\u2713 Gespeichert';
                 bg = cs.secondaryContainer;
                 fg = cs.onSecondaryContainer;
                 border = cs.secondary;
@@ -97,7 +94,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Column(
         children: [
-          // Streak-Header entfernt – Streak nur innerhalb der Tagesansicht
           Expanded(
             child: IndexedStack(
               index: _index,

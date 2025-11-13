@@ -1758,35 +1758,34 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                // Streak-Anzeige: unter der Planung
+                                const SizedBox(height: 8),
+                                // Streak-Anzeige: unter der Planung (als Card)
                                 Consumer(
                                   builder: (context, ref, _) {
                                     final info = ref.watch(streakInfoProvider);
                                     final cnt = info?.current ?? 0;
-                                    if (cnt <= 0) {
+                                    if (cnt <= 0)
                                       return const SizedBox.shrink();
-                                    }
                                     final longest = info?.longest ?? cnt;
                                     final isRecord =
                                         longest > 0 && cnt >= longest;
                                     final suffix = isRecord ? ' (Rekord!)' : '';
-                                    return Align(
-                                      alignment: Alignment.center,
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 4,
-                                        ),
+                                    return ReflectoCard(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 12,
+                                      ),
+                                      child: Center(
                                         child: Text(
-                                          'Streak: $cnt Tage in Folge$suffix',
+                                          '?? Streak: $cnt Tage in Folge$suffix',
                                           style: const TextStyle(
-                                            fontWeight: FontWeight.w600,
+                                            fontWeight: FontWeight.w700,
                                           ),
                                         ),
                                       ),
                                     );
                                   },
                                 ),
-                                const SizedBox(height: 24),
                               ],
                             ),
                           ),
