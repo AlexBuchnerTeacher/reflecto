@@ -1772,7 +1772,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                       ),
                                       child: Center(
                                         child: Text(
-                                          'Streak: $cnt Tage in Folge$suffix',
+                                          '🔥 Streak: $cnt Tage in Folge$suffix',
                                           style: const TextStyle(
                                             fontWeight: FontWeight.w700,
                                           ),
