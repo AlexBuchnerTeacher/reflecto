@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/journal_entry.dart';
+import 'pending_providers.dart';
 import '../services/firestore_service.dart';
 
 final _svcProvider = Provider<FirestoreService>((ref) => FirestoreService());
@@ -84,6 +85,13 @@ typedef UpdateDayField =
 
 final updateDayFieldProvider = Provider<UpdateDayField>((ref) {
   final svc = ref.read(_svcProvider);
-  return (String uid, DateTime date, String field, dynamic value) =>
-      svc.updateField(uid, date, field, value);
+  final pending = ref.read(pendingWritesProvider.notifier);
+  return (String uid, DateTime date, String field, dynamic value) async {
+    pending.state++;
+    try {
+      await svc.updateField(uid, date, field, value);
+    } finally {
+      pending.state--;
+    }
+  };
 });

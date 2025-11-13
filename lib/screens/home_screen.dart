@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/streak_providers.dart';
+import '../providers/entry_providers.dart';
+import '../providers/pending_providers.dart';
 import './day_screen.dart';
 import './week_screen.dart';
 import './settings_screen.dart' as settings;
@@ -23,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       user = FirebaseAuth.instance.currentUser;
     } catch (_) {
-      user = null; // erlaubt Widget-Tests ohne Firebase-Init
+      user = null;
     }
     final firstName = (user?.displayName?.trim().isNotEmpty ?? false)
         ? (user!.displayName!.split(' ').first)
@@ -32,43 +33,70 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Text(
           firstName.isNotEmpty
-              ? 'Willkommen zur\u00FCck, $firstName \u{1F44B}'
-              : 'Willkommen zur\u00FCck \u{1F44B}',
+              ? 'Willkommen zurück, $firstName'
+              : 'Willkommen zurück',
         ),
         centerTitle: true,
-      ),
-      body: Column(
-        children: [
+        actions: [
           Consumer(
             builder: (context, ref, _) {
-              final info = ref.watch(streakInfoProvider);
-              final cnt = info?.current ?? 0;
-              if (cnt <= 0) return const SizedBox(height: 8);
+              final snap = ref.watch(todayDocProvider).valueOrNull;
+              final pendingMeta = snap?.metadata.hasPendingWrites ?? false;
+              final pendingLocal = ref.watch(appPendingProvider);
+              final pending = pendingLocal || pendingMeta;
+              final fromCache = snap?.metadata.isFromCache ?? false;
               final cs = Theme.of(context).colorScheme;
-              return Container(
-                margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: cs.secondaryContainer,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('\u{1F525}', style: TextStyle(fontSize: 16)),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Streak: $cnt Tage in Folge',
-                      style: const TextStyle(fontWeight: FontWeight.w700),
+              late String text;
+              late Color bg;
+              late Color fg;
+              late Color border;
+              if (pending) {
+                text = 'Synchronisiere...';
+                bg = cs.primaryContainer;
+                fg = cs.onPrimaryContainer;
+                border = cs.primary;
+              } else if (fromCache) {
+                text = 'Offline';
+                bg = cs.tertiaryContainer;
+                fg = cs.onTertiaryContainer;
+                border = cs.tertiary;
+              } else {
+                text = '\u2713 Gespeichert';
+                bg = cs.secondaryContainer;
+                fg = cs.onSecondaryContainer;
+                border = cs.secondary;
+              }
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: bg,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: border.withValues(alpha: 0.35),
+                      width: 1.2,
                     ),
-                  ],
+                  ),
+                  child: Text(
+                    text,
+                    style: TextStyle(
+                      color: fg,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               );
             },
           ),
+        ],
+      ),
+      body: Column(
+        children: [
           Expanded(
             child: IndexedStack(
               index: _index,
