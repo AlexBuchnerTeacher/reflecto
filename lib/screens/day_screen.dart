@@ -1244,18 +1244,17 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                                             uid,
                                                             _selected,
                                                           );
-                                                      if (mounted) {
-                                                        setState(() {});
-                                                        ScaffoldMessenger.of(
-                                                          context,
-                                                        ).showSnackBar(
-                                                          const SnackBar(
-                                                            content: Text(
-                                                              '🔥 +1 Tag! Streak aktualisiert.',
-                                                            ),
+                                                      if (!mounted) return;
+                                                      setState(() {});
+                                                      ScaffoldMessenger.of(
+                                                        context,
+                                                      ).showSnackBar(
+                                                        const SnackBar(
+                                                          content: Text(
+                                                            '🔥 +1 Tag! Streak aktualisiert.',
                                                           ),
-                                                        );
-                                                      }
+                                                        ),
+                                                      );
                                                     } catch (_) {}
                                                   }
                                                 }
@@ -1384,18 +1383,17 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                                             uid,
                                                             _selected,
                                                           );
-                                                      if (mounted) {
-                                                        setState(() {});
-                                                        ScaffoldMessenger.of(
-                                                          context,
-                                                        ).showSnackBar(
-                                                          const SnackBar(
-                                                            content: Text(
-                                                              '🔥 +1 Tag! Streak aktualisiert.',
-                                                            ),
+                                                      if (!mounted) return;
+                                                      setState(() {});
+                                                      ScaffoldMessenger.of(
+                                                        context,
+                                                      ).showSnackBar(
+                                                        const SnackBar(
+                                                          content: Text(
+                                                            '🔥 +1 Tag! Streak aktualisiert.',
                                                           ),
-                                                        );
-                                                      }
+                                                        ),
+                                                      );
                                                     } catch (_) {}
                                                   }
                                                 }
