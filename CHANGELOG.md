@@ -1,3 +1,12 @@
+## v1.2.3
+
+- DayScreen: Kompaktere Ansicht (Karussell fix oben, AppBar entfernt) 
+- Streak: als Card unter Planung, mit Feuer-Icon; doppelte Anzeige entfernt
+- Status: Sofortiges Pending (optimistic) + heute-Metadaten; Chip reagiert schneller
+- UI-Polish: Daypicker neben Karussell, Header-Abst�nde reduziert
+- Style: Token-Layer (Farben/Spacing/Radii/Breakpoints/Motion) + STYLEGUIDE
+- CI: Flutter-CI f�r PRs auf dev aktiviert
+
 # Changelog
 
 Alle nennenswerten Änderungen an Reflecto. Siehe Releases für automatisch generierte Notes.
@@ -61,3 +70,4 @@ Alle nennenswerten Änderungen an Reflecto. Siehe Releases für automatisch gene
   - Analyzer-Warnungen/Deprecations bereinigt
 
 Vollständige Release-Notes: https://github.com/AlexBuchnerTeacher/reflecto/releases/tag/v1.1.0
+
