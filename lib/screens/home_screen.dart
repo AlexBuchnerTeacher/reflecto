@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/entry_providers.dart';
+import '../providers/pending_providers.dart';
 import './day_screen.dart';
 import './week_screen.dart';
 import './settings_screen.dart' as settings;
@@ -40,7 +41,9 @@ class _HomeScreenState extends State<HomeScreen> {
           Consumer(
             builder: (context, ref, _) {
               final snap = ref.watch(todayDocProvider).valueOrNull;
-              final pending = snap?.metadata.hasPendingWrites ?? false;
+              final pendingMeta = snap?.metadata.hasPendingWrites ?? false;
+              final pendingLocal = ref.watch(appPendingProvider);
+              final pending = pendingLocal || pendingMeta;
               final fromCache = snap?.metadata.isFromCache ?? false;
               final cs = Theme.of(context).colorScheme;
               late String text;
