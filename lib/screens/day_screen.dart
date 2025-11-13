@@ -748,9 +748,90 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Align(
-                        alignment: Alignment.center,
-                        child: _weekCarousel(_selected),
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: ReflectoSpacing.s12,
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(child: _weekCarousel(_selected)),
+                            IconButton(
+                              tooltip: 'Datum wählen',
+                              icon: const Icon(Icons.calendar_month_rounded),
+                              onPressed: () async {
+                                final picked =
+                                    await showModalBottomSheet<DateTime?>(
+                                      context: context,
+                                      showDragHandle: true,
+                                      builder: (ctx) {
+                                        DateTime temp = _selected;
+                                        return SafeArea(
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              CalendarDatePicker(
+                                                initialDate: _selected,
+                                                firstDate: DateTime(2020),
+                                                lastDate: DateTime(2100),
+                                                onDateChanged: (d) {
+                                                  temp = DateTime(
+                                                    d.year,
+                                                    d.month,
+                                                    d.day,
+                                                  );
+                                                },
+                                              ),
+                                              Padding(
+                                                padding: const EdgeInsets.all(
+                                                  8.0,
+                                                ),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.end,
+                                                  children: [
+                                                    TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.pop(
+                                                            ctx,
+                                                            null,
+                                                          ),
+                                                      child: const Text(
+                                                        'Abbrechen',
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    FilledButton(
+                                                      onPressed: () =>
+                                                          Navigator.pop(
+                                                            ctx,
+                                                            temp,
+                                                          ),
+                                                      child: const Text(
+                                                        'Übernehmen',
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    );
+                                if (picked != null) {
+                                  setState(() {
+                                    _selected = DateTime(
+                                      picked.year,
+                                      picked.month,
+                                      picked.day,
+                                    );
+                                    _setDefaultExpandedForDate();
+                                  });
+                                }
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                       SizedBox(height: ReflectoSpacing.s12),
                       Expanded(
@@ -1820,7 +1901,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                // Streak-Anzeige: unter der Planung
+                                // Streak-Anzeige: unter der Planung (als Card)
                                 Consumer(
                                   builder: (context, ref, _) {
                                     final info = ref.watch(streakInfoProvider);
@@ -1832,16 +1913,16 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                     final isRecord =
                                         longest > 0 && cnt >= longest;
                                     final suffix = isRecord ? ' (Rekord!)' : '';
-                                    return Align(
-                                      alignment: Alignment.center,
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 4,
-                                        ),
+                                    return ReflectoCard(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 12,
+                                      ),
+                                      child: Center(
                                         child: Text(
-                                          'Streak: $cnt Tage in Folge$suffix',
+                                          '🔥 Streak: $cnt Tage in Folge$suffix',
                                           style: const TextStyle(
-                                            fontWeight: FontWeight.w600,
+                                            fontWeight: FontWeight.w700,
                                           ),
                                         ),
                                       ),
