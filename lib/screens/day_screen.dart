@@ -757,7 +757,9 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                         child: GestureDetector(
                           onHorizontalDragEnd: (d) {
                             final v = d.primaryVelocity;
-                            if (v == null) return;
+                            if (v == null) {
+                              return;
+                            }
                             if (v < 0) {
                               setState(() {
                                 _selected = _selected.add(
