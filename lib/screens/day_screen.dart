@@ -225,7 +225,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
   }) {
     final key = '${_dateId(date)}|$fieldPath';
     _debouncers[key]?.cancel();
-    _debouncers[key] = Timer(const Duration(milliseconds: 500), () async {
+    _debouncers[key] = Timer(const Duration(milliseconds: 200), () async {
       try {
         // Skip if value unchanged compared to latest snapshot
         if (value is! FieldValue) {
@@ -672,11 +672,6 @@ class _DayScreenState extends ConsumerState<DayScreen> {
         final aggFromCache = fromCache && tFromCache;
 
         return Scaffold(
-          appBar: AppBar(
-            title: const SizedBox.shrink(),
-            centerTitle: false,
-            actions: const [],
-          ),
           body: SafeArea(
             child: Align(
               alignment: Alignment.topCenter,
@@ -1777,7 +1772,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                       ),
                                       child: Center(
                                         child: Text(
-                                          '?? Streak: $cnt Tage in Folge$suffix',
+                                          'Streak: $cnt Tage in Folge$suffix',
                                           style: const TextStyle(
                                             fontWeight: FontWeight.w700,
                                           ),
