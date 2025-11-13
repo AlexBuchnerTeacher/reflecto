@@ -5,6 +5,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:intl/intl.dart';
 
 import '../widgets/reflecto_button.dart';
+import '../theme/tokens.dart';
 import '../services/firestore_service.dart';
 import '../models/user_model.dart';
 import '../providers/settings_providers.dart';
@@ -97,7 +98,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const maxWidth = 820.0;
+    const maxWidth = ReflectoBreakpoints.contentMax;
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: maxWidth),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/tokens.dart';
 
 class ReflectoCard extends StatefulWidget {
   final Widget child;
@@ -32,7 +33,7 @@ class _ReflectoCardState extends State<ReflectoCard> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final baseColor = cs.surfaceContainerHigh;
+    final baseColor = cs.surfaceCard;
     final activeBg = cs.surfaceContainerHighest;
     final isActive = widget.isActive;
     final bg = isActive ? activeBg : baseColor;
@@ -40,7 +41,7 @@ class _ReflectoCardState extends State<ReflectoCard> {
     final shadowColor = Colors.black.withValues(
       alpha: Theme.of(context).brightness == Brightness.dark ? 0.35 : 0.08,
     );
-    final borderColor = cs.outlineVariant.withValues(alpha: 0.5);
+    final borderColor = cs.borderSubtle;
 
     final card = AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -48,7 +49,7 @@ class _ReflectoCardState extends State<ReflectoCard> {
       margin: widget.margin,
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(ReflectoRadii.card),
         border: Border.all(color: borderColor, width: 1),
         boxShadow: [
           BoxShadow(

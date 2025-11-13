@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart' show FieldValue;
 import 'package:intl/intl.dart';
 
 import '../widgets/reflecto_card.dart';
+import '../theme/tokens.dart';
 import '../providers/auth_providers.dart';
 import '../providers/entry_providers.dart';
 import '../services/firestore_service.dart';
@@ -772,8 +773,13 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                       }
                     },
                     child: SingleChildScrollView(
-                      // Kompakteres Layout im Headerbereich
-                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                      // Kompakteres Layout im Headerbereich (Tokens)
+                      padding: EdgeInsets.fromLTRB(
+                        ReflectoSpacing.s12,
+                        ReflectoSpacing.s8,
+                        ReflectoSpacing.s12,
+                        ReflectoSpacing.s12,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -783,7 +789,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                             child: _weekCarousel(_selected),
                           ),
                           // Streak-Anzeige entfernt: wird zentral im HomeScreen gezeigt
-                          const SizedBox(height: 12),
+                          SizedBox(height: ReflectoSpacing.s12),
 
                           // Morning reflection (today)
                           ReflectoCard(
