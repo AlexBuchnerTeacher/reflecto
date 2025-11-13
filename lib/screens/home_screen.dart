@@ -19,7 +19,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
+    User? user;
+    try {
+      user = FirebaseAuth.instance.currentUser;
+    } catch (_) {
+      user = null; // erlaubt Widget-Tests ohne Firebase-Init
+    }
     final firstName = (user?.displayName?.trim().isNotEmpty ?? false)
         ? (user!.displayName!.split(' ').first)
         : (user?.email?.split('@').first ?? '');
