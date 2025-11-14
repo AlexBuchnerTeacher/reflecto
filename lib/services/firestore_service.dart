@@ -384,4 +384,58 @@ class FirestoreService {
     }
     return root;
   }
+
+  /// Verschiebt einen Eintrag aus der heutigen Planung (goals/todos)
+  /// in die Planung des nächsten Tages. Nutzt eine Firestore-Transaction
+  /// und bevorzugt leere Slots, ansonsten wird angehängt.
+  Future<void> movePlanningItemToNextDay(
+    String uid,
+    DateTime date, {
+    required bool isGoal,
+    required int index,
+  }) async {
+    final todayRef = entryRef(uid, date);
+    final tomorrowRef = entryRef(uid, date.add(const Duration(days: 1)));
+    final field = isGoal ? 'goals' : 'todos';
+    await FirebaseFirestore.instance.runTransaction((tx) async {
+      final todaySnap = await tx.get(todayRef);
+      final todayData = todaySnap.data() ?? <String, dynamic>{};
+      final planningToday =
+          (todayData['planning'] as Map<String, dynamic>?) ?? {};
+      final listToday = List<String>.from(
+        planningToday[field] ?? const <String>[],
+      );
+      if (index < 0 || index >= listToday.length) return;
+      final item = (listToday.removeAt(index)).toString().trim();
+      if (item.isEmpty) return;
+
+      final tomorrowSnap = await tx.get(tomorrowRef);
+      final tData = tomorrowSnap.data() ?? <String, dynamic>{};
+      final planningTomorrow =
+          (tData['planning'] as Map<String, dynamic>?) ?? {};
+      final listTomorrow = List<String>.from(
+        planningTomorrow[field] ?? const <String>[],
+      );
+
+      // Finde ersten leeren Slot
+      final emptyIdx = listTomorrow.indexWhere(
+        (e) => (e.toString().trim()).isEmpty,
+      );
+      if (emptyIdx != -1) {
+        listTomorrow[emptyIdx] = item;
+      } else {
+        listTomorrow.add(item);
+      }
+
+      tx.set(todayRef, {
+        'planning': {field: listToday},
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      tx.set(tomorrowRef, {
+        'planning': {field: listTomorrow},
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    });
+  }
 }

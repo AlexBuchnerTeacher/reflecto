@@ -1230,13 +1230,27 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                                           icon: const Icon(
                                                             Icons.redo_rounded,
                                                           ),
-                                                          onPressed: () =>
-                                                              _carryOverOne(
-                                                                uid: uid,
-                                                                isGoal: true,
-                                                                text:
-                                                                    curGoals[i],
-                                                              ),
+                                                          onPressed: () async {
+                                                            try {
+                                                              await FirestoreService()
+                                                                  .movePlanningItemToNextDay(
+                                                                    uid,
+                                                                    _selected,
+                                                                    isGoal:
+                                                                        true,
+                                                                    index: i,
+                                                                  );
+                                                              ScaffoldMessenger.of(
+                                                                context,
+                                                              ).showSnackBar(
+                                                                const SnackBar(
+                                                                  content: Text(
+                                                                    '?? Ziel nach morgen verschoben',
+                                                                  ),
+                                                                ),
+                                                              );
+                                                            } catch (_) {}
+                                                          },
                                                         )
                                                       : null,
                                                   controlAffinity:
@@ -1384,13 +1398,27 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                                                           icon: const Icon(
                                                             Icons.redo_rounded,
                                                           ),
-                                                          onPressed: () =>
-                                                              _carryOverOne(
-                                                                uid: uid,
-                                                                isGoal: false,
-                                                                text:
-                                                                    curTodos[i],
-                                                              ),
+                                                          onPressed: () async {
+                                                            try {
+                                                              await FirestoreService()
+                                                                  .movePlanningItemToNextDay(
+                                                                    uid,
+                                                                    _selected,
+                                                                    isGoal:
+                                                                        false,
+                                                                    index: i,
+                                                                  );
+                                                              ScaffoldMessenger.of(
+                                                                context,
+                                                              ).showSnackBar(
+                                                                const SnackBar(
+                                                                  content: Text(
+                                                                    '?? To-do nach morgen verschoben',
+                                                                  ),
+                                                                ),
+                                                              );
+                                                            } catch (_) {}
+                                                          },
                                                         )
                                                       : null,
                                                   controlAffinity:
