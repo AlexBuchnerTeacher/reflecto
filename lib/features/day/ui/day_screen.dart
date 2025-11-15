@@ -29,6 +29,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
   // Local checkboxes for yesterday review
   List<bool> _yesterdayGoalChecks = const [];
   List<bool> _yesterdayTodoChecks = const [];
+  DateTime? _lastPlanningDate;
 
   DateTime? _lastSnackAt;
   int? _ratingFocusLocal;
@@ -206,7 +207,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
       return value.map((e) => e == true).toList();
     }
     if (value is Map) {
-      final map = value as Map;
+      final map = value;
       var maxIndex = -1;
       final entries = <int, bool>{};
       for (final entry in map.entries) {
@@ -341,54 +342,105 @@ class _DayScreenState extends ConsumerState<DayScreen> {
         final tData = tDoc.value?.data();
         _syncLogic.updateDocCache(_selected, todayData);
         _syncLogic.updateDocCache(tomorrow, tData);
+
         final goalsDyn = _readAt<List>(tData, ['planning', 'goals']);
         final todosDyn = _readAt<List>(tData, ['planning', 'todos']);
-        final goals = (goalsDyn ?? const <dynamic>[])
-            .map((e) => e?.toString() ?? '')
+        final goalsFromData = (goalsDyn ?? const <dynamic>[])
+            .map((e) => e?.toString().trim() ?? '')
+            .where((e) => e.isNotEmpty)
             .toList();
-        final todos = (todosDyn ?? const <dynamic>[])
-            .map((e) => e?.toString() ?? '')
+        final todosFromData = (todosDyn ?? const <dynamic>[])
+            .map((e) => e?.toString().trim() ?? '')
+            .where((e) => e.isNotEmpty)
             .toList();
-        final nonEmptyGoals = goals.where((g) => g.trim().isNotEmpty).length;
-        final nonEmptyTodos = todos.where((t) => t.trim().isNotEmpty).length;
-        // Standard: 1 Ziel / 2 To-dos, aber nie weniger als vorhandene Inhalte
-        if (nonEmptyGoals == 0) {
-          while (_goalCtrls.length > 1) {
-            _goalCtrls.removeLast().dispose();
+
+        const minGoals = 1;
+        const minTodos = 2;
+
+        final planningDateChanged =
+            _lastPlanningDate == null ||
+            !DateUtils.isSameDay(_lastPlanningDate!, tomorrow);
+        if (planningDateChanged) {
+          // Neues "morgen": alte Planung (Controller-Inhalt) wird verworfen.
+          for (final c in _goalCtrls) {
+            c.dispose();
           }
-          while (_goalNodes.length > 1) {
-            _goalNodes.removeLast().dispose();
+          for (final n in _goalNodes) {
+            n.dispose();
           }
-          _controllers.ensureGoalsLen(1);
-        } else {
-          _controllers.ensureGoalsLen(goals.length);
+          for (final c in _todoCtrls) {
+            c.dispose();
+          }
+          for (final n in _todoNodes) {
+            n.dispose();
+          }
+          _goalCtrls.clear();
+          _goalNodes.clear();
+          _todoCtrls.clear();
+          _todoNodes.clear();
         }
-        if (nonEmptyTodos == 0) {
-          while (_todoCtrls.length > 2) {
-            _todoCtrls.removeLast().dispose();
-          }
-          while (_todoNodes.length > 2) {
-            _todoNodes.removeLast().dispose();
-          }
-          _controllers.ensureTodosLen(2);
-        } else {
-          _controllers.ensureTodosLen(todos.length);
+        _lastPlanningDate = tomorrow;
+
+        final desiredGoalsLenFromData = goalsFromData.isEmpty
+            ? minGoals
+            : goalsFromData.length;
+        final desiredTodosLenFromData = todosFromData.isEmpty
+            ? minTodos
+            : todosFromData.length;
+
+        final goalsLen = planningDateChanged
+            ? desiredGoalsLenFromData
+            : (_goalCtrls.length > desiredGoalsLenFromData
+                  ? _goalCtrls.length
+                  : desiredGoalsLenFromData);
+        final todosLen = planningDateChanged
+            ? desiredTodosLenFromData
+            : (_todoCtrls.length > desiredTodosLenFromData
+                  ? _todoCtrls.length
+                  : desiredTodosLenFromData);
+
+        while (_goalCtrls.length > goalsLen) {
+          _goalCtrls.removeLast().dispose();
         }
-        final goalsLen = _goalCtrls.length;
-        final todosLen = _todoCtrls.length;
+        while (_goalNodes.length > goalsLen) {
+          _goalNodes.removeLast().dispose();
+        }
+        while (_todoCtrls.length > todosLen) {
+          _todoCtrls.removeLast().dispose();
+        }
+        while (_todoNodes.length > todosLen) {
+          _todoNodes.removeLast().dispose();
+        }
+
+        _controllers.ensureGoalsLen(goalsLen);
+        _controllers.ensureTodosLen(todosLen);
+
         for (var i = 0; i < goalsLen; i++) {
-          _setCtrl(
-            _goalCtrls[i],
-            i < goals.length ? goals[i] : null,
-            focusNode: i < _goalNodes.length ? _goalNodes[i] : null,
-          );
+          if (i < goalsFromData.length) {
+            _setCtrl(
+              _goalCtrls[i],
+              goalsFromData[i],
+              focusNode: i < _goalNodes.length ? _goalNodes[i] : null,
+            );
+          } else if (!(_goalNodes.length > i && _goalNodes[i].hasFocus)) {
+            // Zusätzliche Felder ohne gespeicherte Daten: leer halten.
+            if (_goalCtrls[i].text.isNotEmpty) {
+              _goalCtrls[i].clear();
+            }
+          }
         }
         for (var i = 0; i < todosLen; i++) {
-          _setCtrl(
-            _todoCtrls[i],
-            i < todos.length ? todos[i] : null,
-            focusNode: i < _todoNodes.length ? _todoNodes[i] : null,
-          );
+          if (i < todosFromData.length) {
+            _setCtrl(
+              _todoCtrls[i],
+              todosFromData[i],
+              focusNode: i < _todoNodes.length ? _todoNodes[i] : null,
+            );
+          } else if (!(_todoNodes.length > i && _todoNodes[i].hasFocus)) {
+            if (_todoCtrls[i].text.isNotEmpty) {
+              _todoCtrls[i].clear();
+            }
+          }
         }
         _setCtrl(
           _attitudeCtrl,
@@ -563,6 +615,10 @@ class _DayScreenState extends ConsumerState<DayScreen> {
             setState(() {
               _controllers.ensureGoalsLen(_goalCtrls.length + 1);
             });
+            if (_goalNodes.isNotEmpty &&
+                _goalNodes.length == _goalCtrls.length) {
+              _goalNodes.last.requestFocus();
+            }
           },
           onRemoveGoal: (index) {
             setState(() {
@@ -579,6 +635,10 @@ class _DayScreenState extends ConsumerState<DayScreen> {
             setState(() {
               _controllers.ensureTodosLen(_todoCtrls.length + 1);
             });
+            if (_todoNodes.isNotEmpty &&
+                _todoNodes.length == _todoCtrls.length) {
+              _todoNodes.last.requestFocus();
+            }
           },
           onRemoveTodo: (index) {
             setState(() {
@@ -613,6 +673,34 @@ class _DayScreenState extends ConsumerState<DayScreen> {
               value: value.isEmpty ? null : value,
             );
           },
+          onReorderGoals: (oldIndex, newIndex) {
+            setState(() {
+              if (newIndex > oldIndex) {
+                newIndex -= 1;
+              }
+              final ctrl = _goalCtrls.removeAt(oldIndex);
+              _goalCtrls.insert(newIndex, ctrl);
+              if (_goalNodes.length == _goalCtrls.length) {
+                final node = _goalNodes.removeAt(oldIndex);
+                _goalNodes.insert(newIndex, node);
+              }
+            });
+            _saveGoals(uid, tomorrow);
+          },
+          onReorderTodos: (oldIndex, newIndex) {
+            setState(() {
+              if (newIndex > oldIndex) {
+                newIndex -= 1;
+              }
+              final ctrl = _todoCtrls.removeAt(oldIndex);
+              _todoCtrls.insert(newIndex, ctrl);
+              if (_todoNodes.length == _todoCtrls.length) {
+                final node = _todoNodes.removeAt(oldIndex);
+                _todoNodes.insert(newIndex, node);
+              }
+            });
+            _saveTodos(uid, tomorrow);
+          },
         );
 
         return DayShell(props: props);
@@ -631,7 +719,10 @@ class _DayScreenState extends ConsumerState<DayScreen> {
   }
 
   void _saveGoals(String uid, DateTime date) {
-    final list = _goalCtrls.map((c) => c.text.trim()).toList();
+    final list = _goalCtrls
+        .map((c) => c.text.trim())
+        .where((value) => value.isNotEmpty)
+        .toList();
     _debouncedUpdate(
       uid: uid,
       date: date,
@@ -641,7 +732,10 @@ class _DayScreenState extends ConsumerState<DayScreen> {
   }
 
   void _saveTodos(String uid, DateTime date) {
-    final list = _todoCtrls.map((c) => c.text.trim()).toList();
+    final list = _todoCtrls
+        .map((c) => c.text.trim())
+        .where((value) => value.isNotEmpty)
+        .toList();
     _debouncedUpdate(
       uid: uid,
       date: date,
