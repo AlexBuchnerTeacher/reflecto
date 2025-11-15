@@ -394,6 +394,23 @@ class FirestoreService {
     required bool isGoal,
     required int index,
   }) async {
+    List<String> dedupePreserveEmptySlots(List<String> input) {
+      final seen = <String>{};
+      var emptyCount = 0;
+      for (final raw in input) {
+        final t = raw.toString().trim();
+        if (t.isEmpty) {
+          emptyCount++;
+          continue;
+        }
+        if (!seen.contains(t)) {
+          seen.add(t);
+        }
+      }
+      // leere Slots ans Ende setzen
+      return [...seen, ...List.filled(emptyCount, '')];
+    }
+
     final todayRef = entryRef(uid, date);
     final tomorrowRef = entryRef(uid, date.add(const Duration(days: 1)));
     final field = isGoal ? 'goals' : 'todos';
@@ -402,9 +419,11 @@ class FirestoreService {
       final todayData = todaySnap.data() ?? <String, dynamic>{};
       final planningToday =
           (todayData['planning'] as Map<String, dynamic>?) ?? {};
-      final listToday = List<String>.from(
+      var listToday = List<String>.from(
         planningToday[field] ?? const <String>[],
       );
+      // Safety: vorhandene Duplikate/Leerfelder normalisieren
+      listToday = dedupePreserveEmptySlots(listToday);
       if (index < 0 || index >= listToday.length) return;
       final item = (listToday.removeAt(index)).toString().trim();
       if (item.isEmpty) return;
@@ -413,18 +432,22 @@ class FirestoreService {
       final tData = tomorrowSnap.data() ?? <String, dynamic>{};
       final planningTomorrow =
           (tData['planning'] as Map<String, dynamic>?) ?? {};
-      final listTomorrow = List<String>.from(
+      var listTomorrow = List<String>.from(
         planningTomorrow[field] ?? const <String>[],
       );
-
-      // Finde ersten leeren Slot
-      final emptyIdx = listTomorrow.indexWhere(
-        (e) => (e.toString().trim()).isEmpty,
-      );
-      if (emptyIdx != -1) {
-        listTomorrow[emptyIdx] = item;
-      } else {
-        listTomorrow.add(item);
+      // Safety: Duplikate/Leerfelder normalisieren
+      listTomorrow = dedupePreserveEmptySlots(listTomorrow);
+      final alreadyThere = listTomorrow.any((e) => e.toString().trim() == item);
+      if (!alreadyThere) {
+        // Finde ersten leeren Slot
+        final emptyIdx = listTomorrow.indexWhere(
+          (e) => (e.toString().trim()).isEmpty,
+        );
+        if (emptyIdx != -1) {
+          listTomorrow[emptyIdx] = item;
+        } else {
+          listTomorrow.add(item);
+        }
       }
 
       tx.set(todayRef, {
@@ -437,5 +460,132 @@ class FirestoreService {
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     });
+  }
+
+  /// Verschiebt ein spezifisches Planungselement (per Textvergleich, trim)
+  /// von einem Datum zu einem anderen. Nutzt eine Transaktion, vermeidet
+  /// Duplikate am Ziel und erhält leere Slots, die ans Ende verschoben werden.
+  Future<void> moveSpecificPlanningItem({
+    required String uid,
+    required DateTime from,
+    required DateTime to,
+    required bool isGoal,
+    required String itemText,
+  }) async {
+    List<String> dedupePreserveEmptySlots(List<String> input) {
+      final seen = <String>{};
+      var emptyCount = 0;
+      for (final raw in input) {
+        final t = raw.toString().trim();
+        if (t.isEmpty) {
+          emptyCount++;
+          continue;
+        }
+        if (!seen.contains(t)) {
+          seen.add(t);
+        }
+      }
+      return [...seen, ...List.filled(emptyCount, '')];
+    }
+
+    final fromRef = entryRef(uid, from);
+    final toRef = entryRef(uid, to);
+    final field = isGoal ? 'goals' : 'todos';
+    final needle = itemText.trim();
+    if (needle.isEmpty) return;
+
+    await FirebaseFirestore.instance.runTransaction((tx) async {
+      final fromSnap = await tx.get(fromRef);
+      final fromData = fromSnap.data() ?? <String, dynamic>{};
+      final planningFrom =
+          (fromData['planning'] as Map<String, dynamic>?) ?? {};
+      var listFrom = List<String>.from(planningFrom[field] ?? const <String>[]);
+      listFrom = dedupePreserveEmptySlots(listFrom);
+
+      // entferne erste Übereinstimmung
+      final idx = listFrom.indexWhere((e) => e.toString().trim() == needle);
+      if (idx == -1) return; // nichts zu tun
+      listFrom.removeAt(idx);
+
+      final toSnap = await tx.get(toRef);
+      final toData = toSnap.data() ?? <String, dynamic>{};
+      final planningTo = (toData['planning'] as Map<String, dynamic>?) ?? {};
+      var listTo = List<String>.from(planningTo[field] ?? const <String>[]);
+      listTo = dedupePreserveEmptySlots(listTo);
+
+      final alreadyThere = listTo.any((e) => e.toString().trim() == needle);
+      if (!alreadyThere) {
+        final emptyIdx = listTo.indexWhere((e) => e.toString().trim().isEmpty);
+        if (emptyIdx != -1) {
+          listTo[emptyIdx] = needle;
+        } else {
+          listTo.add(needle);
+        }
+      }
+
+      tx.set(fromRef, {
+        'planning': {field: listFrom},
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      tx.set(toRef, {
+        'planning': {field: listTo},
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    });
+  }
+
+  /// Einmalige Datenbereinigung: entfernt Duplikate (trim-basierend)
+  /// in planning.goals / planning.todos in allen Tagebucheinträgen
+  /// eines Nutzers. Leere Slots bleiben erhalten, werden aber ans
+  /// Ende verschoben.
+  Future<int> dedupeAllPlanningForUser(String uid) async {
+    int updatedDocs = 0;
+    List<String> dedupePreserveEmptySlots(List<String> input) {
+      final seen = <String>{};
+      var emptyCount = 0;
+      for (final raw in input) {
+        final t = raw.toString().trim();
+        if (t.isEmpty) {
+          emptyCount++;
+          continue;
+        }
+        if (!seen.contains(t)) {
+          seen.add(t);
+        }
+      }
+      return [...seen, ...List.filled(emptyCount, '')];
+    }
+
+    final entries = await _users.doc(uid).collection('entries').get();
+    for (final doc in entries.docs) {
+      final data = doc.data();
+      final planning = (data['planning'] as Map<String, dynamic>?) ?? {};
+      final goals = List<String>.from(planning['goals'] ?? const <String>[]);
+      final todos = List<String>.from(planning['todos'] ?? const <String>[]);
+      final newGoals = dedupePreserveEmptySlots(goals);
+      final newTodos = dedupePreserveEmptySlots(todos);
+      final changed =
+          newGoals.length != goals.length ||
+          newTodos.length != todos.length ||
+          !_listsEqual(newGoals, goals) ||
+          !_listsEqual(newTodos, todos);
+      if (changed) {
+        await doc.reference.set({
+          'planning': {'goals': newGoals, 'todos': newTodos},
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+        updatedDocs++;
+      }
+    }
+    return updatedDocs;
+  }
+
+  bool _listsEqual(List<String> a, List<String> b) {
+    if (identical(a, b)) return true;
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 }
