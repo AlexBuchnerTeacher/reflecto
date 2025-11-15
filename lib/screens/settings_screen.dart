@@ -168,18 +168,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const Divider(),
               const SizedBox(height: 12),
 
-              // Version
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                // Version
-                /* removed duplicate version row */
-                /*
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [const Text('Version'), Text(_version ?? '\u2026')],
+              // Wartung / Tools
+              const Text(
+                'Wartung',
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
-              */
-              ),
+              const SizedBox(height: 8),
+              _MaintenanceTools(),
             ],
           ),
         ),
@@ -217,6 +212,53 @@ class _ThemeSection extends ConsumerWidget {
         final sel = set.first;
         setMode(sel);
       },
+    );
+  }
+}
+
+class _MaintenanceTools extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<_MaintenanceTools> createState() => _MaintenanceToolsState();
+}
+
+class _MaintenanceToolsState extends ConsumerState<_MaintenanceTools> {
+  bool _running = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    final uid = user?.uid;
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: ReflectoButton(
+        text: _running ? 'Bereinige...' : 'Planung deduplizieren',
+        icon: Icons.cleaning_services_outlined,
+        onPressed: (uid == null || _running)
+            ? null
+            : () async {
+                setState(() => _running = true);
+                try {
+                  final n = await FirestoreService().dedupeAllPlanningForUser(
+                    uid,
+                  );
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Bereinigung abgeschlossen: $n Dokument(e) aktualisiert',
+                      ),
+                    ),
+                  );
+                } catch (e) {
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('Fehler: $e')));
+                } finally {
+                  if (mounted) setState(() => _running = false);
+                }
+              },
+      ),
     );
   }
 }
