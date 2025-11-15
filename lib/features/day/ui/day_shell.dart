@@ -59,6 +59,8 @@ class DayShellProps {
   final void Function(int index) onRemoveGoal;
   final VoidCallback onAddTodo;
   final void Function(int index) onRemoveTodo;
+  final void Function(int oldIndex, int newIndex) onReorderGoals;
+  final void Function(int oldIndex, int newIndex) onReorderTodos;
   final VoidCallback onGoalsChanged;
   final VoidCallback onTodosChanged;
   final void Function(String value) onReflectionChanged;
@@ -102,6 +104,8 @@ class DayShellProps {
     required this.onRemoveGoal,
     required this.onAddTodo,
     required this.onRemoveTodo,
+    required this.onReorderGoals,
+    required this.onReorderTodos,
     required this.onGoalsChanged,
     required this.onTodosChanged,
     required this.onReflectionChanged,
@@ -212,6 +216,8 @@ class DayShell extends StatelessWidget {
                               onRemoveGoal: props.onRemoveGoal,
                               onAddTodo: props.onAddTodo,
                               onRemoveTodo: props.onRemoveTodo,
+                              onReorderGoals: props.onReorderGoals,
+                              onReorderTodos: props.onReorderTodos,
                               onGoalsChanged: props.onGoalsChanged,
                               onTodosChanged: props.onTodosChanged,
                               onReflectionChanged: props.onReflectionChanged,

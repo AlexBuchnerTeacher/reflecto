@@ -21,6 +21,8 @@ class PlanningSection extends StatelessWidget {
   final void Function(int index) onRemoveGoal;
   final VoidCallback onAddTodo;
   final void Function(int index) onRemoveTodo;
+  final void Function(int oldIndex, int newIndex) onReorderGoals;
+  final void Function(int oldIndex, int newIndex) onReorderTodos;
 
   final VoidCallback onGoalsChanged;
   final VoidCallback onTodosChanged;
@@ -43,6 +45,8 @@ class PlanningSection extends StatelessWidget {
     required this.onRemoveGoal,
     required this.onAddTodo,
     required this.onRemoveTodo,
+    required this.onReorderGoals,
+    required this.onReorderTodos,
     required this.onGoalsChanged,
     required this.onTodosChanged,
     required this.onReflectionChanged,
@@ -122,37 +126,51 @@ class PlanningSection extends StatelessWidget {
                   style: TextStyle(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
-                ...List.generate(goalCtrls.length, (i) {
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      bottom: i == goalCtrls.length - 1 ? 0 : 8,
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: LabeledField(
-                            label: 'Ziel ${i + 1}',
-                            controller: goalCtrls[i],
-                            minLines: 1,
-                            maxLines: 2,
-                            focusNode: i < goalNodes.length
-                                ? goalNodes[i]
-                                : null,
-                            onChanged: (_) => onGoalsChanged(),
-                          ),
+                ReorderableListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: goalCtrls.length,
+                  onReorder: onReorderGoals,
+                  buildDefaultDragHandles: false,
+                  itemBuilder: (context, i) {
+                    return ReorderableDragStartListener(
+                      key: ValueKey('goal_$i'),
+                      index: i,
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          bottom: i == goalCtrls.length - 1 ? 0 : 8,
                         ),
-                        const SizedBox(width: 8),
-                        if (goalCtrls.length > 3)
-                          IconButton(
-                            tooltip: 'Ziel entfernen',
-                            icon: const Icon(Icons.remove_circle_outline),
-                            onPressed: () => onRemoveGoal(i),
-                          ),
-                      ],
-                    ),
-                  );
-                }),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: LabeledField(
+                                label: 'Ziel ${i + 1}',
+                                controller: goalCtrls[i],
+                                minLines: 1,
+                                maxLines: 2,
+                                focusNode: i < goalNodes.length
+                                    ? goalNodes[i]
+                                    : null,
+                                onChanged: (_) => onGoalsChanged(),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            if (goalCtrls.length > 1)
+                              GestureDetector(
+                                onLongPress: () => onRemoveGoal(i),
+                                child: IconButton(
+                                  tooltip: 'Ziel entfernen',
+                                  icon: const Icon(Icons.remove_circle_outline),
+                                  onPressed: () => onRemoveGoal(i),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
                 Align(
                   alignment: Alignment.centerLeft,
                   child: TextButton.icon(
@@ -167,37 +185,51 @@ class PlanningSection extends StatelessWidget {
                   style: TextStyle(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
-                ...List.generate(todoCtrls.length, (i) {
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      bottom: i == todoCtrls.length - 1 ? 0 : 8,
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: LabeledField(
-                            label: 'To-do ${i + 1}',
-                            controller: todoCtrls[i],
-                            minLines: 1,
-                            maxLines: 2,
-                            focusNode: i < todoNodes.length
-                                ? todoNodes[i]
-                                : null,
-                            onChanged: (_) => onTodosChanged(),
-                          ),
+                ReorderableListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: todoCtrls.length,
+                  onReorder: onReorderTodos,
+                  buildDefaultDragHandles: false,
+                  itemBuilder: (context, i) {
+                    return ReorderableDragStartListener(
+                      key: ValueKey('todo_$i'),
+                      index: i,
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          bottom: i == todoCtrls.length - 1 ? 0 : 8,
                         ),
-                        const SizedBox(width: 8),
-                        if (todoCtrls.length > 3)
-                          IconButton(
-                            tooltip: 'To-do entfernen',
-                            icon: const Icon(Icons.remove_circle_outline),
-                            onPressed: () => onRemoveTodo(i),
-                          ),
-                      ],
-                    ),
-                  );
-                }),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: LabeledField(
+                                label: 'To-do ${i + 1}',
+                                controller: todoCtrls[i],
+                                minLines: 1,
+                                maxLines: 2,
+                                focusNode: i < todoNodes.length
+                                    ? todoNodes[i]
+                                    : null,
+                                onChanged: (_) => onTodosChanged(),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            if (todoCtrls.length > 2)
+                              GestureDetector(
+                                onLongPress: () => onRemoveTodo(i),
+                                child: IconButton(
+                                  tooltip: 'To-do entfernen',
+                                  icon: const Icon(Icons.remove_circle_outline),
+                                  onPressed: () => onRemoveTodo(i),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
                 Align(
                   alignment: Alignment.centerLeft,
                   child: TextButton.icon(
