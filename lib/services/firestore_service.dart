@@ -12,27 +12,44 @@ import 'utils/firestore_date_utils.dart';
 
 /// Zentrale Firestore-Serviceklasse (Singleton) für Journal-Operationen
 class FirestoreService {
-  FirestoreService._();
+  FirestoreService._()
+    : _entryService = FirestoreEntryService.instance,
+      _planningService = FirestorePlanningService.instance,
+      _userService = FirestoreUserService.instance;
+
   static final FirestoreService instance = FirestoreService._();
   factory FirestoreService() => instance;
+
+  // Test-Konstruktor für Dependency Injection
+  FirestoreService.test({
+    FirestoreEntryService? entryService,
+    FirestorePlanningService? planningService,
+    FirestoreUserService? userService,
+  }) : _entryService = entryService ?? FirestoreEntryService.instance,
+       _planningService = planningService ?? FirestorePlanningService.instance,
+       _userService = userService ?? FirestoreUserService.instance;
+
+  final FirestoreEntryService _entryService;
+  final FirestorePlanningService _planningService;
+  final FirestoreUserService _userService;
 
   // Nutzer-Collection wird nun durch die spezialisierten Services verwendet.
 
   DocumentReference<Map<String, dynamic>> entryRef(String uid, DateTime date) =>
-      FirestoreEntryService.instance.entryRef(uid, date);
+      _entryService.entryRef(uid, date);
 
   /// Erstellt ein leeres Dokument für den Tag, wenn nicht vorhanden.
   Future<void> ensureEntry(String uid, DateTime date) async {
-    return FirestoreEntryService.instance.ensureEntry(uid, date);
+    return _entryService.ensureEntry(uid, date);
   }
 
   /// Alias für Bestandscode.
   Future<void> createEmptyEntry(String uid, DateTime date) =>
-      FirestoreEntryService.instance.createEmptyEntry(uid, date);
+      _entryService.createEmptyEntry(uid, date);
 
   /// Echtzeit-Stream eines Tagebucheintrags (kann null liefern, wenn nicht vorhanden).
   Stream<JournalEntry?> getDailyEntry(String uid, DateTime date) {
-    return FirestoreEntryService.instance.getDailyEntry(uid, date);
+    return _entryService.getDailyEntry(uid, date);
   }
 
   /// Partielles Update eines Feldes per Pfad (dot-path), setzt updatedAt.
@@ -42,12 +59,7 @@ class FirestoreService {
     String fieldPath,
     dynamic value,
   ) async {
-    return FirestoreEntryService.instance.updateField(
-      uid,
-      date,
-      fieldPath,
-      value,
-    );
+    return _entryService.updateField(uid, date, fieldPath, value);
   }
 
   /// Planung des Vortags abrufen.
@@ -55,10 +67,7 @@ class FirestoreService {
     String uid,
     DateTime date,
   ) async {
-    return FirestorePlanningService.instance.getPlanningOfPreviousDay(
-      uid,
-      date,
-    );
+    return _planningService.getPlanningOfPreviousDay(uid, date);
   }
 
   /// Aktualisiert den Abhak-Status eines Eintrags (To-do oder Ziel) in der Abendreflexion.
@@ -126,7 +135,7 @@ class FirestoreService {
     String uid,
     DateTime anyDayInWeek,
   ) async {
-    return FirestoreEntryService.instance.fetchWeekEntries(uid, anyDayInWeek);
+    return _entryService.fetchWeekEntries(uid, anyDayInWeek);
   }
 
   Future<void> saveWeeklyReflection(
@@ -149,11 +158,11 @@ class FirestoreService {
   }
 
   Future<void> saveUserData(AppUser user) async {
-    return FirestoreUserService.instance.saveUserData(user);
+    return _userService.saveUserData(user);
   }
 
   Future<AppUser?> getUser(String uid) async {
-    return FirestoreUserService.instance.getUser(uid);
+    return _userService.getUser(uid);
   }
 
   /// Verschiebt einen Eintrag aus der heutigen Planung (goals/todos)
@@ -165,7 +174,7 @@ class FirestoreService {
     required bool isGoal,
     required int index,
   }) async {
-    return FirestorePlanningService.instance.movePlanningItemToNextDay(
+    return _planningService.movePlanningItemToNextDay(
       uid,
       date,
       isGoal: isGoal,
@@ -183,7 +192,7 @@ class FirestoreService {
     required bool isGoal,
     required String itemText,
   }) async {
-    return FirestorePlanningService.instance.moveSpecificPlanningItem(
+    return _planningService.moveSpecificPlanningItem(
       uid: uid,
       from: from,
       to: to,
@@ -197,7 +206,7 @@ class FirestoreService {
   /// eines Nutzers. Leere Slots bleiben erhalten, werden aber ans
   /// Ende verschoben.
   Future<int> dedupeAllPlanningForUser(String uid) async {
-    return FirestorePlanningService.instance.dedupeAllPlanningForUser(uid);
+    return _planningService.dedupeAllPlanningForUser(uid);
   }
 
   // (erledigt) planning-spezifische Hilfsfunktionen wurden ausgelagert
