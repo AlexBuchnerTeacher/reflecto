@@ -225,14 +225,13 @@ class DayShell extends StatelessWidget {
                             ),
                             const SizedBox(height: ReflectoSpacing.s8),
                             Consumer(
-                              builder:
-                                  (BuildContext context, WidgetRef ref, _) {
-                                    final info = ref.watch(streakInfoProvider);
-                                    return DayStreakWidget(
-                                      current: info?.current ?? 0,
-                                      longest: info?.longest ?? 0,
-                                    );
-                                  },
+                              builder: (context, ref, _) {
+                                final info = ref.watch(streakInfoProvider);
+                                return DayStreakWidget(
+                                  current: info?.current ?? 0,
+                                  longest: info?.longest ?? 0,
+                                );
+                              },
                             ),
                           ],
                         ),

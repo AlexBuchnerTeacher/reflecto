@@ -5,6 +5,7 @@ import '../providers/entry_providers.dart';
 import '../providers/pending_providers.dart';
 import './day_screen.dart';
 import './week_screen.dart';
+import './habit_screen.dart';
 import './settings_screen.dart' as settings;
 
 class HomeScreen extends StatefulWidget {
@@ -98,7 +99,12 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(
             child: IndexedStack(
               index: _index,
-              children: [DayScreen(), WeekScreen(), settings.SettingsScreen()],
+              children: [
+                DayScreen(),
+                WeekScreen(),
+                const HabitScreen(),
+                settings.SettingsScreen(),
+              ],
             ),
           ),
         ],
@@ -106,6 +112,7 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _index,
         onTap: (i) => setState(() => _index = i),
+        type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.today_outlined),
@@ -114,6 +121,10 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.view_week_outlined),
             label: 'Woche',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.check_circle_outline),
+            label: 'Habits',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings_outlined),
