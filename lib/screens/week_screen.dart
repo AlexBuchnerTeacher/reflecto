@@ -56,11 +56,12 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
       final month = day.month.toString().padLeft(2, '0');
       final dayStr = day.day.toString().padLeft(2, '0');
       final entryId = '$year-$month-$dayStr';
-      final entry = entries.firstWhere(
-        (e) => e.id == entryId,
-        orElse: () => throw StateError('not found'),
+
+      // Suche Entry für diesen Tag
+      final entryOrNull = entries.cast<JournalEntry?>().firstWhere(
+        (e) => e?.id == entryId,
+        orElse: () => null,
       );
-      final entryOrNull = entries.any((e) => e.id == entryId) ? entry : null;
 
       if (entryOrNull == null) continue;
 
