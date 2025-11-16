@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../providers/auth_providers.dart';
 import '../../../providers/entry_providers.dart';
 import '../controllers/day_controllers.dart';
+import '../logic/day_state_manager.dart';
 import '../logic/day_sync_logic.dart';
 import '../logic/day_view_logic.dart';
 import '../ui/day_shell.dart';
@@ -12,23 +13,15 @@ import '../ui/day_shell.dart';
 class DayScreen extends ConsumerStatefulWidget {
   final DateTime? initialDate;
   const DayScreen({super.key, this.initialDate});
-
   @override
   ConsumerState<DayScreen> createState() => _DayScreenState();
 }
 
 class _DayScreenState extends ConsumerState<DayScreen> {
   late DateTime _selected;
-  bool _expMorning = false;
-  bool _expPlanning = false;
-  bool _expEvening = false;
-
   final DayControllers _controllers = DayControllers();
+  final DayStateManager _stateManager = DayStateManager();
   final DaySyncLogic _syncLogic = DaySyncLogic();
-
-  // Local checkboxes for yesterday review
-  List<bool> _yesterdayGoalChecks = const [];
-  List<bool> _yesterdayTodoChecks = const [];
   DateTime? _lastPlanningDate;
 
   DateTime? _lastSnackAt;
@@ -117,36 +110,13 @@ class _DayScreenState extends ConsumerState<DayScreen> {
   }
 
   void _setDefaultExpandedForDate() {
-    final today = DateTime.now();
-    final selected = _selected;
-    final isToday = DateUtils.isSameDay(selected, today);
-    final isFuture = selected.isAfter(
-      DateTime(today.year, today.month, today.day),
-    );
-    if (isFuture) {
-      _expMorning = false;
-      _expEvening = false;
-      _expPlanning = true;
-    } else if (isToday) {
-      if (DateTime.now().hour < 12) {
-        _expMorning = true;
-        _expPlanning = false;
-        _expEvening = false;
-      } else {
-        _expMorning = false;
-        _expPlanning = false;
-        _expEvening = true;
-      }
-    } else {
-      _expMorning = false;
-      _expPlanning = false;
-      _expEvening = true;
-    }
+    _stateManager.setDefaultExpansionForDate(_selected);
   }
 
   @override
   void dispose() {
     _syncLogic.dispose();
+    _stateManager.dispose();
     _controllers.dispose();
     super.dispose();
   }
@@ -476,39 +446,27 @@ class _DayScreenState extends ConsumerState<DayScreen> {
           'goalsCompletion',
         ]);
         final goalsCompletion = _boolListFromDynamic(goalsCompletionDyn);
+
+        // Sync checkbox states from Firestore data
         final desiredGoalLen = curGoals.length.clamp(0, 3);
-        if (_yesterdayGoalChecks.isEmpty ||
-            _yesterdayGoalChecks.length != desiredGoalLen) {
-          _yesterdayGoalChecks = List<bool>.generate(
-            desiredGoalLen,
-            (i) => i < goalsCompletion.length ? goalsCompletion[i] : false,
-          );
-        } else if (!pending) {
-          // Snapshot dominiert bei nicht-pendenden Writes: synchronisiere Werte live (Cross-Device-Updates)
-          for (var i = 0; i < desiredGoalLen; i++) {
-            final snapVal = i < goalsCompletion.length
-                ? goalsCompletion[i]
-                : false;
-            if (_yesterdayGoalChecks[i] != snapVal) {
-              _yesterdayGoalChecks[i] = snapVal;
-            }
-          }
-        }
+        final goalCheckData = List<bool>.generate(
+          desiredGoalLen,
+          (i) => i < goalsCompletion.length ? goalsCompletion[i] : false,
+        );
+        _stateManager.syncGoalCheckboxes(
+          goalCheckData,
+          hasPendingWrites: pending,
+        );
+
         final desiredTodoLen = curTodos.length.clamp(0, 3);
-        if (_yesterdayTodoChecks.isEmpty ||
-            _yesterdayTodoChecks.length != desiredTodoLen) {
-          _yesterdayTodoChecks = List<bool>.generate(
-            desiredTodoLen,
-            (i) => i < completion.length ? completion[i] : false,
-          );
-        } else if (!pending) {
-          for (var i = 0; i < desiredTodoLen; i++) {
-            final snapVal = i < completion.length ? completion[i] : false;
-            if (_yesterdayTodoChecks[i] != snapVal) {
-              _yesterdayTodoChecks[i] = snapVal;
-            }
-          }
-        }
+        final todoCheckData = List<bool>.generate(
+          desiredTodoLen,
+          (i) => i < completion.length ? completion[i] : false,
+        );
+        _stateManager.syncTodoCheckboxes(
+          todoCheckData,
+          hasPendingWrites: pending,
+        );
 
         // final isToday = DateUtils.isSameDay(_selected, DateTime.now());
 
@@ -529,21 +487,24 @@ class _DayScreenState extends ConsumerState<DayScreen> {
           curTodos: curTodos,
           visibleGoalIndices: visibleGoalIdx,
           visibleTodoIndices: visibleTodoIdx,
-          goalChecks: _yesterdayGoalChecks,
-          todoChecks: _yesterdayTodoChecks,
+          goalChecks: _stateManager.yesterdayGoalChecks,
+          todoChecks: _stateManager.yesterdayTodoChecks,
           controllers: _controllers,
-          expMorning: _expMorning,
-          expEvening: _expEvening,
-          expPlanning: _expPlanning,
-          onToggleMorning: () => setState(() {
-            _expMorning = !_expMorning;
-          }),
-          onToggleEvening: () => setState(() {
-            _expEvening = !_expEvening;
-          }),
-          onTogglePlanning: () => setState(() {
-            _expPlanning = !_expPlanning;
-          }),
+          expMorning: _stateManager.expMorning,
+          expEvening: _stateManager.expEvening,
+          expPlanning: _stateManager.expPlanning,
+          onToggleMorning: () {
+            _stateManager.toggleMorning();
+            setState(() {});
+          },
+          onToggleEvening: () {
+            _stateManager.toggleEvening();
+            setState(() {});
+          },
+          onTogglePlanning: () {
+            _stateManager.togglePlanning();
+            setState(() {});
+          },
           onSwipeLeft: () {
             setState(() {
               _selected = _selected.add(const Duration(days: 1));
@@ -600,20 +561,14 @@ class _DayScreenState extends ConsumerState<DayScreen> {
           },
           onGoalCheckChanged: (index, value) async {
             // Optimistic Update: Update local state immediately to prevent toggle group bug
-            if (index < _yesterdayGoalChecks.length) {
-              setState(() {
-                _yesterdayGoalChecks[index] = value;
-              });
-            }
+            _stateManager.updateGoalCheckbox(index, value);
+            setState(() {});
             await _syncLogic.updateGoalCompletion(uid, _selected, index, value);
           },
           onTodoCheckChanged: (index, value) async {
             // Optimistic Update: Update local state immediately to prevent toggle group bug
-            if (index < _yesterdayTodoChecks.length) {
-              setState(() {
-                _yesterdayTodoChecks[index] = value;
-              });
-            }
+            _stateManager.updateTodoCheckbox(index, value);
+            setState(() {});
             await _syncLogic.updateTodoCompletion(uid, _selected, index, value);
           },
 
