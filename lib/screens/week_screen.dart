@@ -12,9 +12,6 @@ import '../features/week/widgets/week_stats_card.dart';
 import '../features/week/widgets/week_export_card.dart';
 import '../features/week/widgets/week_ai_analysis_card.dart';
 import '../features/week/widgets/week_hero_card.dart';
-import '../features/week/widgets/week_day_detail_card.dart';
-import '../features/day/widgets/day_week_carousel.dart';
-import '../features/day/ui/day_screen.dart';
 import '../theme/tokens.dart';
 
 /// Wochenübersicht: Statistiken, Export, KI-Auswertung
@@ -27,25 +24,16 @@ class WeekScreen extends ConsumerStatefulWidget {
 
 class _WeekScreenState extends ConsumerState<WeekScreen> {
   late DateTime _anchor; // beliebiger Tag in der Woche
-  late DateTime _selectedDay; // im Karussell ausgewählter Tag
 
   @override
   void initState() {
     super.initState();
     _anchor = DateTime.now();
-    _selectedDay = DateTime.now();
   }
 
   String _formatDate(DateTime d) =>
       '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.'
       '${d.year.toString()}';
-
-  String _formatEntryId(DateTime d) {
-    final year = d.year;
-    final month = d.month.toString().padLeft(2, '0');
-    final day = d.day.toString().padLeft(2, '0');
-    return '$year-$month-$day';
-  }
 
   /// Berechnet Wochenvervollständigung basierend auf Einträgen.
   ///
@@ -64,7 +52,10 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
 
     for (var i = 0; i < 7; i++) {
       final day = range.start.add(Duration(days: i));
-      final entryId = _formatEntryId(day);
+      final year = day.year;
+      final month = day.month.toString().padLeft(2, '0');
+      final dayStr = day.day.toString().padLeft(2, '0');
+      final entryId = '$year-$month-$dayStr';
       final entry = entries.firstWhere(
         (e) => e.id == entryId,
         orElse: () => throw StateError('not found'),
@@ -153,21 +144,16 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
                     onPrevious: () {
                       setState(() {
                         _anchor = _anchor.subtract(const Duration(days: 7));
-                        _selectedDay = range.start.subtract(
-                          const Duration(days: 7),
-                        );
                       });
                     },
                     onNext: () {
                       setState(() {
                         _anchor = _anchor.add(const Duration(days: 7));
-                        _selectedDay = range.start.add(const Duration(days: 7));
                       });
                     },
                     onToday: () {
                       setState(() {
                         _anchor = DateTime.now();
-                        _selectedDay = DateTime.now();
                       });
                     },
                     onPickDate: () async {
@@ -181,27 +167,8 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
                         if (!mounted) return;
                         setState(() {
                           _anchor = picked;
-                          _selectedDay = picked;
                         });
                       }
-                    },
-                  ),
-                  const SizedBox(height: ReflectoSpacing.s16),
-                  // Wochenkarussell (7 Tage)
-                  DayWeekCarousel(
-                    selected: _selectedDay,
-                    onSelected: (date) {
-                      setState(() {
-                        _selectedDay = date;
-                        // Woche wechseln wenn Tag außerhalb der aktuellen Woche
-                        final currentRange = FirestoreService.weekRangeFrom(
-                          _anchor,
-                        );
-                        if (date.isBefore(currentRange.start) ||
-                            date.isAfter(currentRange.end)) {
-                          _anchor = date;
-                        }
-                      });
                     },
                   ),
                   const SizedBox(height: ReflectoSpacing.s16),
@@ -225,41 +192,14 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
                           range,
                         );
 
-                        // Finde Entry für ausgewählten Tag
-                        final selectedEntry = entries.firstWhere(
-                          (e) => e.id == _formatEntryId(_selectedDay),
-                          orElse: () => throw StateError('not found'),
-                        );
-                        final selectedEntryOrNull =
-                            entries.any(
-                              (e) => e.id == _formatEntryId(_selectedDay),
-                            )
-                            ? selectedEntry
-                            : null;
-
                         return ListView(
                           children: [
-                            // Hero Card
+                            // Hero Card mit Wochenübersicht
                             WeekHeroCard(
                               completionPercent: completionPercent,
                               weekLabel: weekId,
                               dateRange:
                                   '${_formatDate(range.start)} - ${_formatDate(range.end)}',
-                            ),
-                            const SizedBox(height: ReflectoSpacing.s16),
-
-                            // Day Detail Card
-                            WeekDayDetailCard(
-                              date: _selectedDay,
-                              entry: selectedEntryOrNull,
-                              onTapNavigate: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        DayScreen(initialDate: _selectedDay),
-                                  ),
-                                );
-                              },
                             ),
                             const SizedBox(height: ReflectoSpacing.s16),
 
