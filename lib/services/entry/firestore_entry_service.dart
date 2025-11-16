@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../models/journal_entry.dart';
+import '../utils/firestore_date_utils.dart';
 
 /// Kleine, fokussierte Service-Klasse für Eintrags-CRUD-Operationen.
 class FirestoreEntryService {
@@ -14,16 +15,11 @@ class FirestoreEntryService {
       .collection('users');
 
   DocumentReference<Map<String, dynamic>> entryRef(String uid, DateTime date) {
-    return _users.doc(uid).collection('entries').doc(_formatDate(date));
+    return _users
+        .doc(uid)
+        .collection('entries')
+        .doc(FirestoreDateUtils.formatDate(date));
   }
-
-  static String _two(int n) => n.toString().padLeft(2, '0');
-  static String _formatDate(DateTime d) =>
-      '${d.year}-${_two(d.month)}-${_two(d.day)}';
-
-  /// Öffentliche Wrapper für Datumshilfen (für Kompatibilität / Delegation).
-  String formatDate(DateTime d) => _formatDate(d);
-  String two(int n) => _two(n);
 
   Future<void> ensureEntry(String uid, DateTime date) async {
     try {
@@ -114,13 +110,13 @@ class FirestoreEntryService {
     DateTime anyDayInWeek,
   ) async {
     try {
-      final monday = anyDayInWeek.subtract(
-        Duration(days: (anyDayInWeek.weekday + 6) % 7),
-      );
-      final startId = _formatDate(
+      final monday = FirestoreDateUtils.mondayOfWeek(anyDayInWeek);
+      final startId = FirestoreDateUtils.formatDate(
         DateTime(monday.year, monday.month, monday.day),
       );
-      final endId = _formatDate(monday.add(const Duration(days: 6)));
+      final endId = FirestoreDateUtils.formatDate(
+        monday.add(const Duration(days: 6)),
+      );
       final col = _users.doc(uid).collection('entries');
       final snap = await col
           .orderBy(FieldPath.documentId)

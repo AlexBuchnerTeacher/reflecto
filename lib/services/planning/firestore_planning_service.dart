@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import '../utils/firestore_date_utils.dart';
 
 /// Fokussiertes Service-Modul für Planung-bezogene Firestore-Operationen.
 class FirestorePlanningService {
@@ -20,7 +21,7 @@ class FirestorePlanningService {
       final snap = await _users
           .doc(uid)
           .collection('entries')
-          .doc(_formatDate(prev))
+          .doc(FirestoreDateUtils.formatDate(prev))
           .get();
       if (!snap.exists) return null;
       final data = snap.data();
@@ -45,9 +46,7 @@ class FirestorePlanningService {
     }
   }
 
-  String _formatDate(DateTime d) => '${d.year}-${_two(d.month)}-${_two(d.day)}';
-
-  String _two(int n) => n.toString().padLeft(2, '0');
+  // date helpers moved to FirestoreDateUtils
 
   Future<void> movePlanningItemToNextDay(
     String uid,
@@ -74,11 +73,11 @@ class FirestorePlanningService {
     final todayRef = _users
         .doc(uid)
         .collection('entries')
-        .doc(_formatDate(date));
+        .doc(FirestoreDateUtils.formatDate(date));
     final tomorrowRef = _users
         .doc(uid)
         .collection('entries')
-        .doc(_formatDate(date.add(const Duration(days: 1))));
+        .doc(FirestoreDateUtils.formatDate(date.add(const Duration(days: 1))));
     final field = isGoal ? 'goals' : 'todos';
     await FirebaseFirestore.instance.runTransaction((tx) async {
       final todaySnap = await tx.get(todayRef);
@@ -151,8 +150,11 @@ class FirestorePlanningService {
     final fromRef = _users
         .doc(uid)
         .collection('entries')
-        .doc(_formatDate(from));
-    final toRef = _users.doc(uid).collection('entries').doc(_formatDate(to));
+        .doc(FirestoreDateUtils.formatDate(from));
+    final toRef = _users
+        .doc(uid)
+        .collection('entries')
+        .doc(FirestoreDateUtils.formatDate(to));
     final field = isGoal ? 'goals' : 'todos';
     final needle = itemText.trim();
     if (needle.isEmpty) return;
