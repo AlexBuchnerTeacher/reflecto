@@ -2,6 +2,58 @@
 
 Alle nennenswerten Änderungen an Reflecto.
 
+## v1.4.0 (2025-11-16)
+
+### Habit Tracker (#57)
+- **Kernfunktionen**:
+  - Gewohnheiten erstellen/bearbeiten/löschen mit Titel, Kategorie, Farbe
+  - Flexible Frequenzen: Täglich, Wochentage (Mo-So auswählbar), Wochen-Ziel (z.B. 3×/Woche), Unregelmäßig
+  - Streak-Tracking (nur für tägliche Habits)
+  - Wöchentlicher Fortschritt mit Live-Anzeige (X/Y erfüllt)
+  - Toggle-Checkboxen nur an geplanten Tagen aktiv
+  - Weekday-Pills zeigen aktive Wochentage
+- **UI/UX**:
+  - Habit-Screen mit Fortschritts-Header (Heute: X/Y erfüllt, Prozentanzeige)
+  - "Nur fällige" Filter-Toggle für fokussierte Ansicht
+  - Gruppierung nach Kategorien mit fester Reihenfolge (8 Haupt-Kategorien mit Emojis)
+  - Reorder-Dialog pro Kategorie für benutzerdefinierte Sortierung (sortIndex)
+- **Vorlagen-System**:
+  - 40+ kuratierte Habit-Templates in 8 Kategorien (Gesundheit, Sport, Lernen, Kreativität, Produktivität, Soziales, Achtsamkeit, Sonstiges)
+  - Server-seitige Templates in Firestore (`habit_templates` Collection)
+  - Bottom-Sheet zur Vorlagen-Auswahl beim Erstellen neuer Habits
+  - Seeding-Funktion für Admins (Debug-Mode oder UID-Allowlist)
+  - Timeout-Fallback (3s) für Template-Loading
+- **Migration & Admin-Tools**:
+  - Kategorie-Migration für Upgrade auf Emoji-Kategorien
+  - Admin-Icons in AppBar für Template-Seeding und Migration (nur Debug/Admin)
+- **Datenmodell**:
+  - `users/{uid}/habits`: Habit-Dokumente mit frequency, weekdays, weeklyTarget, sortIndex, streak, completedDates
+  - `habit_templates`: Globale Vorlagen-Collection
+
+### Meal Tracker
+- **Tages-Essenslog**:
+  - Frühstück/Mittag/Abend Toggle-Chips
+  - Pro Mahlzeit kurze Gericht-Notiz (TextField mit 400ms Debounce)
+  - Fortschrittsbalken (X/3 erfasst)
+  - Integration im Day-Screen nach der Morgen-Sektion
+- **Datenmodell**:
+  - `users/{uid}/meals/{yyyy-MM-dd}`: Dokumente mit breakfast, lunch, dinner (bool) und breakfastNote, lunchNote, dinnerNote (optional)
+  - Automatische Dok-Erstellung beim ersten Toggle/Notiz
+- **Persistenz**:
+  - Optimistische Updates mit Focus-Guard (kein Überschreiben während Eingabe)
+  - Merge-Writes für Partial-Updates
+
+### Technische Verbesserungen
+- **Habit-Service**: Scheduling-Logik (isScheduledOnDate, getWeekWindow), Wochen-Counter (countCompletionsInWeek, plannedDaysInWeek)
+- **Providers**: Habit-Notifier für CRUD, Template-Stream, Meal-Notifier für Toggle/Notes
+- **UI-Komponenten**: HabitCard, HabitDialog (4-Mode-Segmentation), MealTrackerCard (stateful mit Controllern)
+- **Migration-Service**: Batch-Update für Kategorie-Upgrade (alte → Emoji-Versionen)
+
+### Validierung
+- `flutter analyze`: Keine Befunde
+- Unit-Tests: Alle bestanden
+- Firestore-Schema: Neue Collections `habits`, `habit_templates`, `meals/{date}`
+
 ## v1.3.1 (2025-11-16)
 
 ### Datenmodell & Performance (#52)

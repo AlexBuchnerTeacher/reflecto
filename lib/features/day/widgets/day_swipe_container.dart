@@ -15,7 +15,7 @@ class DaySwipeContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onHorizontalDragEnd: (DragEndDetails details) {
+      onHorizontalDragEnd: (details) {
         final double? velocity = details.primaryVelocity;
         if (velocity == null) {
           return;

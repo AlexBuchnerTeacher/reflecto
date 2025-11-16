@@ -472,7 +472,6 @@ class _DayScreenState extends ConsumerState<DayScreen> {
         // final isToday = DateUtils.isSameDay(_selected, DateTime.now());
 
         // Aggregierter Pending-/Cache-Status wird aktuell nicht verwendet
-        // Aggregierter Pending-/Cache-Status wird aktuell nicht verwendet
 
         // Callback-Helfer bündeln (Auslagerung der Handler aus dem Widget-State)
         final callbacks = DayCallbacks.build(
@@ -486,12 +485,12 @@ class _DayScreenState extends ConsumerState<DayScreen> {
           setState: (fn) => setState(fn),
           debouncedUpdate:
               ({
-                required String uid,
-                required DateTime date,
-                required String fieldPath,
-                required dynamic value,
-                String? alsoAggregateTo,
-                String Function()? aggregateBuilder,
+                required uid,
+                required date,
+                required fieldPath,
+                required value,
+                alsoAggregateTo,
+                aggregateBuilder,
               }) => _debouncedUpdate(
                 uid: uid,
                 date: date,
