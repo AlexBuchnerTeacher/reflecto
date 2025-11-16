@@ -1,75 +1,55 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show DateTimeRange;
 
 import '../models/journal_entry.dart';
 import '../models/user_model.dart';
+import 'user/firestore_user_service.dart';
+import 'entry/firestore_entry_service.dart';
+import 'planning/firestore_planning_service.dart';
+import 'streak/firestore_streak_service.dart';
+import 'weekly/firestore_weekly_service.dart';
+import 'utils/firestore_date_utils.dart';
 
 /// Zentrale Firestore-Serviceklasse (Singleton) für Journal-Operationen
 class FirestoreService {
-  FirestoreService._();
+  FirestoreService._()
+    : _entryService = FirestoreEntryService.instance,
+      _planningService = FirestorePlanningService.instance,
+      _userService = FirestoreUserService.instance;
+
   static final FirestoreService instance = FirestoreService._();
   factory FirestoreService() => instance;
 
-  final CollectionReference<Map<String, dynamic>> _users = FirebaseFirestore
-      .instance
-      .collection('users');
+  // Test-Konstruktor für Dependency Injection
+  FirestoreService.test({
+    FirestoreEntryService? entryService,
+    FirestorePlanningService? planningService,
+    FirestoreUserService? userService,
+  }) : _entryService = entryService ?? FirestoreEntryService.instance,
+       _planningService = planningService ?? FirestorePlanningService.instance,
+       _userService = userService ?? FirestoreUserService.instance;
 
-  DocumentReference<Map<String, dynamic>> entryRef(String uid, DateTime date) {
-    return _users.doc(uid).collection('entries').doc(_formatDate(date));
-  }
+  final FirestoreEntryService _entryService;
+  final FirestorePlanningService _planningService;
+  final FirestoreUserService _userService;
 
-  static String _two(int n) => n.toString().padLeft(2, '0');
-  static String _formatDate(DateTime d) =>
-      '${d.year}-${_two(d.month)}-${_two(d.day)}';
+  // Nutzer-Collection wird nun durch die spezialisierten Services verwendet.
+
+  DocumentReference<Map<String, dynamic>> entryRef(String uid, DateTime date) =>
+      _entryService.entryRef(uid, date);
 
   /// Erstellt ein leeres Dokument für den Tag, wenn nicht vorhanden.
   Future<void> ensureEntry(String uid, DateTime date) async {
-    try {
-      final ref = entryRef(uid, date);
-      final snap = await ref.get();
-      if (!snap.exists) {
-        await ref.set({
-          'planning': {
-            'goals': <String>[],
-            'todos': <String>[],
-            'reflection': '',
-            'notes': '',
-          },
-          'morning': {'mood': '', 'goodThing': '', 'focus': ''},
-          'evening': {
-            'good': '',
-            'learned': '',
-            'improve': '',
-            'gratitude': '',
-          },
-          'ratings': {'focus': null, 'energy': null, 'happiness': null},
-          // Back-Compat: Top-Level Ratings für ältere Stellen
-          'ratingFocus': null,
-          'ratingEnergy': null,
-          'ratingHappiness': null,
-          'updatedAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-      }
-    } on FirebaseException catch (e) {
-      debugPrint('Firestore error (ensureEntry): $e');
-      rethrow;
-    }
+    return _entryService.ensureEntry(uid, date);
   }
 
   /// Alias für Bestandscode.
   Future<void> createEmptyEntry(String uid, DateTime date) =>
-      ensureEntry(uid, date);
+      _entryService.createEmptyEntry(uid, date);
 
   /// Echtzeit-Stream eines Tagebucheintrags (kann null liefern, wenn nicht vorhanden).
   Stream<JournalEntry?> getDailyEntry(String uid, DateTime date) {
-    final ref = entryRef(uid, date);
-    return ref.snapshots().map((snap) {
-      if (!snap.exists) return null;
-      final data = snap.data();
-      if (data == null) return null;
-      return JournalEntry.fromMap(snap.id, data);
-    });
+    return _entryService.getDailyEntry(uid, date);
   }
 
   /// Partielles Update eines Feldes per Pfad (dot-path), setzt updatedAt.
@@ -79,23 +59,7 @@ class FirestoreService {
     String fieldPath,
     dynamic value,
   ) async {
-    final ref = entryRef(uid, date);
-    try {
-      await ref.update({
-        fieldPath: value,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-    } on FirebaseException catch (e) {
-      if (e.code == 'not-found') {
-        // Dokument existiert noch nicht: per set(merge:true) anlegen
-        final nested = _mapFromPath(fieldPath, value);
-        nested['updatedAt'] = FieldValue.serverTimestamp();
-        await ref.set(nested, SetOptions(merge: true));
-      } else {
-        debugPrint('Firestore error (updateField): $e');
-        rethrow;
-      }
-    }
+    return _entryService.updateField(uid, date, fieldPath, value);
   }
 
   /// Planung des Vortags abrufen.
@@ -103,30 +67,7 @@ class FirestoreService {
     String uid,
     DateTime date,
   ) async {
-    try {
-      final prev = date.subtract(const Duration(days: 1));
-      final snap = await entryRef(uid, prev).get();
-      if (!snap.exists) return null;
-      final data = snap.data();
-      if (data == null) return null;
-      final planning = data['planning'];
-      if (planning is Map<String, dynamic>) {
-        return {
-          'goals': (planning['goals'] is List)
-              ? List<String>.from(planning['goals'])
-              : <String>[],
-          'todos': (planning['todos'] is List)
-              ? List<String>.from(planning['todos'])
-              : <String>[],
-          'reflection': (planning['reflection'] ?? '') as String,
-          'notes': (planning['notes'] ?? '') as String,
-        };
-      }
-      return null;
-    } on FirebaseException catch (e) {
-      debugPrint('Firestore error (getPlanningOfPreviousDay): $e');
-      rethrow;
-    }
+    return _planningService.getPlanningOfPreviousDay(uid, date);
   }
 
   /// Aktualisiert den Abhak-Status eines Eintrags (To-do oder Ziel) in der Abendreflexion.
@@ -139,13 +80,7 @@ class FirestoreService {
     bool value,
   ) async {
     final field = '$fieldPath.$index';
-    await _updateFieldWithFallback(
-      uid: uid,
-      date: date,
-      field: field,
-      value: value,
-      context: '$fieldPath[$index]',
-    );
+    await updateField(uid, date, field, value);
   }
 
   /// Aktualisiert den Abhak-Status eines To-do-Eintrags in der Abendreflexion.
@@ -181,111 +116,26 @@ class FirestoreService {
     String uid,
     DateTime date,
   ) async {
-    try {
-      // Abend als completed markieren
-      await updateField(uid, date, 'evening.completed', true);
-
-      final todayId = _formatDate(date);
-      final yesterday = date.subtract(const Duration(days: 1));
-      final yId = _formatDate(yesterday);
-
-      final ySnap = await entryRef(uid, yesterday).get();
-      final yCompleted = (ySnap.data()?['evening']?['completed'] == true);
-
-      final streakRef = _users.doc(uid).collection('stats').doc('streak');
-      final snap = await streakRef.get();
-      final data = snap.data() ?? <String, dynamic>{};
-      final lastDate = data['lastEntryDate'] as String?;
-      final current = (data['streakCount'] is num)
-          ? (data['streakCount'] as num).toInt()
-          : 0;
-      final longest = (data['longestStreak'] is num)
-          ? (data['longestStreak'] as num).toInt()
-          : 0;
-
-      if (lastDate == todayId) {
-        return; // heute bereits gezählt
-      }
-
-      // Kette fortsetzen, wenn gestern abgeschlossen war und entweder
-      // lastDate genau gestern war (normaler Fluss) ODER lastDate noch fehlt (Neustart mit vorhandenem gestrigem Abschluss)
-      final shouldChain = yCompleted && (lastDate == yId || lastDate == null);
-      final next = shouldChain ? (current + 1) : 1;
-      final nextLongest = next > longest ? next : longest;
-      await streakRef.set({
-        'streakCount': next,
-        'longestStreak': nextLongest,
-        'lastEntryDate': todayId,
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-    } on FirebaseException catch (e) {
-      debugPrint('Firestore error (markEveningCompletedAndUpdateStreak): $e');
-      rethrow;
-    }
+    return FirestoreStreakService.instance.markEveningCompletedAndUpdateStreak(
+      uid,
+      date,
+    );
   }
 
   // -------------------------------------------------
   // Zusätzliche bestehende Helfer (Kompatibilität)
   // -------------------------------------------------
 
-  static int _isoWeekNumber(DateTime date) {
-    final thursday = date.add(Duration(days: 3 - ((date.weekday + 6) % 7)));
-    final firstThursday = DateTime(thursday.year, 1, 4);
-    return 1 + ((thursday.difference(firstThursday).inDays) / 7).floor();
-  }
-
-  static DateTime _mondayOfWeek(DateTime d) {
-    return DateTime(
-      d.year,
-      d.month,
-      d.day,
-    ).subtract(Duration(days: (d.weekday + 6) % 7));
-  }
-
-  static String weekIdFrom(DateTime d) {
-    final thursday = d.add(Duration(days: 3 - ((d.weekday + 6) % 7)));
-    final isoYear = thursday.year;
-    final week = _isoWeekNumber(d);
-    return '$isoYear-${_two(week)}';
-  }
-
-  static DateTimeRange weekRangeFrom(DateTime d) {
-    final monday = _mondayOfWeek(d);
-    final start = DateTime(monday.year, monday.month, monday.day, 0, 0, 0);
-    final endBase = monday.add(const Duration(days: 6));
-    final end = DateTime(
-      endBase.year,
-      endBase.month,
-      endBase.day,
-      23,
-      59,
-      59,
-      999,
-    );
-    return DateTimeRange(start: start, end: end);
-  }
+  // Datum-/Wochen-Helfer wurden in `FirestoreDateUtils` ausgelagert.
+  static String weekIdFrom(DateTime d) => FirestoreDateUtils.weekIdFrom(d);
+  static DateTimeRange weekRangeFrom(DateTime d) =>
+      FirestoreDateUtils.weekRangeFrom(d);
 
   Future<List<JournalEntry>> fetchWeekEntries(
     String uid,
     DateTime anyDayInWeek,
   ) async {
-    try {
-      final range = weekRangeFrom(anyDayInWeek);
-      final startId = _formatDate(range.start);
-      final endId = _formatDate(range.start.add(const Duration(days: 6)));
-      final col = _users.doc(uid).collection('entries');
-      final snap = await col
-          .orderBy(FieldPath.documentId)
-          .startAt([startId])
-          .endAt([endId])
-          .get();
-      return snap.docs
-          .map((d) => JournalEntry.fromMap(d.id, d.data()))
-          .toList();
-    } on FirebaseException catch (e) {
-      debugPrint('Firestore error (fetchWeekEntries): $e');
-      rethrow;
-    }
+    return _entryService.fetchWeekEntries(uid, anyDayInWeek);
   }
 
   Future<void> saveWeeklyReflection(
@@ -293,91 +143,26 @@ class FirestoreService {
     String weekId,
     Map<String, dynamic> data,
   ) async {
-    try {
-      final ref = _users.doc(uid).collection('weekly_reflections').doc(weekId);
-      await ref.set({
-        ...data,
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-    } on FirebaseException catch (e) {
-      debugPrint('Firestore error (saveWeeklyReflection): $e');
-      rethrow;
-    }
+    return FirestoreWeeklyService.instance.saveWeeklyReflection(
+      uid,
+      weekId,
+      data,
+    );
   }
 
   Stream<Map<String, dynamic>?> weeklyReflectionStream(
     String uid,
     String weekId,
   ) {
-    final ref = _users.doc(uid).collection('weekly_reflections').doc(weekId);
-    return ref.snapshots().map((s) => s.data());
+    return FirestoreWeeklyService.instance.weeklyReflectionStream(uid, weekId);
   }
 
   Future<void> saveUserData(AppUser user) async {
-    try {
-      final ref = _users.doc(user.uid);
-      final snap = await ref.get();
-      if (!snap.exists) {
-        // Create: write only known non-null fields + server timestamps.
-        final create = <String, dynamic>{
-          'uid': user.uid,
-          if (user.displayName != null) 'displayName': user.displayName,
-          if (user.email != null) 'email': user.email,
-          if (user.photoUrl != null) 'photoUrl': user.photoUrl,
-          'createdAt': FieldValue.serverTimestamp(),
-          'lastLoginAt': FieldValue.serverTimestamp(),
-        };
-        await ref.set(create, SetOptions(merge: true));
-      } else {
-        // Update: avoid overwriting createdAt; write only provided non-null fields.
-        final update = <String, dynamic>{
-          if (user.displayName != null) 'displayName': user.displayName,
-          if (user.email != null) 'email': user.email,
-          if (user.photoUrl != null) 'photoUrl': user.photoUrl,
-          'lastLoginAt': FieldValue.serverTimestamp(),
-        };
-        if (update.isNotEmpty) {
-          await ref.set(update, SetOptions(merge: true));
-        } else {
-          // Still refresh lastLoginAt if nothing else changes
-          await ref.set({
-            'lastLoginAt': FieldValue.serverTimestamp(),
-          }, SetOptions(merge: true));
-        }
-      }
-    } on FirebaseException catch (e) {
-      debugPrint('Firestore error (saveUserData): $e');
-      rethrow;
-    }
+    return _userService.saveUserData(user);
   }
 
   Future<AppUser?> getUser(String uid) async {
-    try {
-      final snap = await _users.doc(uid).get();
-      if (!snap.exists) return null;
-      final data = snap.data();
-      if (data == null) return null;
-      return AppUser.fromMap(data);
-    } on FirebaseException catch (e) {
-      debugPrint('Firestore error (getUser): $e');
-      rethrow;
-    }
-  }
-
-  /// Hilfsfunktion: baut aus einem Pfad eine verschachtelte Map
-  Map<String, dynamic> _mapFromPath(String path, dynamic value) {
-    final parts = path.split('.');
-    final root = <String, dynamic>{};
-    var cur = root;
-    for (var i = 0; i < parts.length; i++) {
-      final p = parts[i];
-      if (i == parts.length - 1) {
-        cur[p] = value;
-      } else {
-        cur = (cur[p] ??= <String, dynamic>{}) as Map<String, dynamic>;
-      }
-    }
-    return root;
+    return _userService.getUser(uid);
   }
 
   /// Verschiebt einen Eintrag aus der heutigen Planung (goals/todos)
@@ -389,72 +174,12 @@ class FirestoreService {
     required bool isGoal,
     required int index,
   }) async {
-    List<String> dedupePreserveEmptySlots(List<String> input) {
-      final seen = <String>{};
-      var emptyCount = 0;
-      for (final raw in input) {
-        final t = raw.toString().trim();
-        if (t.isEmpty) {
-          emptyCount++;
-          continue;
-        }
-        if (!seen.contains(t)) {
-          seen.add(t);
-        }
-      }
-      // leere Slots ans Ende setzen
-      return [...seen, ...List.filled(emptyCount, '')];
-    }
-
-    final todayRef = entryRef(uid, date);
-    final tomorrowRef = entryRef(uid, date.add(const Duration(days: 1)));
-    final field = isGoal ? 'goals' : 'todos';
-    await FirebaseFirestore.instance.runTransaction((tx) async {
-      final todaySnap = await tx.get(todayRef);
-      final todayData = todaySnap.data() ?? <String, dynamic>{};
-      final planningToday =
-          (todayData['planning'] as Map<String, dynamic>?) ?? {};
-      var listToday = List<String>.from(
-        planningToday[field] ?? const <String>[],
-      );
-      // Safety: vorhandene Duplikate/Leerfelder normalisieren
-      listToday = dedupePreserveEmptySlots(listToday);
-      if (index < 0 || index >= listToday.length) return;
-      final item = (listToday.removeAt(index)).toString().trim();
-      if (item.isEmpty) return;
-
-      final tomorrowSnap = await tx.get(tomorrowRef);
-      final tData = tomorrowSnap.data() ?? <String, dynamic>{};
-      final planningTomorrow =
-          (tData['planning'] as Map<String, dynamic>?) ?? {};
-      var listTomorrow = List<String>.from(
-        planningTomorrow[field] ?? const <String>[],
-      );
-      // Safety: Duplikate/Leerfelder normalisieren
-      listTomorrow = dedupePreserveEmptySlots(listTomorrow);
-      final alreadyThere = listTomorrow.any((e) => e.toString().trim() == item);
-      if (!alreadyThere) {
-        // Finde ersten leeren Slot
-        final emptyIdx = listTomorrow.indexWhere(
-          (e) => (e.toString().trim()).isEmpty,
-        );
-        if (emptyIdx != -1) {
-          listTomorrow[emptyIdx] = item;
-        } else {
-          listTomorrow.add(item);
-        }
-      }
-
-      tx.set(todayRef, {
-        'planning': {field: listToday},
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-
-      tx.set(tomorrowRef, {
-        'planning': {field: listTomorrow},
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-    });
+    return _planningService.movePlanningItemToNextDay(
+      uid,
+      date,
+      isGoal: isGoal,
+      index: index,
+    );
   }
 
   /// Verschiebt ein spezifisches Planungselement (per Textvergleich, trim)
@@ -467,66 +192,13 @@ class FirestoreService {
     required bool isGoal,
     required String itemText,
   }) async {
-    List<String> dedupePreserveEmptySlots(List<String> input) {
-      final seen = <String>{};
-      var emptyCount = 0;
-      for (final raw in input) {
-        final t = raw.toString().trim();
-        if (t.isEmpty) {
-          emptyCount++;
-          continue;
-        }
-        if (!seen.contains(t)) {
-          seen.add(t);
-        }
-      }
-      return [...seen, ...List.filled(emptyCount, '')];
-    }
-
-    final fromRef = entryRef(uid, from);
-    final toRef = entryRef(uid, to);
-    final field = isGoal ? 'goals' : 'todos';
-    final needle = itemText.trim();
-    if (needle.isEmpty) return;
-
-    await FirebaseFirestore.instance.runTransaction((tx) async {
-      final fromSnap = await tx.get(fromRef);
-      final fromData = fromSnap.data() ?? <String, dynamic>{};
-      final planningFrom =
-          (fromData['planning'] as Map<String, dynamic>?) ?? {};
-      var listFrom = List<String>.from(planningFrom[field] ?? const <String>[]);
-      listFrom = dedupePreserveEmptySlots(listFrom);
-
-      // entferne erste Übereinstimmung
-      final idx = listFrom.indexWhere((e) => e.toString().trim() == needle);
-      if (idx == -1) return; // nichts zu tun
-      listFrom.removeAt(idx);
-
-      final toSnap = await tx.get(toRef);
-      final toData = toSnap.data() ?? <String, dynamic>{};
-      final planningTo = (toData['planning'] as Map<String, dynamic>?) ?? {};
-      var listTo = List<String>.from(planningTo[field] ?? const <String>[]);
-      listTo = dedupePreserveEmptySlots(listTo);
-
-      final alreadyThere = listTo.any((e) => e.toString().trim() == needle);
-      if (!alreadyThere) {
-        final emptyIdx = listTo.indexWhere((e) => e.toString().trim().isEmpty);
-        if (emptyIdx != -1) {
-          listTo[emptyIdx] = needle;
-        } else {
-          listTo.add(needle);
-        }
-      }
-
-      tx.set(fromRef, {
-        'planning': {field: listFrom},
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-      tx.set(toRef, {
-        'planning': {field: listTo},
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-    });
+    return _planningService.moveSpecificPlanningItem(
+      uid: uid,
+      from: from,
+      to: to,
+      isGoal: isGoal,
+      itemText: itemText,
+    );
   }
 
   /// Einmalige Datenbereinigung: entfernt Duplikate (trim-basierend)
@@ -534,81 +206,8 @@ class FirestoreService {
   /// eines Nutzers. Leere Slots bleiben erhalten, werden aber ans
   /// Ende verschoben.
   Future<int> dedupeAllPlanningForUser(String uid) async {
-    int updatedDocs = 0;
-    List<String> dedupePreserveEmptySlots(List<String> input) {
-      final seen = <String>{};
-      var emptyCount = 0;
-      for (final raw in input) {
-        final t = raw.toString().trim();
-        if (t.isEmpty) {
-          emptyCount++;
-          continue;
-        }
-        if (!seen.contains(t)) {
-          seen.add(t);
-        }
-      }
-      return [...seen, ...List.filled(emptyCount, '')];
-    }
-
-    final entries = await _users.doc(uid).collection('entries').get();
-    for (final doc in entries.docs) {
-      final data = doc.data();
-      final planning = (data['planning'] as Map<String, dynamic>?) ?? {};
-      final goals = List<String>.from(planning['goals'] ?? const <String>[]);
-      final todos = List<String>.from(planning['todos'] ?? const <String>[]);
-      final newGoals = dedupePreserveEmptySlots(goals);
-      final newTodos = dedupePreserveEmptySlots(todos);
-      final changed =
-          newGoals.length != goals.length ||
-          newTodos.length != todos.length ||
-          !_listsEqual(newGoals, goals) ||
-          !_listsEqual(newTodos, todos);
-      if (changed) {
-        await doc.reference.set({
-          'planning': {'goals': newGoals, 'todos': newTodos},
-          'updatedAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-        updatedDocs++;
-      }
-    }
-    return updatedDocs;
+    return _planningService.dedupeAllPlanningForUser(uid);
   }
 
-  bool _listsEqual(List<String> a, List<String> b) {
-    if (identical(a, b)) return true;
-    if (a.length != b.length) return false;
-    for (var i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) return false;
-    }
-    return true;
-  }
-
-  /// Hilfsmethode: Update mit Fallback auf set(merge:true) bei nicht-existierenden Dokumenten.
-  /// Generische Error-Handling für dot-notation Felder.
-  Future<void> _updateFieldWithFallback({
-    required String uid,
-    required DateTime date,
-    required String field,
-    required dynamic value,
-    required String context,
-  }) async {
-    final ref = entryRef(uid, date);
-    try {
-      await ref.update({
-        field: value,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-    } on FirebaseException catch (e) {
-      if (e.code == 'not-found') {
-        // Dokument existiert noch nicht: erstelle mit Struktur
-        final nested = _mapFromPath(field, value);
-        nested['updatedAt'] = FieldValue.serverTimestamp();
-        await ref.set(nested, SetOptions(merge: true));
-      } else {
-        debugPrint('Firestore error (updateField $context): $e');
-        rethrow;
-      }
-    }
-  }
+  // (erledigt) planning-spezifische Hilfsfunktionen wurden ausgelagert
 }
