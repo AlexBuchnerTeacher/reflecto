@@ -2,6 +2,39 @@
 
 Alle nennenswerten Änderungen an Reflecto.
 
+## v1.3.1 (2025-11-16)
+
+### Datenmodell & Performance (#52)
+- **Typisierte Firestore-Zugriffe**: Entries, Users und WeeklyReflections nutzen `.withConverter<T>` für type-safe Streams/Fetches
+- **Timestamps**: `createdAt` bei Tages-Erstanlage; `updatedAt` konsequent via `serverTimestamp()`
+- **Atomare Transaktionen**: Streak-Update (Abendabschluss + Zähler) in einer Transaction — eliminiert Race Conditions
+- **Batch-Writes**: Maintenance-Dedupe nutzt Batches (max 450 Ops/Commit) statt Einzel-Writes — deutlich performanter
+- **WeeklyReflection-Model**: Neue typisierte Klasse mit Unit-Test; saubere Trennung von Lese-/Schreiblogik
+- **Doku**: `DATA_MODEL.md` aktualisiert mit allen Schema-Änderungen
+
+### UI & Design-Konsistenz (#53)
+- **Spacing-Tokens**: Flächendeckende Nutzung von `ReflectoSpacing` (s4/s8/s12/s16/s24) statt Magic Numbers
+- **Theme-TextStyles**: Titel/Labels über `Theme.of(context).textTheme.*` statt Inline-Styles
+- **Aktualisierte Komponenten**:
+  - Screens: `AuthScreen`, `SettingsScreen`, `WeekScreen`, `HomeScreen`
+  - Settings-Widgets: `VersionInfo`, `ProfileSection`
+  - Week-Widgets: `WeekStatsCard`, `WeekNavigationBar`, `WeekExportCard`, `WeekAiAnalysisCard`
+  - Day-Widgets: `EmojiBar`, `LabeledField`, `DayStreakWidget`, `DayShell`, `EveningSection`
+- **STYLEGUIDE**: Präzisiert mit Hinweisen zu Tokens/Theme-Nutzung
+
+### Riverpod-Optimierung (#51)
+- Provider mit dynamischen Parametern (`.family`) nutzen jetzt `autoDispose`
+- Automatische Bereinigung von `weekEntriesProvider`, `weeklyReflectionProvider`, `dayEntryProvider`, `dayDocProvider`
+- Reduzierter Speicherverbrauch bei Navigation zwischen Tagen/Wochen
+
+### Dependencies
+- `package_info_plus`: 8.3.1 → 9.0.0
+
+### Validierung
+- `flutter analyze`: Keine Befunde
+- Unit-Tests: Erweitert (WeeklyReflection-Model)
+- Rückwärtskompatibel: Schema/Felder unverändert; reine App-seitige Typisierung
+
 ## v1.3.0
 
 - Move: Transaktionsbasierte Logik mit Dedupe (keine Duplikate; leere Slots werden bevorzugt befüllt), Undo in der UI.

@@ -23,6 +23,12 @@ linter:
   rules:
     # avoid_print: false  # Uncomment to disable the `avoid_print` rule
     # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+    
+    # UI-Konsistenz: Spacing über ReflectoSpacing-Tokens statt Magic Numbers
+    # Hinweis: no_magic_number ist nicht Standard; manuell prüfen bei Code-Reviews
+    # Bevorzuge: ReflectoSpacing.s8 statt SizedBox(height: 8)
+    avoid_types_on_closure_parameters: true
+    use_super_parameters: true
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
