@@ -19,62 +19,9 @@ class HabitScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final habitsAsync = ref.watch(habitsProvider);
     final theme = Theme.of(context);
-    final uid = ref.watch(userIdProvider);
     final showOnlyDue = ref.watch(_showOnlyDueHabitsProvider);
 
-    final syncStatus = ref.watch(habitsSyncStatusProvider);
-    final isSynced = syncStatus.value ?? true;
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Meine Gewohnheiten'),
-        actions: [
-          // Sync-Status wie im HomeScreen
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: isSynced
-                    ? theme.colorScheme.secondaryContainer
-                    : theme.colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color:
-                      (isSynced
-                              ? theme.colorScheme.secondary
-                              : theme.colorScheme.primary)
-                          .withValues(alpha: 0.35),
-                  width: 1.2,
-                ),
-              ),
-              child: Text(
-                isSynced ? '\u2713 Gespeichert' : 'Synchronisiere...',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: isSynced
-                      ? theme.colorScheme.onSecondaryContainer
-                      : theme.colorScheme.onPrimaryContainer,
-                ),
-              ),
-            ),
-          ),
-          if (_isAdmin(uid))
-            IconButton(
-              tooltip: 'Vorlagen einspielen (Debug)',
-              icon: const Icon(Icons.cloud_upload_outlined),
-              onPressed: () async {
-                final templates = buildCuratedHabitTemplates();
-                final svc = HabitTemplateService();
-                await svc.seedTemplates(templates);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Vorlagen eingespielt')),
-                  );
-                }
-              },
-            ),
-        ],
-      ),
       body: habitsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
