@@ -3,6 +3,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:intl/intl.dart';
 
 import '../../../utils/build_info.dart';
+import '../../../theme/tokens.dart';
 
 /// Versions- und Build-Informationen
 class VersionInfo extends StatefulWidget {
@@ -55,12 +56,24 @@ class _VersionInfoState extends State<VersionInfo> {
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [const Text('Version'), Text(_version ?? '…')],
+          children: [
+            Text('Version', style: Theme.of(context).textTheme.bodySmall),
+            Text(
+              _version ?? '…',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: ReflectoSpacing.s8),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [const Text('Build'), Text(_buildInfo ?? '')],
+          children: [
+            Text('Build', style: Theme.of(context).textTheme.bodySmall),
+            Text(
+              _buildInfo ?? '',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
         ),
       ],
     );

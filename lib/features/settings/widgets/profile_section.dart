@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../../services/firestore_service.dart';
 import '../../../models/user_model.dart';
 import '../../../widgets/reflecto_button.dart';
+import '../../../theme/tokens.dart';
 
 /// Profil-Bereich: Anzeigename bearbeiten und speichern
 class ProfileSection extends StatefulWidget {
@@ -79,10 +80,10 @@ class _ProfileSectionState extends State<ProfileSection> {
             ),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: ReflectoSpacing.s8),
         if (_email != null && _email!.isNotEmpty)
-          Text('E-Mail: $_email', style: const TextStyle(color: Colors.grey)),
-        const SizedBox(height: 8),
+          Text('E-Mail: $_email', style: Theme.of(context).textTheme.bodySmall),
+        const SizedBox(height: ReflectoSpacing.s8),
         Align(
           alignment: Alignment.centerLeft,
           child: ReflectoButton(

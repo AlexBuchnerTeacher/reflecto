@@ -10,6 +10,7 @@ import '../features/week/widgets/week_navigation_bar.dart';
 import '../features/week/widgets/week_stats_card.dart';
 import '../features/week/widgets/week_export_card.dart';
 import '../features/week/widgets/week_ai_analysis_card.dart';
+import '../theme/tokens.dart';
 
 /// Wochenübersicht: Statistiken, Export, KI-Auswertung
 class WeekScreen extends ConsumerStatefulWidget {
@@ -52,7 +53,7 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 820),
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(ReflectoSpacing.s16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -90,7 +91,7 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
                       }
                     },
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: ReflectoSpacing.s8),
                   Expanded(
                     child: entriesAsync.when(
                       loading: () =>

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart' show DateTimeRange;
 
 import '../models/journal_entry.dart';
 import '../models/user_model.dart';
+import '../models/weekly_reflection.dart';
 
 /// Zentrale Firestore-Serviceklasse (Singleton) für Journal-Operationen
 class FirestoreService {
@@ -15,8 +16,48 @@ class FirestoreService {
       .instance
       .collection('users');
 
+  /// Getypter User-Dokument-Ref.
+  DocumentReference<AppUser> _userDocTyped(String uid) {
+    return _users
+        .doc(uid)
+        .withConverter<AppUser>(
+          fromFirestore: (snap, _) => AppUser.fromMap(snap.data() ?? {}),
+          toFirestore: (user, _) => user.toMap(),
+        );
+  }
+
   DocumentReference<Map<String, dynamic>> entryRef(String uid, DateTime date) {
     return _users.doc(uid).collection('entries').doc(_formatDate(date));
+  }
+
+  /// Getypte Entries-Collection mit Konvertern für `JournalEntry`.
+  CollectionReference<JournalEntry> _typedEntries(String uid) {
+    return _users
+        .doc(uid)
+        .collection('entries')
+        .withConverter<JournalEntry>(
+          fromFirestore: (snap, _) {
+            final data = snap.data();
+            if (data == null) return JournalEntry.empty(snap.id);
+            return JournalEntry.fromMap(snap.id, data);
+          },
+          toFirestore: (entry, _) => entry.toMap(),
+        );
+  }
+
+  /// Getypte Weekly-Reflections-Collection.
+  CollectionReference<WeeklyReflection> _weeklyReflections(String uid) {
+    return _users
+        .doc(uid)
+        .collection('weekly_reflections')
+        .withConverter<WeeklyReflection>(
+          fromFirestore: (snap, _) {
+            final data = snap.data();
+            if (data == null) return WeeklyReflection.fromMap(snap.id, {});
+            return WeeklyReflection.fromMap(snap.id, data);
+          },
+          toFirestore: (wr, _) => wr.toMap(),
+        );
   }
 
   static String _two(int n) => n.toString().padLeft(2, '0');
@@ -48,6 +89,7 @@ class FirestoreService {
           'ratingFocus': null,
           'ratingEnergy': null,
           'ratingHappiness': null,
+          'createdAt': FieldValue.serverTimestamp(),
           'updatedAt': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
       }
@@ -63,13 +105,8 @@ class FirestoreService {
 
   /// Echtzeit-Stream eines Tagebucheintrags (kann null liefern, wenn nicht vorhanden).
   Stream<JournalEntry?> getDailyEntry(String uid, DateTime date) {
-    final ref = entryRef(uid, date);
-    return ref.snapshots().map((snap) {
-      if (!snap.exists) return null;
-      final data = snap.data();
-      if (data == null) return null;
-      return JournalEntry.fromMap(snap.id, data);
-    });
+    final typed = _typedEntries(uid).doc(_formatDate(date));
+    return typed.snapshots().map((snap) => snap.data());
   }
 
   /// Partielles Update eines Feldes per Pfad (dot-path), setzt updatedAt.
@@ -187,42 +224,56 @@ class FirestoreService {
     DateTime date,
   ) async {
     try {
-      // Abend als completed markieren
-      await updateField(uid, date, 'evening.completed', true);
-
       final todayId = _formatDate(date);
       final yesterday = date.subtract(const Duration(days: 1));
       final yId = _formatDate(yesterday);
-
-      final ySnap = await entryRef(uid, yesterday).get();
-      final yCompleted = (ySnap.data()?['evening']?['completed'] == true);
-
+      final todayRef = entryRef(uid, date);
+      final yRef = entryRef(uid, yesterday);
       final streakRef = _users.doc(uid).collection('stats').doc('streak');
-      final snap = await streakRef.get();
-      final data = snap.data() ?? <String, dynamic>{};
-      final lastDate = data['lastEntryDate'] as String?;
-      final current = (data['streakCount'] is num)
-          ? (data['streakCount'] as num).toInt()
-          : 0;
-      final longest = (data['longestStreak'] is num)
-          ? (data['longestStreak'] as num).toInt()
-          : 0;
 
-      if (lastDate == todayId) {
-        return; // heute bereits gezählt
-      }
+      await FirebaseFirestore.instance.runTransaction((tx) async {
+        // 1) Streak lesen (oder Defaults)
+        final streakSnap = await tx.get(streakRef);
+        final sData = streakSnap.data() ?? <String, dynamic>{};
+        final lastDate = sData['lastEntryDate'] as String?;
+        final current = (sData['streakCount'] is num)
+            ? (sData['streakCount'] as num).toInt()
+            : 0;
+        final longest = (sData['longestStreak'] is num)
+            ? (sData['longestStreak'] as num).toInt()
+            : 0;
 
-      // Kette fortsetzen, wenn gestern abgeschlossen war und entweder
-      // lastDate genau gestern war (normaler Fluss) ODER lastDate noch fehlt (Neustart mit vorhandenem gestrigem Abschluss)
-      final shouldChain = yCompleted && (lastDate == yId || lastDate == null);
-      final next = shouldChain ? (current + 1) : 1;
-      final nextLongest = next > longest ? next : longest;
-      await streakRef.set({
-        'streakCount': next,
-        'longestStreak': nextLongest,
-        'lastEntryDate': todayId,
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+        // 2) Heutigen Abend als completed setzen (immer)
+        tx.set(todayRef, {
+          'evening': {'completed': true},
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+
+        // Wenn heute bereits gezählt wurde: nur completed setzen und fertig
+        if (lastDate == todayId) {
+          return;
+        }
+
+        // 3) Prüfe gestriges Completed, nur wenn nötig
+        bool yCompleted = false;
+        try {
+          final ySnap = await tx.get(yRef);
+          yCompleted = (ySnap.data()?['evening']?['completed'] == true);
+        } catch (_) {
+          yCompleted = false;
+        }
+
+        // 4) Nächsten Wert bestimmen und schreiben
+        final shouldChain = yCompleted && (lastDate == yId || lastDate == null);
+        final next = shouldChain ? (current + 1) : 1;
+        final nextLongest = next > longest ? next : longest;
+        tx.set(streakRef, {
+          'streakCount': next,
+          'longestStreak': nextLongest,
+          'lastEntryDate': todayId,
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      });
     } on FirebaseException catch (e) {
       debugPrint('Firestore error (markEveningCompletedAndUpdateStreak): $e');
       rethrow;
@@ -278,15 +329,13 @@ class FirestoreService {
       final range = weekRangeFrom(anyDayInWeek);
       final startId = _formatDate(range.start);
       final endId = _formatDate(range.start.add(const Duration(days: 6)));
-      final col = _users.doc(uid).collection('entries');
+      final col = _typedEntries(uid);
       final snap = await col
           .orderBy(FieldPath.documentId)
           .startAt([startId])
           .endAt([endId])
           .get();
-      return snap.docs
-          .map((d) => JournalEntry.fromMap(d.id, d.data()))
-          .toList();
+      return snap.docs.map((d) => d.data()).toList();
     } on FirebaseException catch (e) {
       debugPrint('Firestore error (fetchWeekEntries): $e');
       rethrow;
@@ -310,45 +359,68 @@ class FirestoreService {
     }
   }
 
-  Stream<Map<String, dynamic>?> weeklyReflectionStream(
+  /// Typisierte Speicherung einer wöchentlichen Reflexion.
+  /// Setzt `updatedAt` serverseitig, andere Felder werden per Merge geschrieben.
+  Future<void> saveWeeklyReflectionModel(
     String uid,
-    String weekId,
-  ) {
-    final ref = _users.doc(uid).collection('weekly_reflections').doc(weekId);
+    WeeklyReflection wr,
+  ) async {
+    try {
+      final ref = _users.doc(uid).collection('weekly_reflections').doc(wr.id);
+      await ref.set({
+        ...wr.toMap(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } on FirebaseException catch (e) {
+      debugPrint('Firestore error (saveWeeklyReflectionModel): $e');
+      rethrow;
+    }
+  }
+
+  Stream<WeeklyReflection?> weeklyReflectionStream(String uid, String weekId) {
+    final ref = _weeklyReflections(uid).doc(weekId);
     return ref.snapshots().map((s) => s.data());
   }
 
   Future<void> saveUserData(AppUser user) async {
     try {
-      final ref = _users.doc(user.uid);
+      final ref = _userDocTyped(user.uid);
       final snap = await ref.get();
       if (!snap.exists) {
         // Create: write only known non-null fields + server timestamps.
-        final create = <String, dynamic>{
-          'uid': user.uid,
-          if (user.displayName != null) 'displayName': user.displayName,
-          if (user.email != null) 'email': user.email,
-          if (user.photoUrl != null) 'photoUrl': user.photoUrl,
+        await ref.set(
+          AppUser(
+            uid: user.uid,
+            displayName: user.displayName,
+            email: user.email,
+            photoUrl: user.photoUrl,
+            // createdAt wird serverseitig gesetzt (separates Feld)
+          ),
+          SetOptions(merge: true),
+        );
+        await _users.doc(user.uid).set({
           'createdAt': FieldValue.serverTimestamp(),
           'lastLoginAt': FieldValue.serverTimestamp(),
-        };
-        await ref.set(create, SetOptions(merge: true));
+        }, SetOptions(merge: true));
       } else {
         // Update: avoid overwriting createdAt; write only provided non-null fields.
-        final update = <String, dynamic>{
-          if (user.displayName != null) 'displayName': user.displayName,
-          if (user.email != null) 'email': user.email,
-          if (user.photoUrl != null) 'photoUrl': user.photoUrl,
-          'lastLoginAt': FieldValue.serverTimestamp(),
-        };
-        if (update.isNotEmpty) {
-          await ref.set(update, SetOptions(merge: true));
-        } else {
-          // Still refresh lastLoginAt if nothing else changes
-          await ref.set({
-            'lastLoginAt': FieldValue.serverTimestamp(),
-          }, SetOptions(merge: true));
+        if (user.displayName != null ||
+            user.email != null ||
+            user.photoUrl != null) {
+          await ref.set(
+            AppUser(
+              uid: user.uid,
+              displayName: user.displayName,
+              email: user.email,
+              photoUrl: user.photoUrl,
+            ),
+            SetOptions(merge: true),
+          );
         }
+        // Always bump lastLoginAt
+        await _users.doc(user.uid).set({
+          'lastLoginAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
       }
     } on FirebaseException catch (e) {
       debugPrint('Firestore error (saveUserData): $e');
@@ -358,11 +430,9 @@ class FirestoreService {
 
   Future<AppUser?> getUser(String uid) async {
     try {
-      final snap = await _users.doc(uid).get();
+      final snap = await _userDocTyped(uid).get();
       if (!snap.exists) return null;
-      final data = snap.data();
-      if (data == null) return null;
-      return AppUser.fromMap(data);
+      return snap.data();
     } on FirebaseException catch (e) {
       debugPrint('Firestore error (getUser): $e');
       rethrow;
@@ -540,6 +610,8 @@ class FirestoreService {
   /// Ende verschoben.
   Future<int> dedupeAllPlanningForUser(String uid) async {
     int updatedDocs = 0;
+    var batch = FirebaseFirestore.instance.batch();
+    var ops = 0;
     List<String> dedupePreserveEmptySlots(List<String> input) {
       final seen = <String>{};
       var emptyCount = 0;
@@ -570,12 +642,21 @@ class FirestoreService {
           !_listsEqual(newGoals, goals) ||
           !_listsEqual(newTodos, todos);
       if (changed) {
-        await doc.reference.set({
+        batch.set(doc.reference, {
           'planning': {'goals': newGoals, 'todos': newTodos},
           'updatedAt': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
+        ops++;
+        if (ops >= 450) {
+          await batch.commit();
+          batch = FirebaseFirestore.instance.batch();
+          ops = 0;
+        }
         updatedDocs++;
       }
+    }
+    if (ops > 0) {
+      await batch.commit();
     }
     return updatedDocs;
   }

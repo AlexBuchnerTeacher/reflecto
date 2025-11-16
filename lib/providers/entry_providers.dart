@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/journal_entry.dart';
+import '../models/weekly_reflection.dart';
 import 'pending_providers.dart';
 import '../services/firestore_service.dart';
 
@@ -38,13 +39,11 @@ final todayDocProvider = StreamProvider<DocumentSnapshot<Map<String, dynamic>>>(
 
 // Weekly reflection stream provider
 final weeklyReflectionProvider = StreamProvider.autoDispose
-    .family<Map<String, dynamic>?, String>((ref, weekId) {
+    .family<WeeklyReflection?, String>((ref, weekId) {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return const Stream.empty();
-      final refDoc = FirebaseFirestore.instance.doc(
-        'users/${user.uid}/weekly_reflections/$weekId',
-      );
-      return refDoc.snapshots().map((s) => s.data());
+      final svc = ref.read(_svcProvider);
+      return svc.weeklyReflectionStream(user.uid, weekId);
     });
 
 // Family providers by date for day views
