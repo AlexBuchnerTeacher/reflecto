@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-/// Snapshot of rating values for a given day.
+/// Snapshot der Bewertungswerte für einen gegebenen Tag.
 @immutable
 class DayRatingsSnapshot {
   final int? morningMood;
@@ -22,7 +22,7 @@ class DayRatingsSnapshot {
   });
 }
 
-/// Snapshot of yesterday's planning and completion state for the selected day.
+/// Snapshot der gestrigen Planung und des Erledigungszustands für den ausgewählten Tag.
 @immutable
 class YesterdayPlanningSnapshot {
   final List<String> goals;
