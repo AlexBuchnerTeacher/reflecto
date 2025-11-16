@@ -472,7 +472,6 @@ class _DayScreenState extends ConsumerState<DayScreen> {
         // final isToday = DateUtils.isSameDay(_selected, DateTime.now());
 
         // Aggregierter Pending-/Cache-Status wird aktuell nicht verwendet
-        // Aggregierter Pending-/Cache-Status wird aktuell nicht verwendet
 
         // Callback-Helfer bündeln (Auslagerung der Handler aus dem Widget-State)
         final callbacks = DayCallbacks.build(
