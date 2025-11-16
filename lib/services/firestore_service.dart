@@ -129,31 +129,38 @@ class FirestoreService {
     }
   }
 
+  /// Aktualisiert den Abhak-Status eines Eintrags (To-do oder Ziel) in der Abendreflexion.
+  /// Unterstützt beide: `evening.todosCompletion.$index` und `evening.goalsCompletion.$index`
+  Future<void> _updateCompletionStatus(
+    String uid,
+    DateTime date,
+    String fieldPath,
+    int index,
+    bool value,
+  ) async {
+    final field = '$fieldPath.$index';
+    await _updateFieldWithFallback(
+      uid: uid,
+      date: date,
+      field: field,
+      value: value,
+      context: '$fieldPath[$index]',
+    );
+  }
+
   /// Aktualisiert den Abhak-Status eines To-do-Eintrags in der Abendreflexion.
   Future<void> updateTodoCompletion(
     String uid,
     DateTime date,
     int index,
     bool value,
-  ) async {
-    final ref = entryRef(uid, date);
-    final field = 'evening.todosCompletion.$index';
-    try {
-      await ref.update({
-        field: value,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-    } on FirebaseException catch (e) {
-      if (e.code == 'not-found') {
-        final nested = _mapFromPath(field, value);
-        nested['updatedAt'] = FieldValue.serverTimestamp();
-        await ref.set(nested, SetOptions(merge: true));
-      } else {
-        debugPrint('Firestore error (updateTodoCompletion): $e');
-        rethrow;
-      }
-    }
-  }
+  ) => _updateCompletionStatus(
+    uid,
+    date,
+    'evening.todosCompletion',
+    index,
+    value,
+  );
 
   /// Aktualisiert den Abhak-Status eines Ziel-Eintrags (Goals) in der Abendreflexion.
   Future<void> updateGoalCompletion(
@@ -161,25 +168,13 @@ class FirestoreService {
     DateTime date,
     int index,
     bool value,
-  ) async {
-    final ref = entryRef(uid, date);
-    final field = 'evening.goalsCompletion.$index';
-    try {
-      await ref.update({
-        field: value,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-    } on FirebaseException catch (e) {
-      if (e.code == 'not-found') {
-        final nested = _mapFromPath(field, value);
-        nested['updatedAt'] = FieldValue.serverTimestamp();
-        await ref.set(nested, SetOptions(merge: true));
-      } else {
-        debugPrint('Firestore error (updateGoalCompletion): $e');
-        rethrow;
-      }
-    }
-  }
+  ) => _updateCompletionStatus(
+    uid,
+    date,
+    'evening.goalsCompletion',
+    index,
+    value,
+  );
 
   /// Markiert die Abendreflexion als abgeschlossen und aktualisiert den Streak.
   Future<void> markEveningCompletedAndUpdateStreak(
@@ -587,5 +582,33 @@ class FirestoreService {
       if (a[i] != b[i]) return false;
     }
     return true;
+  }
+
+  /// Hilfsmethode: Update mit Fallback auf set(merge:true) bei nicht-existierenden Dokumenten.
+  /// Generische Error-Handling für dot-notation Felder.
+  Future<void> _updateFieldWithFallback({
+    required String uid,
+    required DateTime date,
+    required String field,
+    required dynamic value,
+    required String context,
+  }) async {
+    final ref = entryRef(uid, date);
+    try {
+      await ref.update({
+        field: value,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } on FirebaseException catch (e) {
+      if (e.code == 'not-found') {
+        // Dokument existiert noch nicht: erstelle mit Struktur
+        final nested = _mapFromPath(field, value);
+        nested['updatedAt'] = FieldValue.serverTimestamp();
+        await ref.set(nested, SetOptions(merge: true));
+      } else {
+        debugPrint('Firestore error (updateField $context): $e');
+        rethrow;
+      }
+    }
   }
 }
