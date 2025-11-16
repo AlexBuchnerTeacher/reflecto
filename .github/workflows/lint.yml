@@ -1,0 +1,39 @@
+name: Lint & Format
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main ]
+
+jobs:
+  lint:
+    name: Flutter Analyze & Format
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze project
+        run: flutter analyze --fatal-infos
+
+      - name: Check for any linting issues
+        run: |
+          if [ $(flutter analyze 2>&1 | grep -c "info •") -gt 0 ]; then
+            echo "Linting issues found"
+            exit 1
+          fi
