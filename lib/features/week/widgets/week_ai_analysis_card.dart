@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 import '../../../widgets/reflecto_card.dart';
 import '../../../widgets/reflecto_button.dart';
@@ -37,42 +38,60 @@ class _WeekAiAnalysisCardState extends State<WeekAiAnalysisCard> {
 
   @override
   Widget build(BuildContext context) {
-    final motto = widget.weeklyData?.motto;
-    final summary = widget.weeklyData?.summaryText;
     final ai = widget.weeklyData?.aiAnalysis;
+    final aiText = widget.weeklyData?.aiAnalysisText;
+
+    // Versuche Text aus aiAnalysis Map oder aiAnalysisText zu extrahieren
+    String? analysisText;
+    if (aiText != null && aiText.isNotEmpty) {
+      analysisText = aiText;
+    } else if (ai != null && ai['text'] != null) {
+      analysisText = ai['text'].toString();
+    }
 
     return ReflectoCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'KI-Auswertung / Notizen',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          if (motto != null && motto.isNotEmpty) ...[
-            const SizedBox(height: ReflectoSpacing.s8),
-            Text(
-              'Motto: $motto',
-              style: const TextStyle(fontWeight: FontWeight.w600),
+          Text('KI-Auswertung', style: Theme.of(context).textTheme.titleMedium),
+
+          // Gespeicherte Analyse anzeigen
+          if (analysisText != null && analysisText.isNotEmpty) ...[
+            const SizedBox(height: ReflectoSpacing.s16),
+            Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.all(ReflectoSpacing.s16),
+              child: MarkdownBody(
+                data: analysisText,
+                styleSheet: MarkdownStyleSheet(
+                  h2: Theme.of(context).textTheme.titleLarge,
+                  h3: Theme.of(context).textTheme.titleMedium,
+                  p: Theme.of(context).textTheme.bodyMedium,
+                  listBullet: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
             ),
+            const SizedBox(height: ReflectoSpacing.s16),
+            const Divider(),
           ],
-          if (summary != null && summary.isNotEmpty) ...[
-            const SizedBox(height: ReflectoSpacing.s8),
-            Text(summary),
-          ],
-          if (ai != null) ...[
-            const SizedBox(height: ReflectoSpacing.s8),
-            Text(
-              'AI-Daten vorhanden',
-              style: TextStyle(color: Theme.of(context).colorScheme.secondary),
-            ),
-          ],
+
           const SizedBox(height: ReflectoSpacing.s12),
+          Text(
+            analysisText != null
+                ? 'Analyse aktualisieren:'
+                : 'Neue Analyse einfügen:',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: ReflectoSpacing.s8),
           TextField(
             controller: _aiCtrl,
-            maxLines: null,
+            maxLines: 5,
+            minLines: 3,
             decoration: const InputDecoration(
-              hintText: 'KI-Auswertung hier einfügen (Text oder JSON)…',
+              hintText: 'ChatGPT-Analyse hier einfügen…',
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(12)),
               ),

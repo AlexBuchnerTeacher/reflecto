@@ -21,9 +21,9 @@ class ExportImportService {
       );
       items.add({
         'date': id,
-        'planning': e.planning,
-        'morning': e.morning,
-        'evening': e.evening,
+        'planning': e.planning.toMap(),
+        'morning': e.morning.toMap(),
+        'evening': e.evening.toMap(),
         'ratings': {
           'focus': e.ratingFocus,
           'energy': e.ratingEnergy,
@@ -49,15 +49,35 @@ class ExportImportService {
 
   String buildMarkdownFromJson(Map<String, dynamic> jsonData) {
     final pretty = const JsonEncoder.withIndent('  ').convert(jsonData);
-    return '### KI-Analyse-Prompt (Reflecto)\n'
-        'Analysiere das folgende Wochenjournal und erstelle:\n'
-        '1) Die 3 größten Learnings\n'
-        '2) Wiederkehrende Themen (positiv/negativ)\n'
-        '3) Emotionale Gesamtstimmung (Skala 1–10) mit Begründung\n'
-        '4) 3 klare Handlungsempfehlungen für die kommende Woche\n'
-        '5) Ein prägnantes Wochenmotto (max. 8 Wörter)\n\n'
-        '#### Daten (JSON):\n'
-        '```json\n$pretty\n```\n';
+    return 'Analysiere das folgende Wochenjournal detailliert und erstelle eine strukturierte Auswertung.\\n\\n'
+        '**WICHTIG:** Gib deine komplette Antwort in einem Markdown-Code-Block zurück (```markdown ... ```), damit ich sie einfach kopieren kann.\\n\\n'
+        '**Erwartetes Format:**\\n\\n'
+        '```markdown\\n'
+        '## Wochenrückblick\\n\\n'
+        '### 🎯 Die 3 größten Learnings\\n'
+        '1. [Learning mit Begründung]\\n'
+        '2. [Learning mit Begründung]\\n'
+        '3. [Learning mit Begründung]\\n\\n'
+        '### 🔄 Wiederkehrende Muster\\n'
+        '**Positiv:**\\n'
+        '- [Muster 1]\\n'
+        '- [Muster 2]\\n\\n'
+        '**Verbesserungspotenzial:**\\n'
+        '- [Muster 1]\\n'
+        '- [Muster 2]\\n\\n'
+        '### 💭 Emotionale Gesamtstimmung\\n'
+        '**Bewertung:** [X]/10\\n'
+        '**Begründung:** [Ausführliche Erklärung basierend auf Fokus, Energie, Zufriedenheit]\\n\\n'
+        '### ✨ Handlungsempfehlungen für nächste Woche\\n'
+        '1. [Konkrete Handlung mit Begründung]\\n'
+        '2. [Konkrete Handlung mit Begründung]\\n'
+        '3. [Konkrete Handlung mit Begründung]\\n\\n'
+        '### 🎪 Wochenmotto\\n'
+        '**"[Prägnantes Motto, max. 8 Wörter]"**\\n'
+        '```\\n\\n'
+        '---\\n\\n'
+        '#### Journaldaten (JSON):\\n'
+        '```json\\n$pretty\\n```\\n';
   }
 
   Map<String, dynamic>? tryParseAiAnalysis(String input) {

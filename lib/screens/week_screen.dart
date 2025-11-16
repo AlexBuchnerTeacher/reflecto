@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../models/journal_entry.dart';
 import '../services/firestore_service.dart';
 import '../services/export_import_service.dart';
 import '../providers/entry_providers.dart';
@@ -10,7 +11,7 @@ import '../features/week/widgets/week_navigation_bar.dart';
 import '../features/week/widgets/week_stats_card.dart';
 import '../features/week/widgets/week_export_card.dart';
 import '../features/week/widgets/week_ai_analysis_card.dart';
-import '../features/day/widgets/day_week_carousel.dart';
+import '../features/week/widgets/week_hero_card.dart';
 import '../theme/tokens.dart';
 
 /// Wochenübersicht: Statistiken, Export, KI-Auswertung
@@ -23,18 +24,120 @@ class WeekScreen extends ConsumerStatefulWidget {
 
 class _WeekScreenState extends ConsumerState<WeekScreen> {
   late DateTime _anchor; // beliebiger Tag in der Woche
-  late DateTime _selectedDay; // im Karussell ausgewählter Tag
 
   @override
   void initState() {
     super.initState();
     _anchor = DateTime.now();
-    _selectedDay = DateTime.now();
   }
 
   String _formatDate(DateTime d) =>
       '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.'
       '${d.year.toString()}';
+
+  /// Berechnet Wochenvervollständigung basierend auf Einträgen.
+  ///
+  /// Kriterien:
+  /// - Morgen/Abend-Texte ausgefüllt (6 Felder pro Tag)
+  /// - Ratings vorhanden (3 Ratings pro Tag)
+  /// - Ziele/To-dos definiert und erledigt
+  double _calculateWeekCompletion(
+    List<JournalEntry> entries,
+    DateTimeRange range,
+  ) {
+    double totalScore = 0;
+    const maxScorePerDay = 12.0; // 6 Textfelder + 3 Ratings + 3 für Planung
+
+    // Erstelle Map für schnelleren Zugriff
+    final entryMap = <String, JournalEntry>{};
+    for (final entry in entries) {
+      entryMap[entry.id] = entry;
+    }
+
+    for (var i = 0; i < 7; i++) {
+      final day = range.start.add(Duration(days: i));
+      final year = day.year;
+      final month = day.month.toString().padLeft(2, '0');
+      final dayStr = day.day.toString().padLeft(2, '0');
+      final entryId = '$year-$month-$dayStr';
+
+      // Suche Entry für diesen Tag
+      final entryOrNull = entryMap[entryId];
+      if (entryOrNull == null) continue;
+
+      // Prüfe ob Entry tatsächlich Daten hat (nicht nur Placeholder)
+      final hasMorningData =
+          entryOrNull.morning.mood.trim().isNotEmpty ||
+          entryOrNull.morning.goodThing.trim().isNotEmpty ||
+          entryOrNull.morning.focus.trim().isNotEmpty;
+
+      final hasEveningData =
+          entryOrNull.evening.good.trim().isNotEmpty ||
+          entryOrNull.evening.learned.trim().isNotEmpty ||
+          entryOrNull.evening.improve.trim().isNotEmpty;
+
+      final hasRatings =
+          entryOrNull.ratingFocus != null ||
+          entryOrNull.ratingEnergy != null ||
+          entryOrNull.ratingHappiness != null;
+
+      final hasPlanning =
+          entryOrNull.planning.goals.any((g) => g.trim().isNotEmpty) ||
+          entryOrNull.planning.todos.any((t) => t.trim().isNotEmpty);
+
+      // Überspringe leere Placeholder-Dokumente
+      if (!hasMorningData && !hasEveningData && !hasRatings && !hasPlanning) {
+        continue;
+      }
+
+      double dayScore = 0;
+
+      // Morgen (3 Felder)
+      if (entryOrNull.morning.mood.trim().isNotEmpty) dayScore++;
+      if (entryOrNull.morning.goodThing.trim().isNotEmpty) dayScore++;
+      if (entryOrNull.morning.focus.trim().isNotEmpty) dayScore++;
+
+      // Abend (3 Felder)
+      if (entryOrNull.evening.good.trim().isNotEmpty) dayScore++;
+      if (entryOrNull.evening.learned.trim().isNotEmpty) dayScore++;
+      if (entryOrNull.evening.improve.trim().isNotEmpty) dayScore++;
+
+      // Ratings (3 Ratings)
+      if (entryOrNull.ratingFocus != null) dayScore++;
+      if (entryOrNull.ratingEnergy != null) dayScore++;
+      if (entryOrNull.ratingHappiness != null) dayScore++;
+
+      // Planung: Ziele/To-dos (max 3 Punkte)
+      final goals = entryOrNull.planning.goals
+          .where((g) => g.trim().isNotEmpty)
+          .toList();
+      final todos = entryOrNull.planning.todos
+          .where((t) => t.trim().isNotEmpty)
+          .toList();
+      if (goals.isNotEmpty || todos.isNotEmpty) {
+        dayScore += 1.5; // Bonus für Planung
+        final totalItems =
+            todos.length; // Nur To-dos, da goalsCompletion nicht im Model
+        final todosCompleted = todos
+            .asMap()
+            .entries
+            .where(
+              (e) =>
+                  e.key < entryOrNull.evening.todosCompletion.length &&
+                  entryOrNull.evening.todosCompletion[e.key],
+            )
+            .length;
+        if (totalItems > 0) {
+          dayScore += 1.5 * (todosCompleted / totalItems);
+        }
+      }
+
+      totalScore += dayScore;
+    }
+
+    final maxTotal = 7 * maxScorePerDay;
+    return (totalScore / maxTotal).clamp(0.0, 1.0);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,54 +170,16 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
                     onPrevious: () {
                       setState(() {
                         _anchor = _anchor.subtract(const Duration(days: 7));
-                        _selectedDay = range.start.subtract(
-                          const Duration(days: 7),
-                        );
                       });
                     },
                     onNext: () {
                       setState(() {
                         _anchor = _anchor.add(const Duration(days: 7));
-                        _selectedDay = range.start.add(const Duration(days: 7));
                       });
                     },
                     onToday: () {
                       setState(() {
                         _anchor = DateTime.now();
-                        _selectedDay = DateTime.now();
-                      });
-                    },
-                    onPickDate: () async {
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: _anchor,
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                      );
-                      if (picked != null) {
-                        if (!mounted) return;
-                        setState(() {
-                          _anchor = picked;
-                          _selectedDay = picked;
-                        });
-                      }
-                    },
-                  ),
-                  const SizedBox(height: ReflectoSpacing.s16),
-                  // Wochenkarussell (7 Tage)
-                  DayWeekCarousel(
-                    selected: _selectedDay,
-                    onSelected: (date) {
-                      setState(() {
-                        _selectedDay = date;
-                        // Woche wechseln wenn Tag außerhalb der aktuellen Woche
-                        final currentRange = FirestoreService.weekRangeFrom(
-                          _anchor,
-                        );
-                        if (date.isBefore(currentRange.start) ||
-                            date.isAfter(currentRange.end)) {
-                          _anchor = date;
-                        }
                       });
                     },
                   ),
@@ -133,8 +198,23 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
                           stats.toJson(),
                         );
 
+                        // Berechne Wochenvervollständigung
+                        final completionPercent = _calculateWeekCompletion(
+                          entries,
+                          range,
+                        );
+
                         return ListView(
                           children: [
+                            // Hero Card mit Wochenübersicht
+                            WeekHeroCard(
+                              completionPercent: completionPercent,
+                              weekLabel: weekId,
+                              dateRange: '', // Nicht mehr benötigt
+                            ),
+                            const SizedBox(height: ReflectoSpacing.s16),
+
+                            // Stats & Export
                             WeekStatsCard(stats: stats),
                             WeekExportCard(jsonData: jsonData),
                             weeklyAsync.when(

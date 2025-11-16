@@ -41,7 +41,28 @@ class WeekStats {
 
     // Mood-Kurve für 7 Tage
     final mood = List<int?>.filled(7, null);
-    final byId = {for (final e in entries) e.id: e};
+
+    // Filtere leere Placeholder-Dokumente aus
+    final validEntries = entries.where((e) {
+      final hasMorningData =
+          e.morning.mood.trim().isNotEmpty ||
+          e.morning.goodThing.trim().isNotEmpty ||
+          e.morning.focus.trim().isNotEmpty;
+      final hasEveningData =
+          e.evening.good.trim().isNotEmpty ||
+          e.evening.learned.trim().isNotEmpty ||
+          e.evening.improve.trim().isNotEmpty;
+      final hasRatings =
+          e.ratingFocus != null ||
+          e.ratingEnergy != null ||
+          e.ratingHappiness != null;
+      final hasPlanning =
+          e.planning.goals.any((g) => g.trim().isNotEmpty) ||
+          e.planning.todos.any((t) => t.trim().isNotEmpty);
+      return hasMorningData || hasEveningData || hasRatings || hasPlanning;
+    }).toList();
+
+    final byId = {for (final e in validEntries) e.id: e};
 
     for (var i = 0; i < 7; i++) {
       final day = range.start.add(Duration(days: i));
