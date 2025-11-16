@@ -10,6 +10,7 @@ import '../sections/planning_section.dart';
 import '../widgets/day_streak_widget.dart';
 import '../widgets/day_week_carousel.dart';
 import '../widgets/day_swipe_container.dart';
+import '../widgets/meal_tracker_card.dart';
 
 class DayShellProps {
   final DateTime selected;
@@ -172,6 +173,8 @@ class DayShell extends StatelessWidget {
                               onRatingChanged: props.onMorningRatingChanged,
                               onTextChanged: props.onMorningTextChanged,
                             ),
+                            const SizedBox(height: ReflectoSpacing.s16),
+                            MealTrackerCard(date: props.selected),
                             const SizedBox(height: ReflectoSpacing.s24),
                             EveningSection(
                               expanded: props.expEvening,

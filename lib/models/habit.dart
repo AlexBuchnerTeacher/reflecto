@@ -20,11 +20,23 @@ class Habit {
   /// Hex-Farbe für UI-Darstellung (z.B. "#5B50FF")
   final String color;
 
-  /// Frequenz: "daily" oder "weekly"
+  /// Frequenz: "daily" | "weekly_days" | "weekly_target" | "irregular"
+  ///
+  /// Hinweis: Ältere Daten können noch "weekly" enthalten. Diese werden wie
+  /// "weekly_days" behandelt (ohne gesetzte Wochentage ergibt das effektiv 0 geplante Tage).
   final String frequency;
+
+  /// Für "weekly_days": Liste der Wochentage (1=Mo ... 7=So), an denen die Gewohnheit geplant ist.
+  final List<int>? weekdays;
+
+  /// Für "weekly_target": Anzahl der Ziel-Tage pro Woche (z. B. 3).
+  final int? weeklyTarget;
 
   /// Optional: Erinnerungszeit im Format "HH:mm" (z.B. "19:00")
   final String? reminderTime;
+
+  /// Sortierindex innerhalb einer Kategorie
+  final int? sortIndex;
 
   /// Aktuelle Streak-Länge (aufeinanderfolgende Tage)
   final int streak;
@@ -44,7 +56,10 @@ class Habit {
     required this.category,
     required this.color,
     required this.frequency,
+    this.weekdays,
+    this.weeklyTarget,
     this.reminderTime,
+    this.sortIndex,
     required this.streak,
     required this.completedDates,
     required this.createdAt,
@@ -59,7 +74,17 @@ class Habit {
       category: map['category'] as String? ?? '',
       color: map['color'] as String? ?? '#5B50FF',
       frequency: map['frequency'] as String? ?? 'daily',
+      weekdays: (map['weekdays'] as List<dynamic>?)
+          ?.map((e) => int.tryParse(e.toString()) ?? -1)
+          .where((e) => e >= 1 && e <= 7)
+          .toList(),
+      weeklyTarget: (map['weeklyTarget'] is int)
+          ? map['weeklyTarget'] as int
+          : int.tryParse(map['weeklyTarget']?.toString() ?? ''),
       reminderTime: map['reminderTime'] as String?,
+      sortIndex: (map['sortIndex'] is int)
+          ? map['sortIndex'] as int
+          : int.tryParse(map['sortIndex']?.toString() ?? ''),
       streak: map['streak'] as int? ?? 0,
       completedDates:
           (map['completedDates'] as List<dynamic>?)
@@ -78,7 +103,10 @@ class Habit {
       'category': category,
       'color': color,
       'frequency': frequency,
+      if (weekdays != null) 'weekdays': weekdays,
+      if (weeklyTarget != null) 'weeklyTarget': weeklyTarget,
       if (reminderTime != null) 'reminderTime': reminderTime,
+      if (sortIndex != null) 'sortIndex': sortIndex,
       'streak': streak,
       'completedDates': completedDates,
       'createdAt': Timestamp.fromDate(createdAt),
@@ -95,7 +123,10 @@ class Habit {
     String? category,
     String? color,
     String? frequency,
+    List<int>? weekdays,
+    int? weeklyTarget,
     String? reminderTime,
+    int? sortIndex,
     int? streak,
     List<String>? completedDates,
     DateTime? createdAt,
@@ -107,7 +138,10 @@ class Habit {
       category: category ?? this.category,
       color: color ?? this.color,
       frequency: frequency ?? this.frequency,
+      weekdays: weekdays ?? this.weekdays,
+      weeklyTarget: weeklyTarget ?? this.weeklyTarget,
       reminderTime: reminderTime ?? this.reminderTime,
+      sortIndex: sortIndex ?? this.sortIndex,
       streak: streak ?? this.streak,
       completedDates: completedDates ?? this.completedDates,
       createdAt: createdAt ?? this.createdAt,

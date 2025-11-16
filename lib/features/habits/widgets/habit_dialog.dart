@@ -22,6 +22,8 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
   late String _frequency;
   late String _color;
   TextEditingController? _reminderTimeCtrl;
+  Set<int> _weekdays = <int>{};
+  int _weeklyTarget = 3;
 
   // Vordefinierte Farben
   final List<String> _colors = [
@@ -37,14 +39,14 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
 
   // Vordefinierte Kategorien
   final List<String> _categories = [
-    'Gesundheit',
-    'Sport',
-    'Lernen',
-    'Kreativität',
-    'Produktivität',
-    'Soziales',
-    'Achtsamkeit',
-    'Sonstiges',
+    '🔥 GESUNDHEIT',
+    '🚴 SPORT',
+    '📘 LERNEN',
+    '⚡ KREATIVITÄT',
+    '📈 PRODUKTIVITÄT',
+    '🤝 SOZIALES',
+    '🧘 ACHTSAMKEIT',
+    '🔧 SONSTIGES',
   ];
 
   @override
@@ -52,10 +54,19 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
     super.initState();
     _titleCtrl = TextEditingController(text: widget.habit?.title ?? '');
     _categoryCtrl = TextEditingController(
-      text: widget.habit?.category ?? 'Gesundheit',
+      text: widget.habit?.category ?? '🔥 GESUNDHEIT',
     );
     _frequency = widget.habit?.frequency ?? 'daily';
+    if (_frequency == 'weekly') {
+      _frequency = 'weekly_days';
+    }
     _color = widget.habit?.color ?? _colors.first;
+    if (widget.habit?.weekdays != null) {
+      _weekdays = widget.habit!.weekdays!.toSet();
+    }
+    if (widget.habit?.weeklyTarget != null) {
+      _weeklyTarget = widget.habit!.weeklyTarget!.clamp(1, 7);
+    }
     if (widget.habit?.reminderTime != null) {
       _reminderTimeCtrl = TextEditingController(
         text: widget.habit!.reminderTime,
@@ -86,6 +97,8 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
         reminderTime: _reminderTimeCtrl?.text.trim().isEmpty == true
             ? null
             : _reminderTimeCtrl?.text.trim(),
+        weekdays: _frequency == 'weekly_days' ? _weekdays.toList() : null,
+        weeklyTarget: _frequency == 'weekly_target' ? _weeklyTarget : null,
       );
     } else {
       // Bestehendes Habit aktualisieren
@@ -98,6 +111,8 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
         reminderTime: _reminderTimeCtrl?.text.trim().isEmpty == true
             ? null
             : _reminderTimeCtrl?.text.trim(),
+        weekdays: _frequency == 'weekly_days' ? _weekdays.toList() : <int>[],
+        weeklyTarget: _frequency == 'weekly_target' ? _weeklyTarget : null,
       );
     }
 
@@ -167,7 +182,18 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
               SegmentedButton<String>(
                 segments: const [
                   ButtonSegment(value: 'daily', label: Text('Täglich')),
-                  ButtonSegment(value: 'weekly', label: Text('Wöchentlich')),
+                  ButtonSegment(
+                    value: 'weekly_days',
+                    label: Text('Wochentage'),
+                  ),
+                  ButtonSegment(
+                    value: 'weekly_target',
+                    label: Text('Wochen‑Ziel'),
+                  ),
+                  ButtonSegment(
+                    value: 'irregular',
+                    label: Text('Unregelmäßig'),
+                  ),
                 ],
                 selected: {_frequency},
                 onSelectionChanged: (selected) {
@@ -177,6 +203,65 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
                 },
               ),
               const SizedBox(height: ReflectoSpacing.s16),
+
+              if (_frequency == 'weekly_days') ...[
+                Text('Wochentage', style: theme.textTheme.titleSmall),
+                const SizedBox(height: ReflectoSpacing.s8),
+                Wrap(
+                  spacing: ReflectoSpacing.s8,
+                  runSpacing: ReflectoSpacing.s8,
+                  children: List.generate(7, (index) {
+                    final dayNum = index + 1; // 1..7
+                    const labels = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+                    final selected = _weekdays.contains(dayNum);
+                    return FilterChip(
+                      label: Text(labels[index]),
+                      selected: selected,
+                      onSelected: (v) {
+                        setState(() {
+                          if (v) {
+                            _weekdays.add(dayNum);
+                          } else {
+                            _weekdays.remove(dayNum);
+                          }
+                        });
+                      },
+                    );
+                  }),
+                ),
+                const SizedBox(height: ReflectoSpacing.s16),
+              ],
+
+              if (_frequency == 'weekly_target') ...[
+                Text('Wochen‑Ziel', style: theme.textTheme.titleSmall),
+                const SizedBox(height: ReflectoSpacing.s8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _weeklyTarget = (_weeklyTarget - 1).clamp(1, 7);
+                        });
+                      },
+                      icon: const Icon(Icons.remove_circle_outline),
+                    ),
+                    Text(
+                      '$_weeklyTarget / Woche',
+                      style: theme.textTheme.titleMedium,
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _weeklyTarget = (_weeklyTarget + 1).clamp(1, 7);
+                        });
+                      },
+                      icon: const Icon(Icons.add_circle_outline),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: ReflectoSpacing.s16),
+              ],
 
               // Farbe
               Text('Farbe', style: theme.textTheme.titleSmall),

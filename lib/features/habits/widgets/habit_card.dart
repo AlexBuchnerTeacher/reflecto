@@ -26,9 +26,31 @@ class HabitCard extends ConsumerWidget {
     final service = ref.watch(habitServiceProvider);
     final today = DateTime.now();
     final isCompletedToday = service.isCompletedOnDate(habit, today);
+    final canToggleToday = service.isScheduledOnDate(habit, today);
+
+    // Wochenfortschritt berechnen
+    final freq = habit.frequency;
+    int? weeklyDone;
+    int? weeklyTotal;
+    String? weeklyLabel;
+    if (freq == 'weekly_days' || freq == 'weekly') {
+      weeklyDone = service.countPlannedCompletionsInWeek(habit, today);
+      weeklyTotal = service.plannedDaysInWeek(habit);
+      weeklyLabel = '$weeklyDone/$weeklyTotal';
+    } else if (freq == 'weekly_target') {
+      final done = service.countCompletionsInWeek(habit, today);
+      final target = service.plannedDaysInWeek(habit);
+      weeklyDone = done > target ? target : done;
+      weeklyTotal = target;
+      weeklyLabel = '$weeklyDone/$weeklyTotal';
+    } else if (freq == 'irregular') {
+      final done = service.countCompletionsInWeek(habit, today);
+      weeklyLabel = 'Diese Woche: $done';
+    }
 
     // Farbe aus Hex-String parsen
     final habitColor = _parseColor(habit.color);
+    final weekdays = habit.weekdays ?? const <int>[];
 
     return Card(
       margin: const EdgeInsets.symmetric(
@@ -45,17 +67,19 @@ class HabitCard extends ConsumerWidget {
               // Checkbox für heute
               Checkbox(
                 value: isCompletedToday,
-                onChanged: (value) {
-                  if (value == true) {
-                    ref
-                        .read(habitNotifierProvider.notifier)
-                        .markCompleted(habit.id, today);
-                  } else {
-                    ref
-                        .read(habitNotifierProvider.notifier)
-                        .markUncompleted(habit.id, today);
-                  }
-                },
+                onChanged: canToggleToday
+                    ? (value) {
+                        if (value == true) {
+                          ref
+                              .read(habitNotifierProvider.notifier)
+                              .markCompleted(habit.id, today);
+                        } else {
+                          ref
+                              .read(habitNotifierProvider.notifier)
+                              .markUncompleted(habit.id, today);
+                        }
+                      }
+                    : null,
               ),
               const SizedBox(width: ReflectoSpacing.s12),
 
@@ -88,12 +112,67 @@ class HabitCard extends ConsumerWidget {
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
+                    if (freq == 'weekly_days' || freq == 'weekly') ...[
+                      const SizedBox(height: ReflectoSpacing.s8),
+                      Wrap(
+                        spacing: ReflectoSpacing.s8,
+                        runSpacing: ReflectoSpacing.s4,
+                        children: List.generate(7, (index) {
+                          const labels = [
+                            'Mo',
+                            'Di',
+                            'Mi',
+                            'Do',
+                            'Fr',
+                            'Sa',
+                            'So',
+                          ];
+                          final dayNum = index + 1; // 1..7
+                          final planned = weekdays.contains(dayNum);
+                          final isToday = today.weekday == dayNum;
+                          final bg = planned
+                              ? theme.colorScheme.secondaryContainer
+                              : Colors.transparent;
+                          final fg = planned
+                              ? theme.colorScheme.onSecondaryContainer
+                              : theme.colorScheme.onSurfaceVariant;
+                          final borderColor = isToday
+                              ? theme.colorScheme.primary
+                              : (planned
+                                    ? theme.colorScheme.secondary
+                                    : theme.colorScheme.outline.withValues(
+                                        alpha: 0.5,
+                                      ));
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: ReflectoSpacing.s8,
+                              vertical: ReflectoSpacing.s4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: bg,
+                              borderRadius: BorderRadius.circular(999),
+                              border: Border.all(color: borderColor, width: 1),
+                            ),
+                            child: Text(
+                              labels[index],
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: fg,
+                                fontWeight: isToday
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                      // Legende entfernt (zu viel UI‑Rauschen)
+                    ],
                   ],
                 ),
               ),
 
-              // Streak-Anzeige
-              if (habit.streak > 0) ...[
+              // Streak-Anzeige (nur daily sinnvoll)
+              if (habit.streak > 0 && (freq == 'daily')) ...[
                 const SizedBox(width: ReflectoSpacing.s8),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -117,6 +196,28 @@ class HabitCard extends ConsumerWidget {
                         ),
                       ),
                     ],
+                  ),
+                ),
+              ],
+
+              // Wochen-Fortschritt (für weekly_days/weekly_target/irregular)
+              if (weeklyLabel != null) ...[
+                const SizedBox(width: ReflectoSpacing.s8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: ReflectoSpacing.s8,
+                    vertical: ReflectoSpacing.s4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.secondaryContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    weeklyLabel,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: theme.colorScheme.onSecondaryContainer,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],

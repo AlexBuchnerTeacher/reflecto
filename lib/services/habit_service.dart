@@ -49,6 +49,9 @@ class HabitService {
     required String color,
     required String frequency,
     String? reminderTime,
+    List<int>? weekdays,
+    int? weeklyTarget,
+    int? sortIndex,
   }) async {
     final now = DateTime.now();
     final habit = Habit(
@@ -57,7 +60,10 @@ class HabitService {
       category: category,
       color: color,
       frequency: frequency,
+      weekdays: weekdays,
+      weeklyTarget: weeklyTarget,
       reminderTime: reminderTime,
+      sortIndex: sortIndex,
       streak: 0,
       completedDates: [],
       createdAt: now,
@@ -77,6 +83,9 @@ class HabitService {
     String? color,
     String? frequency,
     String? reminderTime,
+    List<int>? weekdays,
+    int? weeklyTarget,
+    int? sortIndex,
   }) async {
     final updates = <String, dynamic>{
       'updatedAt': FieldValue.serverTimestamp(),
@@ -89,8 +98,79 @@ class HabitService {
     if (reminderTime != null) {
       updates['reminderTime'] = reminderTime;
     }
+    if (weekdays != null) updates['weekdays'] = weekdays;
+    if (weeklyTarget != null) updates['weeklyTarget'] = weeklyTarget;
+    if (sortIndex != null) updates['sortIndex'] = sortIndex;
 
     await _habitsCollection(uid).doc(habitId).update(updates);
+  }
+
+  /// Gibt Wochenfenster (Montag 00:00 bis Sonntag 23:59:59.999) für ein Datum zurück
+  ({DateTime start, DateTime end}) getWeekWindow(DateTime date) {
+    final d = DateTime(date.year, date.month, date.day);
+    final weekday = d.weekday; // 1=Mo ... 7=So
+    final start = d.subtract(Duration(days: weekday - 1));
+    final end = start.add(const Duration(days: 6));
+    return (start: start, end: end);
+  }
+
+  /// Prüft, ob ein Habit an einem Datum planmäßig ist
+  bool isScheduledOnDate(Habit habit, DateTime date) {
+    final freq = habit.frequency;
+    if (freq == 'daily') return true;
+    if (freq == 'weekly_days' || freq == 'weekly') {
+      final wds = habit.weekdays ?? const [];
+      return wds.contains(date.weekday);
+    }
+    if (freq == 'weekly_target') {
+      return true; // beliebige Tage in der Woche zulässig
+    }
+    if (freq == 'irregular') {
+      return true; // immer zulässig, kein Plan
+    }
+    return true;
+  }
+
+  /// Anzahl eindeutiger Erledigungs-Tage innerhalb der Woche des angegebenen Datums
+  int countCompletionsInWeek(Habit habit, DateTime date) {
+    final window = getWeekWindow(date);
+    final start = window.start;
+    final end = window.end;
+    int count = 0;
+    for (int i = 0; i <= end.difference(start).inDays; i++) {
+      final cur = start.add(Duration(days: i));
+      if (isCompletedOnDate(habit, cur)) count++;
+    }
+    return count;
+  }
+
+  /// Anzahl erledigter, geplanter Tage innerhalb der Woche (nur weekly_days relevant)
+  int countPlannedCompletionsInWeek(Habit habit, DateTime date) {
+    final window = getWeekWindow(date);
+    final start = window.start;
+    final end = window.end;
+    int count = 0;
+    for (int i = 0; i <= end.difference(start).inDays; i++) {
+      final cur = start.add(Duration(days: i));
+      if (isScheduledOnDate(habit, cur) && isCompletedOnDate(habit, cur)) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /// Geplante Tagesanzahl für die Woche je Habit-Typ
+  int plannedDaysInWeek(Habit habit) {
+    final freq = habit.frequency;
+    if (freq == 'daily') return 7;
+    if (freq == 'weekly_days' || freq == 'weekly') {
+      return habit.weekdays?.length ?? 0;
+    }
+    if (freq == 'weekly_target') {
+      return habit.weeklyTarget ?? 0;
+    }
+    // irregular: kein Nenner
+    return 0;
   }
 
   /// Habit löschen

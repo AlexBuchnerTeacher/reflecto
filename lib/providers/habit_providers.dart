@@ -54,6 +54,9 @@ class HabitNotifier extends AutoDisposeAsyncNotifier<void> {
     required String color,
     required String frequency,
     String? reminderTime,
+    List<int>? weekdays,
+    int? weeklyTarget,
+    int? sortIndex,
   }) async {
     final uid = ref.read(userIdProvider);
     if (uid == null) return null;
@@ -68,6 +71,9 @@ class HabitNotifier extends AutoDisposeAsyncNotifier<void> {
         color: color,
         frequency: frequency,
         reminderTime: reminderTime,
+        weekdays: weekdays,
+        weeklyTarget: weeklyTarget,
+        sortIndex: sortIndex,
       );
       state = const AsyncData(null);
       return id;
@@ -85,6 +91,9 @@ class HabitNotifier extends AutoDisposeAsyncNotifier<void> {
     String? color,
     String? frequency,
     String? reminderTime,
+    List<int>? weekdays,
+    int? weeklyTarget,
+    int? sortIndex,
   }) async {
     final uid = ref.read(userIdProvider);
     if (uid == null) return;
@@ -100,6 +109,9 @@ class HabitNotifier extends AutoDisposeAsyncNotifier<void> {
         color: color,
         frequency: frequency,
         reminderTime: reminderTime,
+        weekdays: weekdays,
+        weeklyTarget: weeklyTarget,
+        sortIndex: sortIndex,
       );
       state = const AsyncData(null);
     } catch (e, st) {
