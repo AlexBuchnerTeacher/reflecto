@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../utils/firestore_date_utils.dart';
+import '../utils/planning_list_utils.dart';
 
 /// Fokussiertes Service-Modul für Planung-bezogene Firestore-Operationen.
 class FirestorePlanningService {
@@ -54,22 +55,6 @@ class FirestorePlanningService {
     required bool isGoal,
     required int index,
   }) async {
-    List<String> dedupePreserveEmptySlots(List<String> input) {
-      final seen = <String>{};
-      var emptyCount = 0;
-      for (final raw in input) {
-        final t = raw.toString().trim();
-        if (t.isEmpty) {
-          emptyCount++;
-          continue;
-        }
-        if (!seen.contains(t)) {
-          seen.add(t);
-        }
-      }
-      return [...seen, ...List.filled(emptyCount, '')];
-    }
-
     final todayRef = _users
         .doc(uid)
         .collection('entries')
@@ -87,7 +72,7 @@ class FirestorePlanningService {
       var listToday = List<String>.from(
         planningToday[field] ?? const <String>[],
       );
-      listToday = dedupePreserveEmptySlots(listToday);
+      listToday = PlanningListUtils.dedupePreserveEmptySlots(listToday);
       if (index < 0 || index >= listToday.length) return;
       final item = (listToday.removeAt(index)).toString().trim();
       if (item.isEmpty) return;
@@ -99,7 +84,7 @@ class FirestorePlanningService {
       var listTomorrow = List<String>.from(
         planningTomorrow[field] ?? const <String>[],
       );
-      listTomorrow = dedupePreserveEmptySlots(listTomorrow);
+      listTomorrow = PlanningListUtils.dedupePreserveEmptySlots(listTomorrow);
       final alreadyThere = listTomorrow.any((e) => e.toString().trim() == item);
       if (!alreadyThere) {
         final emptyIdx = listTomorrow.indexWhere(
@@ -131,22 +116,6 @@ class FirestorePlanningService {
     required bool isGoal,
     required String itemText,
   }) async {
-    List<String> dedupePreserveEmptySlots(List<String> input) {
-      final seen = <String>{};
-      var emptyCount = 0;
-      for (final raw in input) {
-        final t = raw.toString().trim();
-        if (t.isEmpty) {
-          emptyCount++;
-          continue;
-        }
-        if (!seen.contains(t)) {
-          seen.add(t);
-        }
-      }
-      return [...seen, ...List.filled(emptyCount, '')];
-    }
-
     final fromRef = _users
         .doc(uid)
         .collection('entries')
@@ -165,7 +134,7 @@ class FirestorePlanningService {
       final planningFrom =
           (fromData['planning'] as Map<String, dynamic>?) ?? {};
       var listFrom = List<String>.from(planningFrom[field] ?? const <String>[]);
-      listFrom = dedupePreserveEmptySlots(listFrom);
+      listFrom = PlanningListUtils.dedupePreserveEmptySlots(listFrom);
 
       final idx = listFrom.indexWhere((e) => e.toString().trim() == needle);
       if (idx == -1) return;
@@ -175,7 +144,7 @@ class FirestorePlanningService {
       final toData = toSnap.data() ?? <String, dynamic>{};
       final planningTo = (toData['planning'] as Map<String, dynamic>?) ?? {};
       var listTo = List<String>.from(planningTo[field] ?? const <String>[]);
-      listTo = dedupePreserveEmptySlots(listTo);
+      listTo = PlanningListUtils.dedupePreserveEmptySlots(listTo);
 
       final alreadyThere = listTo.any((e) => e.toString().trim() == needle);
       if (!alreadyThere) {
@@ -200,21 +169,6 @@ class FirestorePlanningService {
 
   Future<int> dedupeAllPlanningForUser(String uid) async {
     int updatedDocs = 0;
-    List<String> dedupePreserveEmptySlots(List<String> input) {
-      final seen = <String>{};
-      var emptyCount = 0;
-      for (final raw in input) {
-        final t = raw.toString().trim();
-        if (t.isEmpty) {
-          emptyCount++;
-          continue;
-        }
-        if (!seen.contains(t)) {
-          seen.add(t);
-        }
-      }
-      return [...seen, ...List.filled(emptyCount, '')];
-    }
 
     final entries = await _users.doc(uid).collection('entries').get();
     for (final doc in entries.docs) {
@@ -222,13 +176,13 @@ class FirestorePlanningService {
       final planning = (data['planning'] as Map<String, dynamic>?) ?? {};
       final goals = List<String>.from(planning['goals'] ?? const <String>[]);
       final todos = List<String>.from(planning['todos'] ?? const <String>[]);
-      final newGoals = dedupePreserveEmptySlots(goals);
-      final newTodos = dedupePreserveEmptySlots(todos);
+      final newGoals = PlanningListUtils.dedupePreserveEmptySlots(goals);
+      final newTodos = PlanningListUtils.dedupePreserveEmptySlots(todos);
       final changed =
           newGoals.length != goals.length ||
           newTodos.length != todos.length ||
-          !_listsEqual(newGoals, goals) ||
-          !_listsEqual(newTodos, todos);
+          !PlanningListUtils.listsEqual(newGoals, goals) ||
+          !PlanningListUtils.listsEqual(newTodos, todos);
       if (changed) {
         await doc.reference.set({
           'planning': {'goals': newGoals, 'todos': newTodos},
@@ -239,16 +193,4 @@ class FirestorePlanningService {
     }
     return updatedDocs;
   }
-
-  bool _listsEqual(List<String> a, List<String> b) {
-    if (identical(a, b)) return true;
-    if (a.length != b.length) return false;
-    for (var i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) return false;
-    }
-    return true;
-  }
-
-  /// Public helper for list equality used by other services.
-  bool listsEqual(List<String> a, List<String> b) => _listsEqual(a, b);
 }
