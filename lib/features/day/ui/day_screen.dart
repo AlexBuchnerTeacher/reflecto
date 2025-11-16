@@ -6,6 +6,7 @@ import '../../../providers/auth_providers.dart';
 import '../../../providers/entry_providers.dart';
 import '../controllers/day_controllers.dart';
 import '../logic/day_state_manager.dart';
+import '../logic/day_callbacks.dart';
 import '../logic/day_sync_logic.dart';
 import '../logic/day_view_logic.dart';
 import '../ui/day_shell.dart';
@@ -29,7 +30,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
   int? _ratingEnergyLocal;
   int? _ratingHappinessLocal;
 
-  // Evening (today)
+  // Abend (heute)
   TextEditingController get _eveningGoodCtrl => _controllers.eveningGoodCtrl;
   TextEditingController get _eveningLearnedCtrl =>
       _controllers.eveningLearnedCtrl;
@@ -42,7 +43,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
   FocusNode get _eveningBetterNode => _controllers.eveningBetterNode;
   FocusNode get _eveningGratefulNode => _controllers.eveningGratefulNode;
 
-  // Morning (today)
+  // Morgen (heute)
   TextEditingController get _morningFeelingCtrl =>
       _controllers.morningFeelingCtrl;
   TextEditingController get _morningGoodCtrl => _controllers.morningGoodCtrl;
@@ -51,7 +52,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
   FocusNode get _morningGoodNode => _controllers.morningGoodNode;
   FocusNode get _morningFocusNode => _controllers.morningFocusNode;
 
-  // Planning (tomorrow)
+  // Planung (morgen)
   List<TextEditingController> get _goalCtrls => _controllers.goalCtrls;
   List<TextEditingController> get _todoCtrls => _controllers.todoCtrls;
   TextEditingController get _attitudeCtrl => _controllers.attitudeCtrl;
@@ -266,7 +267,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
         _ratingEnergyLocal ??= eveningEnergyFromSnap;
         _ratingHappinessLocal ??= eveningHappinessFromSnap;
 
-        // Morning/Evening current values into controllers (skip while focused)
+        // Morgen/Abend: aktuelle Werte in Controller schreiben (bei Fokus nicht überschreiben)
         _setCtrl(
           _morningFeelingCtrl,
           _readAt<String>(todayData, ['morning', 'mood']) ??
@@ -308,7 +309,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
           focusNode: _eveningGratefulNode,
         );
 
-        // Tomorrow planning into controllers
+        // Planung für morgen in Controller schreiben
         final tData = tDoc.value?.data();
         _syncLogic.updateDocCache(_selected, todayData);
         _syncLogic.updateDocCache(tomorrow, tData);
@@ -447,7 +448,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
         ]);
         final goalsCompletion = _boolListFromDynamic(goalsCompletionDyn);
 
-        // Sync checkbox states from Firestore data
+        // Checkbox-Status aus Firestore-Daten synchronisieren
         final desiredGoalLen = curGoals.length.clamp(0, 3);
         final goalCheckData = List<bool>.generate(
           desiredGoalLen,
@@ -473,6 +474,38 @@ class _DayScreenState extends ConsumerState<DayScreen> {
         // Aggregierter Pending-/Cache-Status wird aktuell nicht verwendet
         // Aggregierter Pending-/Cache-Status wird aktuell nicht verwendet
 
+        // Callback-Helfer bündeln (Auslagerung der Handler aus dem Widget-State)
+        final callbacks = DayCallbacks.build(
+          ref: ref,
+          uid: uid,
+          stateManager: _stateManager,
+          controllers: _controllers,
+          syncLogic: _syncLogic,
+          getSelected: () => _selected,
+          setSelected: (d) => _selected = d,
+          setState: (fn) => setState(fn),
+          debouncedUpdate:
+              ({
+                required String uid,
+                required DateTime date,
+                required String fieldPath,
+                required dynamic value,
+                String? alsoAggregateTo,
+                String Function()? aggregateBuilder,
+              }) => _debouncedUpdate(
+                uid: uid,
+                date: date,
+                fieldPath: fieldPath,
+                value: value,
+                alsoAggregateTo: alsoAggregateTo,
+                aggregateBuilder: aggregateBuilder,
+              ),
+          aggregateMorning: _aggregateMorning,
+          saveGoals: _saveGoals,
+          saveTodos: _saveTodos,
+          showSavedSnack: _maybeShowSavedSnack,
+        );
+
         final props = DayShellProps(
           selected: _selected,
           tomorrow: tomorrow,
@@ -490,184 +523,33 @@ class _DayScreenState extends ConsumerState<DayScreen> {
           goalChecks: _stateManager.yesterdayGoalChecks,
           todoChecks: _stateManager.yesterdayTodoChecks,
           controllers: _controllers,
-          expMorning: _stateManager.expMorning,
-          expEvening: _stateManager.expEvening,
-          expPlanning: _stateManager.expPlanning,
-          onToggleMorning: () {
-            _stateManager.toggleMorning();
-            setState(() {});
-          },
-          onToggleEvening: () {
-            _stateManager.toggleEvening();
-            setState(() {});
-          },
-          onTogglePlanning: () {
-            _stateManager.togglePlanning();
-            setState(() {});
-          },
-          onSwipeLeft: () {
-            setState(() {
-              _selected = _selected.add(const Duration(days: 1));
-              _setDefaultExpandedForDate();
-            });
-          },
-          onSwipeRight: () {
-            setState(() {
-              _selected = _selected.subtract(const Duration(days: 1));
-              _setDefaultExpandedForDate();
-            });
-          },
-          onDateSelected: (date) {
-            setState(() {
-              _selected = date;
-              _setDefaultExpandedForDate();
-            });
-          },
-          onMorningRatingChanged: (field, value) {
-            final updater = ref.read(updateDayFieldProvider);
-            updater(
-              uid,
-              _selected,
-              field,
-              value,
-            ).then((_) => _maybeShowSavedSnack());
-          },
-          onMorningTextChanged: (field, value) {
-            _debouncedUpdate(
-              uid: uid,
-              date: _selected,
-              fieldPath: field,
-              value: value,
-              alsoAggregateTo: 'morningAggregate',
-              aggregateBuilder: _aggregateMorning,
-            );
-          },
-          onEveningRatingChanged: (field, value) {
-            final updater = ref.read(updateDayFieldProvider);
-            updater(
-              uid,
-              _selected,
-              field,
-              value,
-            ).then((_) => _maybeShowSavedSnack());
-          },
-          onEveningTextChanged: (field, value) {
-            _debouncedUpdate(
-              uid: uid,
-              date: _selected,
-              fieldPath: field,
-              value: value.isEmpty ? null : value,
-            );
-          },
-          onGoalCheckChanged: (index, value) async {
-            // Optimistic Update: Update local state immediately to prevent toggle group bug
-            _stateManager.updateGoalCheckbox(index, value);
-            setState(() {});
-            await _syncLogic.updateGoalCompletion(uid, _selected, index, value);
-          },
-          onTodoCheckChanged: (index, value) async {
-            // Optimistic Update: Update local state immediately to prevent toggle group bug
-            _stateManager.updateTodoCheckbox(index, value);
-            setState(() {});
-            await _syncLogic.updateTodoCompletion(uid, _selected, index, value);
-          },
-
-          onMoveGoalToTomorrow: (index) async {
-            // hier später: "Ziel nach morgen verschieben"
-          },
-          onMoveTodoToTomorrow: (index) async {
-            // hier später: "To-do nach morgen verschieben"
-          },
-          onAddGoal: () {
-            setState(() {
-              _controllers.ensureGoalsLen(_goalCtrls.length + 1);
-            });
-            if (_goalNodes.isNotEmpty &&
-                _goalNodes.length == _goalCtrls.length) {
-              _goalNodes.last.requestFocus();
-            }
-          },
-          onRemoveGoal: (index) {
-            setState(() {
-              if (index < _goalCtrls.length) {
-                _goalCtrls.removeAt(index).dispose();
-              }
-              if (index < _goalNodes.length) {
-                _goalNodes.removeAt(index).dispose();
-              }
-            });
-            _saveGoals(uid, tomorrow);
-          },
-          onAddTodo: () {
-            setState(() {
-              _controllers.ensureTodosLen(_todoCtrls.length + 1);
-            });
-            if (_todoNodes.isNotEmpty &&
-                _todoNodes.length == _todoCtrls.length) {
-              _todoNodes.last.requestFocus();
-            }
-          },
-          onRemoveTodo: (index) {
-            setState(() {
-              if (index < _todoCtrls.length) {
-                _todoCtrls.removeAt(index).dispose();
-              }
-              if (index < _todoNodes.length) {
-                _todoNodes.removeAt(index).dispose();
-              }
-            });
-            _saveTodos(uid, tomorrow);
-          },
-          onGoalsChanged: () {
-            _saveGoals(uid, tomorrow);
-          },
-          onTodosChanged: () {
-            _saveTodos(uid, tomorrow);
-          },
-          onReflectionChanged: (value) {
-            _debouncedUpdate(
-              uid: uid,
-              date: tomorrow,
-              fieldPath: 'planning.reflection',
-              value: value.isEmpty ? null : value,
-            );
-          },
-          onNotesChanged: (value) {
-            _debouncedUpdate(
-              uid: uid,
-              date: tomorrow,
-              fieldPath: 'planning.notes',
-              value: value.isEmpty ? null : value,
-            );
-          },
-          onReorderGoals: (oldIndex, newIndex) {
-            setState(() {
-              if (newIndex > oldIndex) {
-                newIndex -= 1;
-              }
-              final ctrl = _goalCtrls.removeAt(oldIndex);
-              _goalCtrls.insert(newIndex, ctrl);
-              if (_goalNodes.length == _goalCtrls.length) {
-                final node = _goalNodes.removeAt(oldIndex);
-                _goalNodes.insert(newIndex, node);
-              }
-            });
-            _saveGoals(uid, tomorrow);
-          },
-          onReorderTodos: (oldIndex, newIndex) {
-            setState(() {
-              if (newIndex > oldIndex) {
-                newIndex -= 1;
-              }
-              final ctrl = _todoCtrls.removeAt(oldIndex);
-              _todoCtrls.insert(newIndex, ctrl);
-              if (_todoNodes.length == _todoCtrls.length) {
-                final node = _todoNodes.removeAt(oldIndex);
-                _todoNodes.insert(newIndex, node);
-              }
-            });
-            _saveTodos(uid, tomorrow);
-          },
+          expMorning: callbacks.expMorning,
+          expEvening: callbacks.expEvening,
+          expPlanning: callbacks.expPlanning,
+          onToggleMorning: callbacks.onToggleMorning,
+          onToggleEvening: callbacks.onToggleEvening,
+          onTogglePlanning: callbacks.onTogglePlanning,
+          onSwipeLeft: callbacks.onSwipeLeft,
+          onSwipeRight: callbacks.onSwipeRight,
+          onDateSelected: callbacks.onDateSelected,
+          onMorningRatingChanged: callbacks.onMorningRatingChanged,
+          onMorningTextChanged: callbacks.onMorningTextChanged,
+          onEveningRatingChanged: callbacks.onEveningRatingChanged,
+          onEveningTextChanged: callbacks.onEveningTextChanged,
+          onGoalCheckChanged: callbacks.onGoalCheckChanged,
+          onTodoCheckChanged: callbacks.onTodoCheckChanged,
+          onMoveGoalToTomorrow: callbacks.onMoveGoalToTomorrow,
+          onMoveTodoToTomorrow: callbacks.onMoveTodoToTomorrow,
+          onAddGoal: callbacks.onAddGoal,
+          onRemoveGoal: callbacks.onRemoveGoal,
+          onAddTodo: callbacks.onAddTodo,
+          onRemoveTodo: callbacks.onRemoveTodo,
+          onReorderGoals: callbacks.onReorderGoals,
+          onReorderTodos: callbacks.onReorderTodos,
+          onGoalsChanged: callbacks.onGoalsChanged,
+          onTodosChanged: callbacks.onTodosChanged,
+          onReflectionChanged: callbacks.onReflectionChanged,
+          onNotesChanged: callbacks.onNotesChanged,
         );
 
         return DayShell(props: props);
