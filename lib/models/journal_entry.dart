@@ -239,7 +239,12 @@ class Ratings {
     Map<String, dynamic>? map, {
     Map<String, dynamic>? fallback,
   }) {
-    if (map != null) {
+    // Prüfe ob das ratings-Objekt Werte hat
+    if (map != null &&
+        (map['mood'] != null ||
+            map['focus'] != null ||
+            map['energy'] != null ||
+            map['happiness'] != null)) {
       return Ratings(
         mood: (map['mood'] as num?)?.toInt(),
         focus: (map['focus'] as num?)?.toInt(),
@@ -247,12 +252,27 @@ class Ratings {
         happiness: (map['happiness'] as num?)?.toInt(),
       );
     }
+
+    // Fallback: Nutze ratingsMorning und ratingsEvening
     if (fallback != null) {
+      final morningRatings =
+          fallback['ratingsMorning'] as Map<String, dynamic>?;
+      final eveningRatings =
+          fallback['ratingsEvening'] as Map<String, dynamic>?;
+
+      // Hilfsfunktion: Durchschnitt aus Morning und Evening berechnen
+      int? avg(String key) {
+        final m = (morningRatings?[key] as num?)?.toInt();
+        final e = (eveningRatings?[key] as num?)?.toInt();
+        if (m != null && e != null) return ((m + e) / 2).round();
+        return m ?? e;
+      }
+
       return Ratings(
-        mood: (fallback['mood'] as num?)?.toInt(),
-        focus: (fallback['ratingFocus'] as num?)?.toInt(),
-        energy: (fallback['ratingEnergy'] as num?)?.toInt(),
-        happiness: (fallback['ratingHappiness'] as num?)?.toInt(),
+        mood: avg('mood'),
+        focus: avg('focus'),
+        energy: avg('energy'),
+        happiness: avg('happiness'),
       );
     }
     return const Ratings();

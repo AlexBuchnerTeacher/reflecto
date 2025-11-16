@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -22,43 +21,21 @@ class WeekExportCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Export', style: Theme.of(context).textTheme.titleMedium),
+          Text('KI-Analyse', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: ReflectoSpacing.s8),
-          Row(
-            children: [
-              Expanded(
-                child: ReflectoButton(
-                  text: 'JSON kopieren',
-                  onPressed: () async {
-                    final messenger = ScaffoldMessenger.of(context);
-                    await Clipboard.setData(
-                      ClipboardData(text: jsonEncode(jsonData)),
-                    );
-                    if (!context.mounted) return;
-                    messenger.showSnackBar(
-                      const SnackBar(content: Text('JSON in Zwischenablage')),
-                    );
-                  },
+          ReflectoButton(
+            text: 'Für ChatGPT kopieren',
+            onPressed: () async {
+              final messenger = ScaffoldMessenger.of(context);
+              final md = exportSvc.buildMarkdownFromJson(jsonData);
+              await Clipboard.setData(ClipboardData(text: md));
+              if (!context.mounted) return;
+              messenger.showSnackBar(
+                const SnackBar(
+                  content: Text('Prompt in Zwischenablage kopiert'),
                 ),
-              ),
-              const SizedBox(width: ReflectoSpacing.s12),
-              Expanded(
-                child: ReflectoButton(
-                  text: 'Markdown kopieren',
-                  onPressed: () async {
-                    final messenger = ScaffoldMessenger.of(context);
-                    final md = exportSvc.buildMarkdownFromJson(jsonData);
-                    await Clipboard.setData(ClipboardData(text: md));
-                    if (!context.mounted) return;
-                    messenger.showSnackBar(
-                      const SnackBar(
-                        content: Text('Markdown in Zwischenablage'),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
+              );
+            },
           ),
         ],
       ),

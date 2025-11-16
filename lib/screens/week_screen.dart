@@ -45,7 +45,6 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
     List<JournalEntry> entries,
     DateTimeRange range,
   ) {
-    // Auch bei 0 Entries sinnvollen Wert zurückgeben
     double totalScore = 0;
     const maxScorePerDay = 12.0; // 6 Textfelder + 3 Ratings + 3 für Planung
 
@@ -64,8 +63,32 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
 
       // Suche Entry für diesen Tag
       final entryOrNull = entryMap[entryId];
-
       if (entryOrNull == null) continue;
+
+      // Prüfe ob Entry tatsächlich Daten hat (nicht nur Placeholder)
+      final hasMorningData =
+          entryOrNull.morning.mood.trim().isNotEmpty ||
+          entryOrNull.morning.goodThing.trim().isNotEmpty ||
+          entryOrNull.morning.focus.trim().isNotEmpty;
+
+      final hasEveningData =
+          entryOrNull.evening.good.trim().isNotEmpty ||
+          entryOrNull.evening.learned.trim().isNotEmpty ||
+          entryOrNull.evening.improve.trim().isNotEmpty;
+
+      final hasRatings =
+          entryOrNull.ratingFocus != null ||
+          entryOrNull.ratingEnergy != null ||
+          entryOrNull.ratingHappiness != null;
+
+      final hasPlanning =
+          entryOrNull.planning.goals.any((g) => g.trim().isNotEmpty) ||
+          entryOrNull.planning.todos.any((t) => t.trim().isNotEmpty);
+
+      // Überspringe leere Placeholder-Dokumente
+      if (!hasMorningData && !hasEveningData && !hasRatings && !hasPlanning) {
+        continue;
+      }
 
       double dayScore = 0;
 
