@@ -1,4 +1,4 @@
-# Release Notes v1.4.0 - Week Screen Redesign
+# Release Notes v1.5.0 - Week Screen Redesign
 
 ## 🎉 Major Features
 
