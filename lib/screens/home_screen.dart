@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/entry_providers.dart';
 import '../providers/pending_providers.dart';
+import '../providers/habit_providers.dart';
 import './day_screen.dart';
 import './week_screen.dart';
 import './habit_screen.dart';
@@ -41,11 +42,26 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           Consumer(
             builder: (context, ref, _) {
-              final snap = ref.watch(todayDocProvider).valueOrNull;
-              final pendingMeta = snap?.metadata.hasPendingWrites ?? false;
-              final pendingLocal = ref.watch(appPendingProvider);
-              final pending = pendingLocal || pendingMeta;
-              final fromCache = snap?.metadata.isFromCache ?? false;
+              // Tab-spezifischer Sync-Status
+              final bool pending;
+              final bool fromCache;
+
+              if (_index == 2) {
+                // Habit-Tab: verwende habitsSyncStatusProvider
+                final habitSyncStatus = ref.watch(habitsSyncStatusProvider);
+                final isSynced = habitSyncStatus.value ?? true;
+                pending = !isSynced;
+                fromCache =
+                    false; // Habits haben keinen expliziten Cache-Status
+              } else {
+                // Day/Week-Tabs: verwende todayDocProvider
+                final snap = ref.watch(todayDocProvider).valueOrNull;
+                final pendingMeta = snap?.metadata.hasPendingWrites ?? false;
+                final pendingLocal = ref.watch(appPendingProvider);
+                pending = pendingLocal || pendingMeta;
+                fromCache = snap?.metadata.isFromCache ?? false;
+              }
+
               final cs = Theme.of(context).colorScheme;
               late String text;
               late Color bg;
