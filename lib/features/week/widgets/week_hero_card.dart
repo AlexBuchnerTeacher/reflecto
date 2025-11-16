@@ -29,22 +29,6 @@ class WeekHeroCard extends StatelessWidget {
       padding: const EdgeInsets.all(ReflectoSpacing.s24),
       child: Column(
         children: [
-          // Wocheninfo
-          Text(
-            weekLabel,
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: ReflectoSpacing.s4),
-          Text(
-            dateRange,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
-          ),
-          const SizedBox(height: ReflectoSpacing.s24),
-
           // Kreisförmiger Fortschritt
           SizedBox(
             width: 180,

@@ -45,10 +45,15 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
     List<JournalEntry> entries,
     DateTimeRange range,
   ) {
-    if (entries.isEmpty) return 0.0;
-
+    // Auch bei 0 Entries sinnvollen Wert zurückgeben
     double totalScore = 0;
     const maxScorePerDay = 12.0; // 6 Textfelder + 3 Ratings + 3 für Planung
+
+    // Erstelle Map für schnelleren Zugriff
+    final entryMap = <String, JournalEntry>{};
+    for (final entry in entries) {
+      entryMap[entry.id] = entry;
+    }
 
     for (var i = 0; i < 7; i++) {
       final day = range.start.add(Duration(days: i));
@@ -58,10 +63,7 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
       final entryId = '$year-$month-$dayStr';
 
       // Suche Entry für diesen Tag
-      final entryOrNull = entries.cast<JournalEntry?>().firstWhere(
-        (e) => e?.id == entryId,
-        orElse: () => null,
-      );
+      final entryOrNull = entryMap[entryId];
 
       if (entryOrNull == null) continue;
 
@@ -157,20 +159,6 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
                         _anchor = DateTime.now();
                       });
                     },
-                    onPickDate: () async {
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: _anchor,
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                      );
-                      if (picked != null) {
-                        if (!mounted) return;
-                        setState(() {
-                          _anchor = picked;
-                        });
-                      }
-                    },
                   ),
                   const SizedBox(height: ReflectoSpacing.s16),
                   Expanded(
@@ -199,8 +187,7 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
                             WeekHeroCard(
                               completionPercent: completionPercent,
                               weekLabel: weekId,
-                              dateRange:
-                                  '${_formatDate(range.start)} - ${_formatDate(range.end)}',
+                              dateRange: '', // Nicht mehr benötigt
                             ),
                             const SizedBox(height: ReflectoSpacing.s16),
 

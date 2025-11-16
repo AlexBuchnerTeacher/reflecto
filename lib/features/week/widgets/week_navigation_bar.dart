@@ -3,14 +3,13 @@ import '../../../theme/tokens.dart';
 
 /// Navigations-Header für die Wochenansicht.
 ///
-/// Zeigt Pfeile (links/rechts), Wochennummer + Datumsbereich, Heute-Button und Kalender-Picker.
+/// Zeigt Pfeile (links/rechts), Wochennummer + Datumsbereich und Heute-Button.
 class WeekNavigationBar extends StatelessWidget {
   final String weekId;
   final String formattedRange;
   final VoidCallback onPrevious;
   final VoidCallback onNext;
   final VoidCallback onToday;
-  final VoidCallback onPickDate;
 
   const WeekNavigationBar({
     super.key,
@@ -19,7 +18,6 @@ class WeekNavigationBar extends StatelessWidget {
     required this.onPrevious,
     required this.onNext,
     required this.onToday,
-    required this.onPickDate,
   });
 
   @override
@@ -47,24 +45,12 @@ class WeekNavigationBar extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: ReflectoSpacing.s12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              formattedRange,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.secondary,
-              ),
-            ),
-            const SizedBox(width: ReflectoSpacing.s12),
-            TextButton(onPressed: onToday, child: const Text('Heute')),
-            IconButton(
-              tooltip: 'Woche wählen',
-              icon: const Icon(Icons.calendar_month_outlined),
-              onPressed: onPickDate,
-            ),
-          ],
+        const SizedBox(height: ReflectoSpacing.s8),
+        Center(
+          child: TextButton(
+            onPressed: onToday,
+            child: const Text('Zur aktuellen Woche'),
+          ),
         ),
       ],
     );
