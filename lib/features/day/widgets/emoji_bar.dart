@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../theme/tokens.dart';
 
 class EmojiBar extends StatelessWidget {
   final String label;
@@ -24,8 +25,8 @@ class EmojiBar extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
-        const SizedBox(height: 8),
+        Text(label, style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: ReflectoSpacing.s8),
         Wrap(
           spacing: 12,
           runSpacing: 8,

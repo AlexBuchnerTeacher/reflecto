@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../widgets/emoji_bar.dart';
 import '../widgets/labeled_field.dart';
 import '../../../widgets/reflecto_card.dart';
+import '../../../theme/tokens.dart';
 
 class EveningSection extends StatelessWidget {
   final bool expanded;
@@ -105,7 +106,7 @@ class EveningSection extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: ReflectoSpacing.s8),
               Flexible(
                 child: FittedBox(
                   fit: BoxFit.scaleDown,

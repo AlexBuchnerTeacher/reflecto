@@ -25,7 +25,7 @@ class DayStreakWidget extends StatelessWidget {
       child: Center(
         child: Text(
           '🔥 Streak: $current Tage in Folge$suffix',
-          style: const TextStyle(fontWeight: FontWeight.w700),
+          style: Theme.of(context).textTheme.titleMedium,
         ),
       ),
     );

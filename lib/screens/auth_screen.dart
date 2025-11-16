@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../widgets/reflecto_button.dart';
 import '../services/auth_service.dart';
+import '../theme/tokens.dart';
 
 class AuthScreen extends StatefulWidget {
   static const routeName = '/auth';
@@ -45,29 +46,30 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final maxWidth = 820.0;
     return Scaffold(
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: maxWidth),
+            constraints: const BoxConstraints(
+              maxWidth: ReflectoBreakpoints.contentMax,
+            ),
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(ReflectoSpacing.s24),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
+                  Text(
                     'Willkommen bei Reflecto',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
+                    style: Theme.of(context).textTheme.headlineMedium,
                   ),
-                  const SizedBox(height: 12),
-                  const Text(
+                  const SizedBox(height: ReflectoSpacing.s12),
+                  Text(
                     'Reflektiere deinen Tag und deine Woche.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, height: 1.4),
+                    style: Theme.of(context).textTheme.bodyLarge,
                   ),
                   const SizedBox(height: 32),
 
@@ -82,7 +84,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: ReflectoSpacing.s12),
 
                   // Password
                   TextField(
@@ -95,7 +97,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: ReflectoSpacing.s16),
 
                   // Email actions
                   Row(
@@ -113,7 +115,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                 ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: ReflectoSpacing.s12),
                       Expanded(
                         child: ReflectoButton(
                           text: 'Registrieren',
@@ -130,9 +132,9 @@ class _AuthScreenState extends State<AuthScreen> {
                     ],
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: ReflectoSpacing.s16),
                   const Divider(height: 1),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: ReflectoSpacing.s16),
 
                   // Google
                   ReflectoButton(
@@ -144,7 +146,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
 
                   if (_loading) ...[
-                    const SizedBox(height: 20),
+                    const SizedBox(height: ReflectoSpacing.s24),
                     const Center(child: CircularProgressIndicator()),
                   ],
                 ],

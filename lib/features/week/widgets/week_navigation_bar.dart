@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../theme/tokens.dart';
 
 /// Navigations-Header für die Wochenansicht.
 ///
@@ -46,7 +47,7 @@ class WeekNavigationBar extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: ReflectoSpacing.s12),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -56,7 +57,7 @@ class WeekNavigationBar extends StatelessWidget {
                 color: Theme.of(context).colorScheme.secondary,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: ReflectoSpacing.s12),
             TextButton(onPressed: onToday, child: const Text('Heute')),
             IconButton(
               tooltip: 'Woche wählen',

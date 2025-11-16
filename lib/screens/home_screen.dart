@@ -83,11 +83,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   child: Text(
                     text,
-                    style: TextStyle(
-                      color: fg,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.labelSmall?.copyWith(color: fg),
                   ),
                 ),
               );

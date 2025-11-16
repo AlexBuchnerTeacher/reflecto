@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../theme/tokens.dart';
 
 class LabeledField extends StatelessWidget {
   final String label;
@@ -23,8 +24,8 @@ class LabeledField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
-        const SizedBox(height: 6),
+        Text(label, style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: ReflectoSpacing.s8),
         TextField(
           controller: controller,
           focusNode: focusNode,

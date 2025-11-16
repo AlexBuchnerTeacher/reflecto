@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import '../../../widgets/reflecto_card.dart';
 import '../../../widgets/reflecto_button.dart';
 import '../../../services/export_import_service.dart';
+import '../../../theme/tokens.dart';
 
 /// Export-Card: Buttons für JSON- und Markdown-Export in Zwischenablage.
 class WeekExportCard extends StatelessWidget {
@@ -22,7 +23,7 @@ class WeekExportCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Export', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
+          const SizedBox(height: ReflectoSpacing.s8),
           Row(
             children: [
               Expanded(
@@ -40,7 +41,7 @@ class WeekExportCard extends StatelessWidget {
                   },
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: ReflectoSpacing.s12),
               Expanded(
                 child: ReflectoButton(
                   text: 'Markdown kopieren',

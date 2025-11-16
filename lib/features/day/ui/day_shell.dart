@@ -172,7 +172,7 @@ class DayShell extends StatelessWidget {
                               onRatingChanged: props.onMorningRatingChanged,
                               onTextChanged: props.onMorningTextChanged,
                             ),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: ReflectoSpacing.s24),
                             EveningSection(
                               expanded: props.expEvening,
                               onToggleExpanded: props.onToggleEvening,
@@ -200,7 +200,7 @@ class DayShell extends StatelessWidget {
                               onMoveGoalToTomorrow: props.onMoveGoalToTomorrow,
                               onMoveTodoToTomorrow: props.onMoveTodoToTomorrow,
                             ),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: ReflectoSpacing.s24),
                             PlanningSection(
                               expanded: props.expPlanning,
                               onToggleExpanded: props.onTogglePlanning,
@@ -223,8 +223,7 @@ class DayShell extends StatelessWidget {
                               onReflectionChanged: props.onReflectionChanged,
                               onNotesChanged: props.onNotesChanged,
                             ),
-                            const SizedBox(height: 8),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: ReflectoSpacing.s8),
                             Consumer(
                               builder:
                                   (BuildContext context, WidgetRef ref, _) {
