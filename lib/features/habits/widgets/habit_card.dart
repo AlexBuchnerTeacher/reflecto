@@ -68,13 +68,13 @@ class HabitCard extends ConsumerWidget {
               Checkbox(
                 value: isCompletedToday,
                 onChanged: canToggleToday
-                    ? (value) {
+                    ? (value) async {
                         if (value == true) {
-                          ref
+                          await ref
                               .read(habitNotifierProvider.notifier)
                               .markCompleted(habit.id, today);
                         } else {
-                          ref
+                          await ref
                               .read(habitNotifierProvider.notifier)
                               .markUncompleted(habit.id, today);
                         }

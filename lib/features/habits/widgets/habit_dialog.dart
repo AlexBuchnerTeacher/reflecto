@@ -87,37 +87,45 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
 
     final notifier = ref.read(habitNotifierProvider.notifier);
 
-    if (widget.habit == null) {
-      // Neues Habit erstellen
-      await notifier.createHabit(
-        title: _titleCtrl.text.trim(),
-        category: _categoryCtrl.text.trim(),
-        color: _color,
-        frequency: _frequency,
-        reminderTime: _reminderTimeCtrl?.text.trim().isEmpty == true
-            ? null
-            : _reminderTimeCtrl?.text.trim(),
-        weekdays: _frequency == 'weekly_days' ? _weekdays.toList() : null,
-        weeklyTarget: _frequency == 'weekly_target' ? _weeklyTarget : null,
-      );
-    } else {
-      // Bestehendes Habit aktualisieren
-      await notifier.updateHabit(
-        habitId: widget.habit!.id,
-        title: _titleCtrl.text.trim(),
-        category: _categoryCtrl.text.trim(),
-        color: _color,
-        frequency: _frequency,
-        reminderTime: _reminderTimeCtrl?.text.trim().isEmpty == true
-            ? null
-            : _reminderTimeCtrl?.text.trim(),
-        weekdays: _frequency == 'weekly_days' ? _weekdays.toList() : <int>[],
-        weeklyTarget: _frequency == 'weekly_target' ? _weeklyTarget : null,
-      );
-    }
+    try {
+      if (widget.habit == null) {
+        // Neues Habit erstellen
+        await notifier.createHabit(
+          title: _titleCtrl.text.trim(),
+          category: _categoryCtrl.text.trim(),
+          color: _color,
+          frequency: _frequency,
+          reminderTime: _reminderTimeCtrl?.text.trim().isEmpty == true
+              ? null
+              : _reminderTimeCtrl?.text.trim(),
+          weekdays: _frequency == 'weekly_days' ? _weekdays.toList() : null,
+          weeklyTarget: _frequency == 'weekly_target' ? _weeklyTarget : null,
+        );
+      } else {
+        // Bestehendes Habit aktualisieren
+        await notifier.updateHabit(
+          habitId: widget.habit!.id,
+          title: _titleCtrl.text.trim(),
+          category: _categoryCtrl.text.trim(),
+          color: _color,
+          frequency: _frequency,
+          reminderTime: _reminderTimeCtrl?.text.trim().isEmpty == true
+              ? null
+              : _reminderTimeCtrl?.text.trim(),
+          weekdays: _frequency == 'weekly_days' ? _weekdays.toList() : <int>[],
+          weeklyTarget: _frequency == 'weekly_target' ? _weeklyTarget : null,
+        );
+      }
 
-    if (mounted) {
-      Navigator.of(context).pop();
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Fehler beim Speichern: $e')));
+      }
     }
   }
 
