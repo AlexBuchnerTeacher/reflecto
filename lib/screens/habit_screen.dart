@@ -27,31 +27,26 @@ class HabitScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            const Text('Meine Gewohnheiten'),
-            const SizedBox(width: 8),
-            if (!isSynced)
-              const Tooltip(
-                message: 'Synchronisiere...',
-                child: SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              )
-            else
-              Tooltip(
-                message: 'Synchronisiert',
-                child: Icon(
-                  Icons.cloud_done,
-                  size: 20,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-          ],
-        ),
+        title: const Text('Meine Gewohnheiten'),
         actions: [
+          // Sync-Status Chip
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Chip(
+              avatar: Icon(
+                isSynced ? Icons.cloud_done : Icons.cloud_sync,
+                size: 18,
+                color: isSynced
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.onSurfaceVariant,
+              ),
+              label: Text(
+                isSynced ? 'Gespeichert' : 'Speichert...',
+                style: theme.textTheme.labelSmall,
+              ),
+              visualDensity: VisualDensity.compact,
+            ),
+          ),
           if (_isAdmin(uid))
             IconButton(
               tooltip: 'Vorlagen einspielen (Debug)',
