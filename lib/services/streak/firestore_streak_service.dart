@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
 import '../entry/firestore_entry_service.dart';
+import '../utils/firestore_date_utils.dart';
 
 /// Service für Streak-Management (Abendabschluss -> Streak aktualisieren).
 class FirestoreStreakService {
@@ -26,9 +27,9 @@ class FirestoreStreakService {
         true,
       );
 
-      final todayId = FirestoreEntryService.instance.formatDate(date);
+      final todayId = FirestoreDateUtils.formatDate(date);
       final yesterday = date.subtract(const Duration(days: 1));
-      final yId = FirestoreEntryService.instance.formatDate(yesterday);
+      final yId = FirestoreDateUtils.formatDate(yesterday);
 
       final ySnap = await FirestoreEntryService.instance
           .entryRef(uid, yesterday)
