@@ -486,12 +486,12 @@ class _DayScreenState extends ConsumerState<DayScreen> {
           setState: (fn) => setState(fn),
           debouncedUpdate:
               ({
-                required String uid,
-                required DateTime date,
-                required String fieldPath,
-                required dynamic value,
-                String? alsoAggregateTo,
-                String Function()? aggregateBuilder,
+                required uid,
+                required date,
+                required fieldPath,
+                required value,
+                alsoAggregateTo,
+                aggregateBuilder,
               }) => _debouncedUpdate(
                 uid: uid,
                 date: date,

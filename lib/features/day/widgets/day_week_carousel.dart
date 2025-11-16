@@ -15,7 +15,7 @@ class DayWeekCarousel extends StatelessWidget {
     final base = DateTime(center.year, center.month, center.day);
     return List<DateTime>.generate(
       radius * 2 + 1,
-      (int i) => base.add(Duration(days: i - radius)),
+      (i) => base.add(Duration(days: i - radius)),
     );
   }
 
@@ -27,11 +27,11 @@ class DayWeekCarousel extends StatelessWidget {
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          for (final DateTime d in days)
+          for (final d in days)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: Builder(
-                builder: (BuildContext context) {
+                builder: (context) {
                   final bool isSel = DateUtils.isSameDay(d, selected);
                   final bool isToday = DateUtils.isSameDay(d, DateTime.now());
                   return ChoiceChip(
