@@ -10,6 +10,7 @@ import '../features/week/widgets/week_navigation_bar.dart';
 import '../features/week/widgets/week_stats_card.dart';
 import '../features/week/widgets/week_export_card.dart';
 import '../features/week/widgets/week_ai_analysis_card.dart';
+import '../features/day/widgets/day_week_carousel.dart';
 import '../theme/tokens.dart';
 
 /// Wochenübersicht: Statistiken, Export, KI-Auswertung
@@ -22,11 +23,13 @@ class WeekScreen extends ConsumerStatefulWidget {
 
 class _WeekScreenState extends ConsumerState<WeekScreen> {
   late DateTime _anchor; // beliebiger Tag in der Woche
+  late DateTime _selectedDay; // im Karussell ausgewählter Tag
 
   @override
   void initState() {
     super.initState();
     _anchor = DateTime.now();
+    _selectedDay = DateTime.now();
   }
 
   String _formatDate(DateTime d) =>
@@ -60,20 +63,25 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
                   WeekNavigationBar(
                     weekId: weekId,
                     formattedRange:
-                        '${_formatDate(range.start)}  ${_formatDate(range.end)}',
+                        '${_formatDate(range.start)} - ${_formatDate(range.end)}',
                     onPrevious: () {
                       setState(() {
                         _anchor = _anchor.subtract(const Duration(days: 7));
+                        _selectedDay = range.start.subtract(
+                          const Duration(days: 7),
+                        );
                       });
                     },
                     onNext: () {
                       setState(() {
                         _anchor = _anchor.add(const Duration(days: 7));
+                        _selectedDay = range.start.add(const Duration(days: 7));
                       });
                     },
                     onToday: () {
                       setState(() {
                         _anchor = DateTime.now();
+                        _selectedDay = DateTime.now();
                       });
                     },
                     onPickDate: () async {
@@ -87,11 +95,30 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
                         if (!mounted) return;
                         setState(() {
                           _anchor = picked;
+                          _selectedDay = picked;
                         });
                       }
                     },
                   ),
-                  const SizedBox(height: ReflectoSpacing.s8),
+                  const SizedBox(height: ReflectoSpacing.s16),
+                  // Wochenkarussell (7 Tage)
+                  DayWeekCarousel(
+                    selected: _selectedDay,
+                    onSelected: (date) {
+                      setState(() {
+                        _selectedDay = date;
+                        // Woche wechseln wenn Tag außerhalb der aktuellen Woche
+                        final currentRange = FirestoreService.weekRangeFrom(
+                          _anchor,
+                        );
+                        if (date.isBefore(currentRange.start) ||
+                            date.isAfter(currentRange.end)) {
+                          _anchor = date;
+                        }
+                      });
+                    },
+                  ),
+                  const SizedBox(height: ReflectoSpacing.s16),
                   Expanded(
                     child: entriesAsync.when(
                       loading: () =>
