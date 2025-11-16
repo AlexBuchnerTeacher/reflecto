@@ -599,9 +599,21 @@ class _DayScreenState extends ConsumerState<DayScreen> {
             );
           },
           onGoalCheckChanged: (index, value) async {
+            // Optimistic Update: Update local state immediately to prevent toggle group bug
+            if (index < _yesterdayGoalChecks.length) {
+              setState(() {
+                _yesterdayGoalChecks[index] = value;
+              });
+            }
             await _syncLogic.updateGoalCompletion(uid, _selected, index, value);
           },
           onTodoCheckChanged: (index, value) async {
+            // Optimistic Update: Update local state immediately to prevent toggle group bug
+            if (index < _yesterdayTodoChecks.length) {
+              setState(() {
+                _yesterdayTodoChecks[index] = value;
+              });
+            }
             await _syncLogic.updateTodoCompletion(uid, _selected, index, value);
           },
 
