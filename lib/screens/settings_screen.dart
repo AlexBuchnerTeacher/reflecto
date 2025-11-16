@@ -18,46 +18,39 @@ class SettingsScreen extends ConsumerWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: maxWidth),
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(ReflectoSpacing.s24),
           child: ListView(
             shrinkWrap: true,
             children: [
-              const Text(
+              Text(
                 'Einstellungen',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+                style: Theme.of(context).textTheme.titleLarge,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: ReflectoSpacing.s8),
               const VersionInfo(),
-              const SizedBox(height: 24),
+              const SizedBox(height: ReflectoSpacing.s24),
 
               // Theme
-              const Text(
+              Text(
                 'Darstellung',
-                style: TextStyle(fontWeight: FontWeight.w600),
+                style: Theme.of(context).textTheme.titleMedium,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: ReflectoSpacing.s8),
               const ThemeSection(),
-              const SizedBox(height: 24),
+              const SizedBox(height: ReflectoSpacing.s24),
 
               // Profile
-              const Text(
-                'Profil',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
+              Text('Profil', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: ReflectoSpacing.s8),
               const ProfileSection(),
-
-              const SizedBox(height: 24),
+              const SizedBox(height: ReflectoSpacing.s24),
               const Divider(),
-              const SizedBox(height: 12),
+              const SizedBox(height: ReflectoSpacing.s12),
 
               // Wartung / Tools
-              const Text(
-                'Wartung',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
+              Text('Wartung', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: ReflectoSpacing.s8),
               const MaintenanceTools(),
             ],
           ),

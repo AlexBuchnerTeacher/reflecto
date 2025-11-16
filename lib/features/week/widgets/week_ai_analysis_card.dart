@@ -3,13 +3,15 @@ import 'package:flutter/material.dart';
 import '../../../widgets/reflecto_card.dart';
 import '../../../widgets/reflecto_button.dart';
 import '../../../services/firestore_service.dart';
+import '../../../models/weekly_reflection.dart';
 import '../../../services/export_import_service.dart';
+import '../../../theme/tokens.dart';
 
 /// KI-Auswertung/Notizen-Card: Textfeld für Import + Speichern-Button.
 class WeekAiAnalysisCard extends StatefulWidget {
   final String uid;
   final String weekId;
-  final Map<String, dynamic>? weeklyData;
+  final WeeklyReflection? weeklyData;
 
   const WeekAiAnalysisCard({
     super.key,
@@ -35,9 +37,9 @@ class _WeekAiAnalysisCardState extends State<WeekAiAnalysisCard> {
 
   @override
   Widget build(BuildContext context) {
-    final motto = widget.weeklyData?['motto'] as String?;
-    final summary = widget.weeklyData?['summaryText'] as String?;
-    final ai = widget.weeklyData?['aiAnalysis'];
+    final motto = widget.weeklyData?.motto;
+    final summary = widget.weeklyData?.summaryText;
+    final ai = widget.weeklyData?.aiAnalysis;
 
     return ReflectoCard(
       child: Column(
@@ -48,24 +50,24 @@ class _WeekAiAnalysisCardState extends State<WeekAiAnalysisCard> {
             style: Theme.of(context).textTheme.titleMedium,
           ),
           if (motto != null && motto.isNotEmpty) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: ReflectoSpacing.s8),
             Text(
               'Motto: $motto',
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ],
           if (summary != null && summary.isNotEmpty) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: ReflectoSpacing.s8),
             Text(summary),
           ],
           if (ai != null) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: ReflectoSpacing.s8),
             Text(
               'AI-Daten vorhanden',
               style: TextStyle(color: Theme.of(context).colorScheme.secondary),
             ),
           ],
-          const SizedBox(height: 12),
+          const SizedBox(height: ReflectoSpacing.s12),
           TextField(
             controller: _aiCtrl,
             maxLines: null,
@@ -76,7 +78,7 @@ class _WeekAiAnalysisCardState extends State<WeekAiAnalysisCard> {
               ),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: ReflectoSpacing.s8),
           Row(
             children: [
               Expanded(

@@ -28,6 +28,7 @@ Kurzer Überblick über die Design‑Tokens und Leitlinien. Ziel: konsistente, l
 - Titel: Lexend (fett), Hierarchien über Theme (`titleLarge`/`titleMedium`)
 - Fließtext: Inter (16/15/13), erhöhte Zeilenhöhe
 - Einheitliche Textfarben je Mode aus dem Theme
+ - Keine Inline-`TextStyle` für Größe/Gewicht, wenn eine passende Style im Theme existiert.
 
 ## Farben
 
@@ -55,6 +56,6 @@ Kurzer Überblick über die Design‑Tokens und Leitlinien. Ziel: konsistente, l
 ## Layout & Responsiveness
 
 - Contentbreite max. 820 px (Center + ConstrainedBox)
-- Spacing‑Stufen 4/8/12/16/24
-- Keine harten Hex‑Farben/Abstände in Widgets — statt dessen Tokens/Theme verwenden
+- Spacing‑Stufen 4/8/12/16/24 über `ReflectoSpacing` Tokens nutzen (`s4/s8/s12/s16/s24`).
+- Keine harten Hex‑Farben/Abstände in Widgets — statt dessen Tokens/Theme verwenden.
 
