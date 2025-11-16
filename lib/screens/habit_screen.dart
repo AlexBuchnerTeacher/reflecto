@@ -22,9 +22,35 @@ class HabitScreen extends ConsumerWidget {
     final uid = ref.watch(userIdProvider);
     final showOnlyDue = ref.watch(_showOnlyDueHabitsProvider);
 
+    final syncStatus = ref.watch(habitsSyncStatusProvider);
+    final isSynced = syncStatus.value ?? true;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Meine Gewohnheiten'),
+        title: Row(
+          children: [
+            const Text('Meine Gewohnheiten'),
+            const SizedBox(width: 8),
+            if (!isSynced)
+              const Tooltip(
+                message: 'Synchronisiere...',
+                child: SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              )
+            else
+              Tooltip(
+                message: 'Synchronisiert',
+                child: Icon(
+                  Icons.cloud_done,
+                  size: 20,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+          ],
+        ),
         actions: [
           if (_isAdmin(uid))
             IconButton(

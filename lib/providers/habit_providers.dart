@@ -20,6 +20,17 @@ final habitsProvider = StreamProvider.autoDispose<List<Habit>>((ref) {
   return service.watchHabits(uid);
 });
 
+/// Provider für Sync-Status (prüft ob pending writes existieren)
+final habitsSyncStatusProvider = StreamProvider.autoDispose<bool>((ref) {
+  final uid = ref.watch(userIdProvider);
+  if (uid == null) {
+    return Stream.value(true); // synced wenn nicht eingeloggt
+  }
+
+  final service = ref.watch(habitServiceProvider);
+  return service.watchHabitsSyncStatus(uid);
+});
+
 /// Provider für ein einzelnes Habit
 final habitProvider = StreamProvider.autoDispose.family<Habit?, String>((
   ref,

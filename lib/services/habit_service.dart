@@ -35,6 +35,14 @@ class HabitService {
         .map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
   }
 
+  /// Stream für Sync-Status (true = synced, false = pending writes)
+  Stream<bool> watchHabitsSyncStatus(String uid) {
+    return _habitsCollection(uid)
+        .orderBy('createdAt', descending: false)
+        .snapshots()
+        .map((snapshot) => !snapshot.metadata.hasPendingWrites);
+  }
+
   /// Einzelnes Habit abrufen
   Future<Habit?> getHabit(String uid, String habitId) async {
     final doc = await _habitsCollection(uid).doc(habitId).get();
