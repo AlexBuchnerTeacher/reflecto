@@ -29,22 +29,33 @@ class HabitScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Meine Gewohnheiten'),
         actions: [
-          // Sync-Status Chip
+          // Sync-Status wie im HomeScreen
           Padding(
             padding: const EdgeInsets.only(right: 8),
-            child: Chip(
-              avatar: Icon(
-                isSynced ? Icons.cloud_done : Icons.cloud_sync,
-                size: 18,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
                 color: isSynced
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.onSurfaceVariant,
+                    ? theme.colorScheme.secondaryContainer
+                    : theme.colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color:
+                      (isSynced
+                              ? theme.colorScheme.secondary
+                              : theme.colorScheme.primary)
+                          .withValues(alpha: 0.35),
+                  width: 1.2,
+                ),
               ),
-              label: Text(
-                isSynced ? 'Gespeichert' : 'Speichert...',
-                style: theme.textTheme.labelSmall,
+              child: Text(
+                isSynced ? '\u2713 Gespeichert' : 'Synchronisiere...',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: isSynced
+                      ? theme.colorScheme.onSecondaryContainer
+                      : theme.colorScheme.onPrimaryContainer,
+                ),
               ),
-              visualDensity: VisualDensity.compact,
             ),
           ),
           if (_isAdmin(uid))
