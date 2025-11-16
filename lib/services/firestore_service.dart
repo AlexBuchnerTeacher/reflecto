@@ -1,13 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show DateTimeRange;
 
 import '../models/journal_entry.dart';
 import '../models/user_model.dart';
+import 'user/firestore_user_service.dart';
 import 'entry/firestore_entry_service.dart';
 import 'planning/firestore_planning_service.dart';
 import 'streak/firestore_streak_service.dart';
 import 'weekly/firestore_weekly_service.dart';
+import 'utils/firestore_date_utils.dart';
 
 /// Zentrale Firestore-Serviceklasse (Singleton) für Journal-Operationen
 class FirestoreService {
@@ -15,9 +16,7 @@ class FirestoreService {
   static final FirestoreService instance = FirestoreService._();
   factory FirestoreService() => instance;
 
-  final CollectionReference<Map<String, dynamic>> _users = FirebaseFirestore
-      .instance
-      .collection('users');
+  // Nutzer-Collection wird nun durch die spezialisierten Services verwendet.
 
   DocumentReference<Map<String, dynamic>> entryRef(String uid, DateTime date) =>
       FirestoreEntryService.instance.entryRef(uid, date);
@@ -118,42 +117,10 @@ class FirestoreService {
   // Zusätzliche bestehende Helfer (Kompatibilität)
   // -------------------------------------------------
 
-  static int _isoWeekNumber(DateTime date) {
-    final thursday = date.add(Duration(days: 3 - ((date.weekday + 6) % 7)));
-    final firstThursday = DateTime(thursday.year, 1, 4);
-    return 1 + ((thursday.difference(firstThursday).inDays) / 7).floor();
-  }
-
-  static DateTime _mondayOfWeek(DateTime d) {
-    return DateTime(
-      d.year,
-      d.month,
-      d.day,
-    ).subtract(Duration(days: (d.weekday + 6) % 7));
-  }
-
-  static String weekIdFrom(DateTime d) {
-    final thursday = d.add(Duration(days: 3 - ((d.weekday + 6) % 7)));
-    final isoYear = thursday.year;
-    final week = _isoWeekNumber(d);
-    return '$isoYear-${FirestoreEntryService.instance.two(week)}';
-  }
-
-  static DateTimeRange weekRangeFrom(DateTime d) {
-    final monday = _mondayOfWeek(d);
-    final start = DateTime(monday.year, monday.month, monday.day, 0, 0, 0);
-    final endBase = monday.add(const Duration(days: 6));
-    final end = DateTime(
-      endBase.year,
-      endBase.month,
-      endBase.day,
-      23,
-      59,
-      59,
-      999,
-    );
-    return DateTimeRange(start: start, end: end);
-  }
+  // Datum-/Wochen-Helfer wurden in `FirestoreDateUtils` ausgelagert.
+  static String weekIdFrom(DateTime d) => FirestoreDateUtils.weekIdFrom(d);
+  static DateTimeRange weekRangeFrom(DateTime d) =>
+      FirestoreDateUtils.weekRangeFrom(d);
 
   Future<List<JournalEntry>> fetchWeekEntries(
     String uid,
@@ -182,54 +149,11 @@ class FirestoreService {
   }
 
   Future<void> saveUserData(AppUser user) async {
-    try {
-      final ref = _users.doc(user.uid);
-      final snap = await ref.get();
-      if (!snap.exists) {
-        // Create: write only known non-null fields + server timestamps.
-        final create = <String, dynamic>{
-          'uid': user.uid,
-          if (user.displayName != null) 'displayName': user.displayName,
-          if (user.email != null) 'email': user.email,
-          if (user.photoUrl != null) 'photoUrl': user.photoUrl,
-          'createdAt': FieldValue.serverTimestamp(),
-          'lastLoginAt': FieldValue.serverTimestamp(),
-        };
-        await ref.set(create, SetOptions(merge: true));
-      } else {
-        // Update: avoid overwriting createdAt; write only provided non-null fields.
-        final update = <String, dynamic>{
-          if (user.displayName != null) 'displayName': user.displayName,
-          if (user.email != null) 'email': user.email,
-          if (user.photoUrl != null) 'photoUrl': user.photoUrl,
-          'lastLoginAt': FieldValue.serverTimestamp(),
-        };
-        if (update.isNotEmpty) {
-          await ref.set(update, SetOptions(merge: true));
-        } else {
-          // Still refresh lastLoginAt if nothing else changes
-          await ref.set({
-            'lastLoginAt': FieldValue.serverTimestamp(),
-          }, SetOptions(merge: true));
-        }
-      }
-    } on FirebaseException catch (e) {
-      debugPrint('Firestore error (saveUserData): $e');
-      rethrow;
-    }
+    return FirestoreUserService.instance.saveUserData(user);
   }
 
   Future<AppUser?> getUser(String uid) async {
-    try {
-      final snap = await _users.doc(uid).get();
-      if (!snap.exists) return null;
-      final data = snap.data();
-      if (data == null) return null;
-      return AppUser.fromMap(data);
-    } on FirebaseException catch (e) {
-      debugPrint('Firestore error (getUser): $e');
-      rethrow;
-    }
+    return FirestoreUserService.instance.getUser(uid);
   }
 
   /// Verschiebt einen Eintrag aus der heutigen Planung (goals/todos)
