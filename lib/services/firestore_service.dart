@@ -6,6 +6,8 @@ import '../models/journal_entry.dart';
 import '../models/user_model.dart';
 import 'entry/firestore_entry_service.dart';
 import 'planning/firestore_planning_service.dart';
+import 'streak/firestore_streak_service.dart';
+import 'weekly/firestore_weekly_service.dart';
 
 /// Zentrale Firestore-Serviceklasse (Singleton) für Journal-Operationen
 class FirestoreService {
@@ -19,10 +21,6 @@ class FirestoreService {
 
   DocumentReference<Map<String, dynamic>> entryRef(String uid, DateTime date) =>
       FirestoreEntryService.instance.entryRef(uid, date);
-
-  static String _two(int n) => FirestoreEntryService.instance.two(n);
-  static String _formatDate(DateTime d) =>
-      FirestoreEntryService.instance.formatDate(d);
 
   /// Erstellt ein leeres Dokument für den Tag, wenn nicht vorhanden.
   Future<void> ensureEntry(String uid, DateTime date) async {
@@ -110,47 +108,10 @@ class FirestoreService {
     String uid,
     DateTime date,
   ) async {
-    try {
-      // Abend als completed markieren
-      await updateField(uid, date, 'evening.completed', true);
-
-      final todayId = _formatDate(date);
-      final yesterday = date.subtract(const Duration(days: 1));
-      final yId = _formatDate(yesterday);
-
-      final ySnap = await entryRef(uid, yesterday).get();
-      final yCompleted = (ySnap.data()?['evening']?['completed'] == true);
-
-      final streakRef = _users.doc(uid).collection('stats').doc('streak');
-      final snap = await streakRef.get();
-      final data = snap.data() ?? <String, dynamic>{};
-      final lastDate = data['lastEntryDate'] as String?;
-      final current = (data['streakCount'] is num)
-          ? (data['streakCount'] as num).toInt()
-          : 0;
-      final longest = (data['longestStreak'] is num)
-          ? (data['longestStreak'] as num).toInt()
-          : 0;
-
-      if (lastDate == todayId) {
-        return; // heute bereits gezählt
-      }
-
-      // Kette fortsetzen, wenn gestern abgeschlossen war und entweder
-      // lastDate genau gestern war (normaler Fluss) ODER lastDate noch fehlt (Neustart mit vorhandenem gestrigem Abschluss)
-      final shouldChain = yCompleted && (lastDate == yId || lastDate == null);
-      final next = shouldChain ? (current + 1) : 1;
-      final nextLongest = next > longest ? next : longest;
-      await streakRef.set({
-        'streakCount': next,
-        'longestStreak': nextLongest,
-        'lastEntryDate': todayId,
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-    } on FirebaseException catch (e) {
-      debugPrint('Firestore error (markEveningCompletedAndUpdateStreak): $e');
-      rethrow;
-    }
+    return FirestoreStreakService.instance.markEveningCompletedAndUpdateStreak(
+      uid,
+      date,
+    );
   }
 
   // -------------------------------------------------
@@ -175,7 +136,7 @@ class FirestoreService {
     final thursday = d.add(Duration(days: 3 - ((d.weekday + 6) % 7)));
     final isoYear = thursday.year;
     final week = _isoWeekNumber(d);
-    return '$isoYear-${_two(week)}';
+    return '$isoYear-${FirestoreEntryService.instance.two(week)}';
   }
 
   static DateTimeRange weekRangeFrom(DateTime d) {
@@ -206,24 +167,18 @@ class FirestoreService {
     String weekId,
     Map<String, dynamic> data,
   ) async {
-    try {
-      final ref = _users.doc(uid).collection('weekly_reflections').doc(weekId);
-      await ref.set({
-        ...data,
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-    } on FirebaseException catch (e) {
-      debugPrint('Firestore error (saveWeeklyReflection): $e');
-      rethrow;
-    }
+    return FirestoreWeeklyService.instance.saveWeeklyReflection(
+      uid,
+      weekId,
+      data,
+    );
   }
 
   Stream<Map<String, dynamic>?> weeklyReflectionStream(
     String uid,
     String weekId,
   ) {
-    final ref = _users.doc(uid).collection('weekly_reflections').doc(weekId);
-    return ref.snapshots().map((s) => s.data());
+    return FirestoreWeeklyService.instance.weeklyReflectionStream(uid, weekId);
   }
 
   Future<void> saveUserData(AppUser user) async {
