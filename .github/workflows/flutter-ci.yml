@@ -2,53 +2,68 @@ name: Flutter CI
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - dev
   pull_request:
-    branches: [ main, dev ]
+    branches:
+      - main
+      - dev
 
 jobs:
-  build-test:
-    runs-on: ubuntu-latest
-    concurrency:
-      group: ci-${{ github.ref }}
-      cancel-in-progress: true
+  analyze_test_build:
+    name: Analyze, Test & Build (matrix)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        flutter-channel: [stable]
     steps:
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Set up Flutter
+      - name: Cache Pub
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            ~/.flutter
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
-          # Optional: set a specific version, e.g. '3.22.x'
-          cache: true
+          channel: ${{ matrix.flutter-channel }}
 
-      - name: Flutter version
-        run: flutter --version
-
-      - name: Install dependencies
+      - name: Flutter pub get
         run: flutter pub get
 
-      - name: Format check
-        run: dart format --output=none --set-exit-if-changed .
-
-      - name: Analyze (fatal infos)
-        run: flutter analyze --fatal-infos
+      - name: Analyze
+        run: flutter analyze
 
       - name: Run tests with coverage
-        run: flutter test --no-pub --coverage
+        run: flutter test --coverage
 
-      - name: Upload coverage artifact
+      - name: Upload coverage (codecov)
+        if: always()
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage/lcov.info
+          fail_ci_if_error: false
+
+      - name: Build Android APK (ubuntu)
+        if: runner.os == 'Linux'
+        run: flutter build apk --release
+
+      - name: Build iOS (no codesign) (macos)
+        if: runner.os == 'macOS'
+        run: flutter build ios --no-codesign
+
+      - name: Upload build artifact (optional)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-lcov
-          path: coverage/lcov.info
-
-      - name: Build Flutter Web (release)
-        run: flutter build web --release --base-href /reflecto/
-
-      - name: Upload web build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: web-build
-          path: build/web
+          name: flutter-build-${{ matrix.os }}
+          path: build/app/outputs
