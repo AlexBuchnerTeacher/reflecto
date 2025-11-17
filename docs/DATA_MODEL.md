@@ -112,3 +112,38 @@ Hinweise:
 - Partial Updates via merge (nur geänderte Felder)
 - Anzeige im Day-Screen unter Morgen-Sektion
 
+## users/{uid}/weeklyStats (future)
+
+Wöchentliche Aggregationen und Statistiken (geplant für v1.6.0).
+
+**Geplante Felder:**
+- weekId: String (yyyy-ww)
+- totalHabits: int
+- completedHabits: int
+- completionRate: double (0.0-1.0)
+- streakCounts: Map<String, int> (habitId → streak)
+- topHabits: List<String> (habitIds mit höchster Completion)
+- flopHabits: List<String> (habitIds mit niedriger Completion)
+- updatedAt: Timestamp
+
+Hinweise:
+- Noch nicht implementiert (siehe #92, #101)
+- Berechnung erfolgt clientseitig oder via Cloud Functions
+- Snapshot am Sonntag 20:00 für Weekly Review
+
+## users/{uid}/userSettings (future)
+
+User-spezifische Einstellungen (geplant).
+
+**Geplante Felder:**
+- theme: String? ("light" | "dark" | "system")
+- notifications: bool (Push-Benachrichtigungen aktiviert)
+- weekStartDay: int (1=Mo, 7=So)
+- reminderTime: String? (Standard-Erinnerungszeit HH:mm)
+- language: String? (ISO 639-1, z.B. "de", "en")
+- updatedAt: Timestamp
+
+Hinweise:
+- Noch nicht implementiert
+- Aktuell: Einstellungen nur in UI-State (nicht persistiert)
+
