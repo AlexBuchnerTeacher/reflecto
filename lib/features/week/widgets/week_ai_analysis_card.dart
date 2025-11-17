@@ -111,7 +111,7 @@ class _WeekAiAnalysisCardState extends State<WeekAiAnalysisCard> {
                     final parsed = _exportSvc.tryParseAiAnalysis(input);
                     final toSave = parsed != null && parsed.containsKey('text')
                         ? {'aiAnalysisText': parsed['text']}
-                        : {'aiAnalysis': parsed};
+                        : {'aiAnalysisText': parsed?['text'] ?? input};
 
                     await _svc.saveWeeklyReflection(
                       widget.uid,
