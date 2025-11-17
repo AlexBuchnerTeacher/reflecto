@@ -1,50 +1,83 @@
-﻿# Reflecto
+# Reflecto
 
 [![Flutter CI](https://github.com/AlexBuchnerTeacher/reflecto/actions/workflows/flutter-ci.yml/badge.svg)](https://github.com/AlexBuchnerTeacher/reflecto/actions/workflows/flutter-ci.yml)
 [![Deploy Web](https://github.com/AlexBuchnerTeacher/reflecto/actions/workflows/gh-pages.yml/badge.svg)](https://github.com/AlexBuchnerTeacher/reflecto/actions/workflows/gh-pages.yml)
 
-Reflecto ist eine plattformÃ¼bergreifende Flutterâ€‘App (Web + Windows) fÃ¼r digitales Journaling und persÃ¶nliche Entwicklung.
+Reflecto ist eine plattformübergreifende Flutter‑App (Web, Desktop, Mobile) für digitales Journaling und persönliche Entwicklung.
 
+Kurz
 - Flutter: Material 3, Google Fonts (Inter)
 - State: Riverpod
 - Backend: Firebase (Auth, Firestore)
-- Features: Tagesplanung, Morgenâ€‘Checkâ€‘in, Abendreflexion, Ratings, Wochenreflexion mit Export (JSON/Markdown) und Import der KIâ€‘Auswertung
+- Features: Tagesplanung, Morgen‑Check‑in, Abendreflexion, Ratings, Wochenreflexion mit Export (JSON/Markdown) und Import der KI‑Auswertung
 
-## Entwicklung
+Schnellstart (lokal)
 
-- Voraussetzungen: Flutter Stable 3.22+, Dart SDK passend zur Flutterâ€‘Version
-- AbhÃ¤ngigkeiten laden: `flutter pub get`
-- Start Web: `flutter run -d chrome`
-- Start Windows: `flutter run -d windows`
+1. Voraussetzungen
+   - Flutter (stable), z. B. Flutter 3.22+ (install unter https://flutter.dev)
+   - Android Studio / Xcode für native Builds
+   - Optional: Firebase CLI (für Emulatoren / Deploy)
 
-## Theme
+2. Repository klonen
+```bash
+git clone https://github.com/AlexBuchnerTeacher/reflecto.git
+cd reflecto
+```
 
-Die zentralen Farben und Themes liegen in `lib/theme/reflecto_theme.dart` (Light/Dark, Material 3, konsistente Komponenten).
+3. Abhängigkeiten installieren
+```bash
+flutter pub get
+```
 
-## Firebase
+4. App starten
+- Web (Chrome):
+```bash
+flutter run -d chrome
+```
+- Windows:
+```bash
+flutter run -d windows
+```
+- Android / iOS:
+```bash
+flutter run -d <device-id>
+```
 
-`firebase_options.dart` ist vorhanden und wird verwendet. FÃ¼r Web bitte die autorisierten Domains in der Firebase Console pflegen.
+Tests
+```bash
+flutter test
+# Coverage (optional)
+flutter test --coverage
+```
 
-## Git
+Analyse / Format
+```bash
+flutter analyze
+flutter format .
+```
 
-- Standard `.gitignore` und `.gitattributes` sind enthalten (LFâ€‘Zeilenenden fÃ¼r Quelltexte).
+Entwicklung & Architektur (Kurzüberblick)
+- State-Management: Riverpod / AsyncNotifier (siehe lib/)
+- Datenpersistenz: Firebase Firestore; Firestore-Regeln in firestore.rules
+- Trennung: UI / Services / Providers — siehe lib/ für konkrete Ordnerstruktur
 
-## Live
+Firebase
+- firebase_options.dart ist enthalten. Für Web: autorisierte Domains in Firebase Console prüfen.
 
-- GitHub Pages: https://alexbuchnerteacher.github.io/reflecto/
-- Hinweis: FÃ¼r Login auf Web muss die Domain `alexbuchnerteacher.github.io` in Firebase Auth â†’ Authorized domains eingetragen sein.
-## Beitragen & Workflow
+Contributing
+- Fork → Branch → PR
+- Commit-Message: kurz + Issue-Nummer (z. B. `feat: add habit insights (#92)`)
+- Schreibe Tests für Business-Logic bei größeren Änderungen.
+- Siehe CONTRIBUTING.md für Details.
 
-Bitte vor PRs den Beitragsleitfaden lesen:
+CI / Releases
+- GitHub Actions: flutter analyze + tests + builds (vorgeschlagene Workflow: .github/workflows/flutter-ci.yml)
+- CHANGELOG.md und RELEASE_NOTES_v*.md für Releases; Release-Automation kann ergänzt werden.
 
-- CONTRIBUTING.md
+Security & License
+- Lizenz: MIT (LICENSE im Repo)
+- Keine Secrets / API-Keys im Repo: nutze GitHub Secrets
 
-Kernpunkte:
-- Über Feature-/Fix-Branches arbeiten; keine Direkt-Commits auf `main`.
-- Kleine, fokussierte PRs; CI (analyze/lint/tests) muss grün sein.
-- Conventional Commits mit Emojis (siehe Tabelle in CONTRIBUTING.md).
-
-Commit-Template (Conventional + Emoji) aktivieren:
-
-- Repo-lokal: `git config commit.template .github/commit_template.txt`
-- Optional global: Datei nach `~/.git-commit-template.txt` kopieren und `git config --global commit.template ~/.git-commit-template.txt`
+Nützliche Links
+- Issues: https://github.com/AlexBuchnerTeacher/reflecto/issues
+- Repo: https://github.com/AlexBuchnerTeacher/reflecto
