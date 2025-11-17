@@ -26,6 +26,10 @@ class _MealTrackerCardState extends ConsumerState<MealTrackerCard> {
   Timer? _lTimer;
   Timer? _dTimer;
 
+  String? _breakfastTime;
+  String? _lunchTime;
+  String? _dinnerTime;
+
   @override
   void dispose() {
     _bTimer?.cancel();
@@ -79,6 +83,12 @@ class _MealTrackerCardState extends ConsumerState<MealTrackerCard> {
             final bNote = log?.breakfastNote ?? '';
             final lNote = log?.lunchNote ?? '';
             final dNote = log?.dinnerNote ?? '';
+
+            // sync times from log
+            _breakfastTime = log?.breakfastTime ?? _getDefaultTime('breakfast');
+            _lunchTime = log?.lunchTime ?? _getDefaultTime('lunch');
+            _dinnerTime = log?.dinnerTime ?? _getDefaultTime('dinner');
+
             // sync controllers if not focused
             if (!_breakfastNode.hasFocus && _breakfastCtrl.text != bNote) {
               _breakfastCtrl.text = bNote;
@@ -190,30 +200,51 @@ class _MealTrackerCardState extends ConsumerState<MealTrackerCard> {
         ),
         const SizedBox(height: 12),
         if (breakfast)
-          _buildNoteField(
+          _buildNoteFieldWithTime(
             context,
-            hint: 'Was gab’s zum Frühstück?',
+            hint: 'Was gab\'s zum Frühstück?',
             controller: _breakfastCtrl,
             focusNode: _breakfastNode,
             onChanged: onBreakfastNote,
+            time: _breakfastTime ?? '06:30',
+            onTimeChanged: (time) {
+              setState(() => _breakfastTime = time);
+              ref
+                  .read(mealNotifierProvider.notifier)
+                  .setBreakfastTime(widget.date, time);
+            },
           ),
         if (breakfast) const SizedBox(height: 8),
         if (lunch)
-          _buildNoteField(
+          _buildNoteFieldWithTime(
             context,
-            hint: 'Was gab’s zu Mittag?',
+            hint: 'Was gab\'s zu Mittag?',
             controller: _lunchCtrl,
             focusNode: _lunchNode,
             onChanged: onLunchNote,
+            time: _lunchTime ?? '13:30',
+            onTimeChanged: (time) {
+              setState(() => _lunchTime = time);
+              ref
+                  .read(mealNotifierProvider.notifier)
+                  .setLunchTime(widget.date, time);
+            },
           ),
         if (lunch) const SizedBox(height: 8),
         if (dinner)
-          _buildNoteField(
+          _buildNoteFieldWithTime(
             context,
-            hint: 'Was gab’s am Abend?',
+            hint: 'Was gab\'s am Abend?',
             controller: _dinnerCtrl,
             focusNode: _dinnerNode,
             onChanged: onDinnerNote,
+            time: _dinnerTime ?? '19:00',
+            onTimeChanged: (time) {
+              setState(() => _dinnerTime = time);
+              ref
+                  .read(mealNotifierProvider.notifier)
+                  .setDinnerTime(widget.date, time);
+            },
           ),
         if (dinner) const SizedBox(height: 12),
         LinearProgressIndicator(
@@ -232,22 +263,54 @@ class _MealTrackerCardState extends ConsumerState<MealTrackerCard> {
     );
   }
 
-  Widget _buildNoteField(
+  Widget _buildNoteFieldWithTime(
     BuildContext context, {
     required String hint,
     required TextEditingController controller,
     required FocusNode focusNode,
     required ValueChanged<String> onChanged,
+    required String time,
+    required ValueChanged<String> onTimeChanged,
   }) {
-    return TextField(
-      controller: controller,
-      focusNode: focusNode,
-      onChanged: onChanged,
-      decoration: InputDecoration(
-        hintText: hint,
-        isDense: true,
-        border: const OutlineInputBorder(),
-      ),
+    return Row(
+      children: [
+        Expanded(
+          child: TextField(
+            controller: controller,
+            focusNode: focusNode,
+            onChanged: onChanged,
+            decoration: InputDecoration(
+              hintText: hint,
+              isDense: true,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        OutlinedButton.icon(
+          onPressed: () async {
+            final parts = time.split(':');
+            final initialTime = TimeOfDay(
+              hour: int.tryParse(parts[0]) ?? 12,
+              minute: int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0,
+            );
+            final picked = await showTimePicker(
+              context: context,
+              initialTime: initialTime,
+            );
+            if (picked != null) {
+              final formatted =
+                  '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+              onTimeChanged(formatted);
+            }
+          },
+          icon: const Icon(Icons.access_time, size: 18),
+          label: Text(time),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          ),
+        ),
+      ],
     );
   }
 
@@ -264,5 +327,21 @@ class _MealTrackerCardState extends ConsumerState<MealTrackerCard> {
       selected: selected,
       onSelected: onSelected,
     );
+  }
+
+  /// Berechnet Standardzeit basierend auf Mahlzeit-Typ und Wochentag
+  String _getDefaultTime(String mealType) {
+    final isWeekend = widget.date.weekday >= 6; // Sa=6, So=7
+
+    switch (mealType) {
+      case 'breakfast':
+        return isWeekend ? '09:00' : '06:30';
+      case 'lunch':
+        return isWeekend ? '14:00' : '13:30';
+      case 'dinner':
+        return '19:00'; // Gleich für Woche und WE
+      default:
+        return '12:00';
+    }
   }
 }

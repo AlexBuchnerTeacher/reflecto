@@ -13,6 +13,11 @@ class MealLog {
   final String? lunchNote;
   final String? dinnerNote;
 
+  /// Zeitstempel für Mahlzeiten im Format "HH:mm"
+  final String? breakfastTime;
+  final String? lunchTime;
+  final String? dinnerTime;
+
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -24,6 +29,9 @@ class MealLog {
     this.breakfastNote,
     this.lunchNote,
     this.dinnerNote,
+    this.breakfastTime,
+    this.lunchTime,
+    this.dinnerTime,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -37,6 +45,9 @@ class MealLog {
       breakfastNote: map['breakfastNote'] as String?,
       lunchNote: map['lunchNote'] as String?,
       dinnerNote: map['dinnerNote'] as String?,
+      breakfastTime: map['breakfastTime'] as String?,
+      lunchTime: map['lunchTime'] as String?,
+      dinnerTime: map['dinnerTime'] as String?,
       createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (map['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
@@ -50,6 +61,9 @@ class MealLog {
       if (breakfastNote != null) 'breakfastNote': breakfastNote,
       if (lunchNote != null) 'lunchNote': lunchNote,
       if (dinnerNote != null) 'dinnerNote': dinnerNote,
+      if (breakfastTime != null) 'breakfastTime': breakfastTime,
+      if (lunchTime != null) 'lunchTime': lunchTime,
+      if (dinnerTime != null) 'dinnerTime': dinnerTime,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': FieldValue.serverTimestamp(),
     };
@@ -63,6 +77,9 @@ class MealLog {
     String? breakfastNote,
     String? lunchNote,
     String? dinnerNote,
+    String? breakfastTime,
+    String? lunchTime,
+    String? dinnerTime,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -74,6 +91,9 @@ class MealLog {
       breakfastNote: breakfastNote ?? this.breakfastNote,
       lunchNote: lunchNote ?? this.lunchNote,
       dinnerNote: dinnerNote ?? this.dinnerNote,
+      breakfastTime: breakfastTime ?? this.breakfastTime,
+      lunchTime: lunchTime ?? this.lunchTime,
+      dinnerTime: dinnerTime ?? this.dinnerTime,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
