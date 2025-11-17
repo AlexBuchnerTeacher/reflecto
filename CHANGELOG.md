@@ -2,6 +2,36 @@
 
 Alle nennenswerten Änderungen an Reflecto.
 
+## v1.5.1 (2025-11-17)
+
+### Dokumentation
+- **ARCHITECTURE.md**: Umfassende Überarbeitung mit Riverpod-Patterns, Services, UI-Layer-Struktur, 50% Test-Coverage-Target
+- **DATA_MODEL.md**: Aktualisiert mit habits, meals, weeklyReflections; Future Collections (weeklyStats, userSettings) dokumentiert
+- **LABELS.md**: GitHub Label-Standards für Issues/PRs (Typ, Bereich, Status, Best Practices)
+- **ROADMAP.md**: Milestone-basierte Roadmap (v1.5.0 → v2.0.0) statt Phase-Modell
+
+### Tests
+- **habit_service_test.dart**: 40+ Test-Cases für HabitService
+  - Streak-Berechnung (aufeinanderfolgende Tage, Lücken, Edge Cases)
+  - Scheduling-Logik (daily, weekly_days, weekly_target, irregular)
+  - Wöchentliche Completion-Zählung
+  - Geplante Tage pro Woche
+  - Completion-Status-Checks
+
+### Geschlossene Issues
+- #103: Tests – Kernlogik (Streaks, Sorting, Week)
+- #105: Documentation – Firestore Schema
+- #106: Repo Standards – Templates + Cleanup
+- #108: Dokumentation – ARCHITECTURE.md
+
+### Geschlossene Milestones
+- ✅ v1.4.0 (Habit Tracker)
+- ✅ v1.4.1 (Follow-ups)
+- ✅ v1.5.0 (KI-Auswertung, Documentation)
+
+### Dependencies
+- chore(deps): bump http from 1.5.0 to 1.6.0 (#90)
+
 ## v1.4.0 (2025-11-16)
 
 ### Habit Tracker (#57)
