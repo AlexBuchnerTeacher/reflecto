@@ -1,12 +1,13 @@
 # Reflecto Roadmap 2025
 
-Diese Roadmap definiert die strategischen Entwicklungsphasen für Reflecto im Jahr 2025.
+Diese Roadmap definiert die strategischen Entwicklungsmilestones für Reflecto im Jahr 2025.
 
 ---
 
-## 📋 Phase 1 – Foundation & Stability (Q4 2024 - Q1 2025)
+## 📋 v1.5.0 – Foundation & Stability
 
-**Status:** ✅ **Abgeschlossen** (v1.5.0)
+**Status:** ✅ **Abgeschlossen**  
+**Milestone:** [v1.5.0](https://github.com/AlexBuchnerTeacher/reflecto/milestone/5)
 
 ### Ziel
 Stabile technische Basis mit CI/CD, Tests und sauberer Dokumentation.
@@ -28,7 +29,7 @@ Stabile technische Basis mit CI/CD, Tests und sauberer Dokumentation.
   - Streak Tracking
   - Daily Completion
 
-### In Progress
+### In Progress (Teil von v1.5.0)
 - 📖 Dokumentation (#105, #106, #108)
   - [ ] ARCHITECTURE.md
   - [ ] Firestore Schema Dokumentation
@@ -41,9 +42,10 @@ Stabile technische Basis mit CI/CD, Tests und sauberer Dokumentation.
 
 ---
 
-## 🚀 Phase 2 – Productivity MVP (Q1 2025)
+## 🚀 v1.6.0 – Productivity MVP
 
-**Status:** 🔄 **In Planung**
+**Status:** 🔄 **In Planung**  
+**Milestone:** [v1.6.0](https://github.com/AlexBuchnerTeacher/reflecto/milestone/7)
 
 ### Ziel
 Ein stabiler DayScreen mit Smart Feedback, intelligenter Priorisierung und Weekly Review.  
@@ -124,40 +126,10 @@ Wöchentliche Erfolgsübersicht mit Streaks, Quote, Top/Flop-Habits.
 
 ---
 
-## 📚 Phase 2.5 – Documentation & Quality (parallel zu Phase 2)
+## 🎯 v1.7.0 – Scaling & UX
 
-### Dokumentation
-- **#108** - ARCHITECTURE.md
-  - Riverpod State-Management
-  - Provider-Struktur
-  - Services (Firestore, Auth)
-  - UI-Layer
-  - Sync-Flow (Tag, Woche)
-  
-- **#105** - Firestore Schema
-  - `habits` Collection
-  - `weeklyStats`
-  - `userSettings`
-  - Felder + Datentypen
-  - Migration Hinweise
-
-- **#106** - Repo Standards
-  - Issue Templates
-  - Pull Request Templates
-  - Label-Standards
-  - CONTRIBUTING Update
-
-### Testing (#103)
-- Streak-Tests
-- Smart Sorting Tests
-- Weekly-Completion Tests
-- Coverage: 50%+
-
----
-
-## 🎯 Phase 3 – Scaling & UX (Q2 2025)
-
-**Status:** 🔮 **Future**
+**Status:** 🔮 **Geplant**  
+**Milestone:** [v1.7.0](https://github.com/AlexBuchnerTeacher/reflecto/milestone/8)
 
 ### Planned Features
 - Offline-Strategie (Caching)
@@ -177,9 +149,10 @@ Wöchentliche Erfolgsübersicht mit Streaks, Quote, Top/Flop-Habits.
 
 ---
 
-## 🌟 Phase 4 – Future Options (Q3-Q4 2025)
+## 🌟 v2.0.0 – Future Vision
 
-**Status:** 🔮 **Vision**
+**Status:** 🔮 **Vision**  
+**Milestone:** [v2.0.0](https://github.com/AlexBuchnerTeacher/reflecto/milestone/9)
 
 ### Automation
 - Release-Automation
@@ -200,9 +173,9 @@ Wöchentliche Erfolgsübersicht mit Streaks, Quote, Top/Flop-Habits.
 
 ---
 
-## 🎯 MVP Output (Phase 1 + 2)
+## 🎯 MVP Output (v1.5.0 + v1.6.0)
 
-Wenn Phase 1 und 2 abgeschlossen sind, haben wir:
+Wenn v1.5.0 und v1.6.0 abgeschlossen sind, haben wir:
 
 ✅ **Stabiler DayScreen** mit Analytics  
 ✅ **Intelligente Habit-Reihenfolge**  
@@ -229,11 +202,11 @@ Wenn Phase 1 und 2 abgeschlossen sind, haben wir:
 
 Diese Features sind **bewusst nicht** im MVP enthalten:
 
-- ❌ Push Notifications (kommt Phase 3)
-- ❌ Offline-First (kommt Phase 3)
-- ❌ Crashlytics (kommt Phase 3)
-- ❌ Dark Mode (kommt Phase 3)
-- ❌ Store-Pipelines (kommt Phase 4)
+- ❌ Push Notifications (kommt v1.7.0)
+- ❌ Offline-First (kommt v1.7.0)
+- ❌ Crashlytics (kommt v1.7.0)
+- ❌ Dark Mode (kommt v1.7.0)
+- ❌ Store-Pipelines (kommt v2.0.0)
 - ❌ i18n/Lokalisierung
 - ❌ Große Heatmaps / erweiterte Statistiken
 
@@ -241,42 +214,39 @@ Diese Features sind **bewusst nicht** im MVP enthalten:
 
 ## 📅 Timeline
 
-| Phase | Zeitraum | Status |
-|-------|----------|--------|
-| Phase 1 | Q4 2024 - Q1 2025 | ✅ Mostly Done |
-| Phase 2 | Q1 2025 | 🔄 In Progress |
-| Phase 2.5 | Q1 2025 | 🔄 In Progress |
-| Phase 3 | Q2 2025 | 🔮 Planned |
-| Phase 4 | Q3-Q4 2025 | 🔮 Vision |
+| Milestone | Zeitraum | Status |
+|-----------|----------|--------|
+| v1.5.0 | Q4 2024 - Q1 2025 | ✅ Mostly Done |
+| v1.6.0 | Q1 2025 | 🔄 In Progress |
+| v1.7.0 | Q2 2025 | 🔮 Planned |
+| v2.0.0 | Q3-Q4 2025 | 🔮 Vision |
 
 ---
 
 ## 🔗 Related Issues
 
-### Phase 1 (Done)
+### v1.5.0 (Abgeschlossen)
 - #85, #86, #87 - Week Screen Redesign ✅
 - #56 - KI-Auswertung ✅
 - #57 - Habit Tracker ✅
 - #102, #107 - CI/CD ✅
+- #103 - Core Tests 🔄
+- #105 - Firestore Schema Docs 🔄
+- #106 - Repo Standards 🔄
+- #108 - ARCHITECTURE.md 🔄
 
-### Phase 2 (In Progress)
+### v1.6.0 (In Planung)
 - #92, #99 - Habit-Insights
 - #93, #100 - Smart Habits
 - #101, #109 - Weekly Review
 - #91 - Custom Habit Order
 
-### Phase 2.5 (Documentation)
-- #103 - Core Tests
-- #105 - Firestore Schema Docs
-- #106 - Repo Standards
-- #108 - ARCHITECTURE.md
-
-### Phase 3 (Future)
+### v1.7.0 (Zukunft)
 - #47 - Push Notifications
 
-### Meta Issues
-- #97 - Diese Roadmap
-- #98 - MVP Definition
+### Geschlossen
+- #97 - Roadmap Definition (durch dieses Dokument ersetzt)
+- #98 - MVP Definition (integriert in v1.6.0)
 
 ---
 
