@@ -10,6 +10,7 @@ import '../providers/auth_providers.dart';
 import '../theme/tokens.dart';
 import '../features/habits/widgets/habit_card.dart';
 import '../features/habits/widgets/habit_dialog.dart';
+import '../features/habits/widgets/habit_insights_card.dart';
 
 /// Hauptscreen für Habit-Tracking
 class HabitScreen extends ConsumerWidget {
@@ -78,6 +79,9 @@ class HabitScreen extends ConsumerWidget {
 
           return Column(
             children: [
+              // Mini-Analytics Karte
+              HabitInsightsCard(habits: habits, service: service, today: today),
+
               // Fortschritts-Header
               Container(
                 padding: const EdgeInsets.all(ReflectoSpacing.s16),
