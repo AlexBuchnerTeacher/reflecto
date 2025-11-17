@@ -1,6 +1,6 @@
 # Reflecto – Architekturüberblick
 
-**Version:** v1.5.0  
+**Version:** v1.6.0  
 **Ziel:** Schlanke, testbare Struktur für Flutter + Firebase + Riverpod
 
 ---
@@ -17,9 +17,9 @@ Stellt Views und Widgets bereit, konsumiert State via Riverpod.
 - `SettingsScreen`: User-Einstellungen und Profil
 
 **Feature-Organisation:**
-- `lib/features/day/`: Day-spezifische Widgets (MorningSection, EveningSection, etc.)
+- `lib/features/day/`: Day-spezifische Widgets (MorningSection, EveningSection, MealTrackerCard)
 - `lib/features/week/`: Week-spezifische Widgets (WeekHeroCard, WeekRadialStats, etc.)
-- `lib/features/habits/`: Habit-spezifische Widgets (HabitCard, HabitDialog)
+- `lib/features/habits/`: Habit-spezifische Widgets (HabitCard, HabitDialog, **HabitInsightsCard** [v1.6.0])
 
 ### 2. State Management (`lib/providers`)
 Riverpod Provider für reaktiven State und Business-Logik.
@@ -57,10 +57,11 @@ Datenklassen mit (de-)Serialisierung.
 
 **Hauptmodelle:**
 - `Habit`: title, category, frequency, streak, completedDates
+- **`HabitPriority`** [v1.6.0]: Enum (high/medium/low) für Smart Priority
 - `HabitTemplate`: Vorlagen für Habits
 - `JournalEntry`: Tageseinträge (planning, morning, evening, ratings)
 - `WeeklyReflection`: Wochenmotto, Zusammenfassung, AI-Analyse
-- `MealLog`: Essenslog (breakfast, lunch, dinner)
+- `MealLog`: Essenslog (breakfast, lunch, dinner, **mealTimes** [v1.6.0])
 
 ---
 
@@ -208,11 +209,13 @@ Siehe [DATA_MODEL.md](DATA_MODEL.md) für Details.
 - **Typography:** Reflecto Text Styles (displayLarge, titleMedium, bodySmall)
 
 ### Reusable Widgets
-- `ReflectoCard`: Konsistente Card-Darstellung
+- `ReflectoCard`: Konsistente Card-Darstellung mit Shadow/Border
 - `RatingsRow`: 1-5 Sterne-Rating
 - `ReflectoSparkline`: 7-Tage Sparkline
 - `WeekHeroCard`: Circular Progress mit Statistiken
-- `HabitCard`: Habit-Darstellung mit Checkbox, Streak, Fortschritt
+- `HabitCard`: Habit-Darstellung mit Checkbox, Streak, Fortschritt, **Priority Badge** [v1.6.0]
+- **`HabitInsightsCard`** [v1.6.0]: Mini-Analytics (Tagesbilanz, Kategorie-Progress, Trends, Spotlight)
+- `MealTrackerCard`: Essenslog mit **TimePicker** [v1.6.0]
 
 ### Navigation
 - `HomeScreen` mit BottomNavigationBar (Tag, Woche, Habits, Einstellungen)
@@ -260,10 +263,12 @@ Siehe [DATA_MODEL.md](DATA_MODEL.md) für Details.
 
 ## 🗺️ Future Roadmap
 
-### v1.6.0 (Productivity MVP)
-- Habit-Insights (Mini-Analytics)
-- Smart Habits Auto-Priorisierung
-- Weekly Review (Snapshot Sonntag 20:00)
+### ✅ v1.6.0 (Productivity MVP) - **Released**
+- ✅ Habit-Insights (Mini-Analytics) #92
+- ✅ Smart Habits Auto-Priorisierung #93
+- ✅ Zeitauswahl bei Mahlzeiten #112
+- ⏳ Weekly Review (Snapshot Sonntag 20:00) #101/#109
+- ⏳ Custom Habit Sorting (Drag & Drop) #91
 
 ### v1.7.0 (Scaling & UX)
 - Push Notifications (#47)

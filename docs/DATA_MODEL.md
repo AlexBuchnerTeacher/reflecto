@@ -95,7 +95,7 @@ Hinweise:
 
 ## users/{uid}/meals/{yyyy-MM-dd}
 
-Tages-Essenslog (Frühstück/Mittag/Abend).
+Tages-Essenslog (Frühstück/Mittag/Abend) mit Zeiterfassung (v1.6.0).
 
 - id: String (yyyy-MM-dd)
 - breakfast: bool
@@ -104,17 +104,53 @@ Tages-Essenslog (Frühstück/Mittag/Abend).
 - breakfastNote: String? (Gericht/Notiz)
 - lunchNote: String? (Gericht/Notiz)
 - dinnerNote: String? (Gericht/Notiz)
+- **breakfastTime: String?** (HH:mm Format, z.B. "06:30")
+- **lunchTime: String?** (HH:mm Format, z.B. "13:30")
+- **dinnerTime: String?** (HH:mm Format, z.B. "19:00")
 - createdAt: Timestamp
 - updatedAt: Timestamp
+
+**Intelligente Standardzeiten (v1.6.0):**
+- Wochentage (Mo-Fr): Frühstück 06:30, Mittag 13:30, Abend 19:00
+- Wochenende (Sa-So): Frühstück 09:00, Mittag 14:00, Abend 19:00
+- Berechnung erfolgt clientseitig basierend auf Mahlzeit-Typ und Wochentag
 
 Hinweise:
 - Dokument wird automatisch bei erstem Toggle/Notiz erstellt
 - Partial Updates via merge (nur geänderte Felder)
-- Anzeige im Day-Screen unter Morgen-Sektion
+- Anzeige im Day-Screen unter Morgen-Sektion mit TimePicker-Button
+- Zeiterfassung ermöglicht zeitbasierte Essens-Analysen
+
+## Enums & Helpers
+
+### HabitPriority (v1.6.0)
+
+Client-side Enum für Smart Habits Auto-Priorisierung.
+
+**Werte:**
+- `high` (🔥): Score ≥70 Punkte
+- `medium` (⬆️): Score ≥40 Punkte
+- `low` (⬇️): Score <40 Punkte
+
+**Score-Berechnung (0-100 Punkte):**
+- Streak-Komponente (0-30): `(streak / 10).clamp(0, 3) * 10`
+- Konsistenz letzte 7 Tage (0-40): `completionRate * 40`
+- Skip-Analyse (0-30): `(1 - skipRate) * 30`
+
+**Verwendung:**
+- Berechnet via `HabitService.calculateHabitPriority()`
+- Angezeigt als Badge auf HabitCard (toggle-bar)
+- Auto-Sort via `HabitService.sortHabitsByPriority()`
+- Keine Firestore-Speicherung (rein client-side)
+
+Hinweise:
+- Icon & Label via Extension Methods
+- Ermöglicht intelligente Priorisierung ohne manuelle Sortierung
+- Berücksichtigt Nutzverhalten der letzten 7 Tage
 
 ## users/{uid}/weeklyStats (future)
 
-Wöchentliche Aggregationen und Statistiken (geplant für v1.6.0).
+Wöchentliche Aggregationen und Statistiken (geplant für v1.7.0).
 
 **Geplante Felder:**
 - weekId: String (yyyy-ww)

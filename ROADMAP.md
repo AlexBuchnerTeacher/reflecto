@@ -44,8 +44,9 @@ Stabile technische Basis mit CI/CD, Tests und sauberer Dokumentation.
 
 ## 🚀 v1.6.0 – Productivity MVP
 
-**Status:** 🔄 **In Planung**  
-**Milestone:** [v1.6.0](https://github.com/AlexBuchnerTeacher/reflecto/milestone/7)
+**Status:** 🎉 **Teilweise Released** (3/5 Features)  
+**Milestone:** [v1.6.0](https://github.com/AlexBuchnerTeacher/reflecto/milestone/7)  
+**Release Date:** 17.11.2025
 
 ### Ziel
 Ein stabiler DayScreen mit Smart Feedback, intelligenter Priorisierung und Weekly Review.  
@@ -53,49 +54,70 @@ Ein stabiler DayScreen mit Smart Feedback, intelligenter Priorisierung und Weekl
 
 ### Features
 
-#### 2.1 Habit-Insights (#92, #99)
-**Status:** Planned  
+#### 2.1 Habit-Insights (#92) ✅
+**Status:** ✅ **Released v1.6.0**  
+**PR:** [#110](https://github.com/AlexBuchnerTeacher/reflecto/pull/110)  
 **Labels:** `feature`, `ui`, `analytics`
 
-Schnelle Orientierung im DayScreen: Tagesbilanz, Kategorie-Fortschritt, Trends und Spotlight.
+Mini-Analytics im HabitScreen für schnelle Orientierung.
 
-**Deliverables:**
-- Tagesbilanz (x/y erledigt)
-- Kategorie-Fortschritt (farbcodierte Balken)
-- Top-3-Trends (Streaks, Konstanz)
-- Spotlight-Empfehlung (z.B. "Mind: 1/4 erledigt")
+**Implementiert:**
+- ✅ Tagesbilanz (X/Y erledigt + ⭐ Momentum bei ≥80%)
+- ✅ Kategorie-Progress (farbcodierte Balken mit Werten)
+- ✅ Top-3-Trends (Streaks mit ▲●▼ Icons)
+- ✅ Spotlight-Empfehlung (Fokus auf schwächste Kategorie)
+- ✅ Client-side Berechnung (kein Firestore Write)
+- ✅ ReflectoCard Widget für konsistentes Styling
 
-**Akzeptanzkriterien:**
-- Insights erscheinen automatisch
-- Keine Benutzerinteraktion nötig
-- Berechnung clientseitig
-- Keine Performance-Einbußen
+**Technisch:**
+- `HabitInsightsCard` Widget (335 LOC)
+- Automatisches Ausblenden bei 0 Habits
+- Platzierung oberhalb Fortschritts-Header
 
-#### 2.2 Smart Habits – Auto-Priorisierung (#93, #100)
-**Status:** Planned  
+#### 2.2 Smart Habits – Auto-Priorisierung (#93) ✅
+**Status:** ✅ **Released v1.6.0**  
+**PR:** [#111](https://github.com/AlexBuchnerTeacher/reflecto/pull/111)  
 **Labels:** `feature`, `ui`
 
-Intelligente Sortierung der Habits nach Relevanz.
+Intelligente Sortierung der Habits nach Relevanz mit Score-Model.
 
-**Deliverables:**
-- Prioritätslevel: Hoch (🔴), Mittel (⚪), Niedrig (⚫)
-- Score-Modell (Streak, Konstanz, Skips, Zeitmatching)
-- "Smart Order" Button
-- Toggle für Auto-Priorisierung (an/aus)
+**Implementiert:**
+- ✅ Prioritätslevel: 🔥 High (≥70), ⬆️ Medium (≥40), ⬇️ Low (<40)
+- ✅ Score-Modell (0-100 Punkte):
+  - Streak-Komponente (0-30): Längere Streaks = höhere Priorität
+  - Konsistenz letzte 7 Tage (0-40): Hohe Completion-Rate
+  - Skip-Analyse (0-30): Geplante aber nicht erledigte Tage
+- ✅ Smart Priority FilterChip Toggle
+- ✅ Priority Badges auf HabitCards (toggle-bar)
+- ✅ Auto-Sort nach Score
 
-**Score-Formel:**
-- Streak-Länge
-- Konstanz der letzten 7 Tage
-- Skip-Häufigkeit
-- Zeitliche Passung (Morgen/Abend)
+**Technisch:**
+- `HabitPriority` enum mit Extensions (icon, label)
+- `calculateHabitPriority()` und `sortHabitsByPriority()` in HabitService
+- State Management via Provider
 
-**Akzeptanzkriterien:**
-- Korrekte Prioritäts-Berechnung
-- Habits werden richtig sortiert
-- Badges/Icons am Habit sichtbar
-- Deaktivierbar
+#### 2.3 Zeitauswahl bei Mahlzeiten (#112) ✅
+**Status:** ✅ **Released v1.6.0**  
+**PR:** [#113](https://github.com/AlexBuchnerTeacher/reflecto/pull/113)  
+**Labels:** `feature`, `ui`
 
-#### 2.3 Weekly Review (#101, #109)
+TimePicker für Mahlzeiten-Eingabe mit intelligenten Defaults.
+
+**Implementiert:**
+- ✅ `breakfastTime`, `lunchTime`, `dinnerTime` Felder (HH:mm)
+- ✅ Intelligente Standardzeiten:
+  - Wochentags: 06:30 / 13:30 / 19:00
+  - Wochenende: 09:00 / 14:00 / 19:00
+- ✅ TimePicker Button (🕐 Icon + Zeit) neben Textfeld
+- ✅ showTimePicker Dialog zum Anpassen
+- ✅ Sofortige Firestore-Speicherung
+
+**Technisch:**
+- `_getDefaultTime()` berechnet Defaults (weekday-basiert)
+- `_buildNoteFieldWithTime()` Widget mit Row Layout
+- `setBreakfastTime/setLunchTime/setDinnerTime` in MealNotifier
+
+#### 2.4 Weekly Review (#101, #109) ⏳
 **Status:** Planned  
 **Labels:** `feature`, `analytics`
 
