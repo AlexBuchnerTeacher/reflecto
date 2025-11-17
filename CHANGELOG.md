@@ -2,6 +2,51 @@
 
 Alle nennenswerten Änderungen an Reflecto.
 
+## v1.6.0 (2025-11-17) - Productivity MVP
+
+### Habit-Insights (Mini-Analytics) (#92)
+- **Tagesbilanz**: X von Y erledigte Habits mit Momentum-Indikator ⭐ bei ≥80% Completion
+- **Kategorie-Progress**: Farbige Fortschrittsbalken pro Kategorie mit Completion-Werten (z.B. 3/5)
+- **Trendkarte**: Top 3 Habits mit höchsten Streaks und Trend-Icons (▲ steigend ≥7 Tage, ● stabil ≥3 Tage, ▼ fallend <3 Tage)
+- **Spotlight**: Fokus-Empfehlung für schwächste Kategorie oder Celebration bei ≥80% in allen Kategorien
+- Client-side Berechnung (kein Firestore Write), automatisches Ausblenden bei 0 Habits
+- ReflectoCard Widget für konsistentes Styling
+
+### Smart Habits Auto-Priorisierung (#93)
+- **Score-Model (0-100 Punkte)**:
+  - Streak-Komponente (0-30): Längere Streaks = höhere Priorität
+  - Konsistenz letzte 7 Tage (0-40): Hohe Completion-Rate
+  - Skip-Analyse (0-30): Geplante aber nicht erledigte Tage
+- **Priority Levels**:
+  - 🔥 High: ≥70 Punkte (starkes Momentum, konsistent)
+  - ⬆️ Medium: ≥40 Punkte (stabil, gelegentliche Lücken)
+  - ⬇️ Low: <40 Punkte (inkonsistent, viele Skips)
+- **UI**: Smart Priority FilterChip Toggle, Priority Badges auf HabitCards, Auto-Sort nach Score
+- HabitPriority enum mit Icon/Label Extensions
+- calculateHabitPriority() und sortHabitsByPriority() in HabitService
+
+### Zeitauswahl bei Mahlzeiten (#112)
+- **breakfastTime, lunchTime, dinnerTime** Felder im MealLog Model (HH:mm format)
+- **Intelligente Standardzeiten**:
+  - Wochentage: Frühstück 06:30, Mittag 13:30, Abend 19:00
+  - Wochenende: Frühstück 09:00, Mittag 14:00, Abend 19:00
+- TimePicker Button (🕐 Icon + Zeit) neben jedem Mahlzeiten-Textfeld
+- showTimePicker Dialog zum Anpassen
+- Sofortige Firestore-Speicherung
+- _getDefaultTime() berechnet Defaults basierend auf Mahlzeit-Typ & Wochentag
+
+### Geschlossene Issues
+- #92: Habit-Insights (Mini-Analytics)
+- #93: Smart Habits – Auto-Priorisierung
+- #112: Zeitauswahl bei Mahlzeiten-Eingabe
+
+### Geschlossene Milestones
+- ✅ v1.6.0 (Productivity MVP) - 3/5 Features
+
+### Offene Issues für v1.6.0
+- #91: Custom Habit Sorting (Drag & Drop)
+- #101/#109: Weekly Review (Snapshot + Display)
+
 ## v1.5.1 (2025-11-17)
 
 ### Dokumentation
