@@ -111,6 +111,47 @@ class MealNotifier extends AutoDisposeAsyncNotifier<void> {
       state = AsyncError(e, st);
     }
   }
+
+  Future<void> setBreakfastTime(DateTime date, String value) async {
+    final uid = ref.read(userIdProvider);
+    if (uid == null) return;
+    try {
+      await ref
+          .read(mealServiceProvider)
+          .setMealNote(
+            uid: uid,
+            date: date,
+            field: 'breakfastTime',
+            value: value,
+          );
+    } catch (e, st) {
+      state = AsyncError(e, st);
+    }
+  }
+
+  Future<void> setLunchTime(DateTime date, String value) async {
+    final uid = ref.read(userIdProvider);
+    if (uid == null) return;
+    try {
+      await ref
+          .read(mealServiceProvider)
+          .setMealNote(uid: uid, date: date, field: 'lunchTime', value: value);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+    }
+  }
+
+  Future<void> setDinnerTime(DateTime date, String value) async {
+    final uid = ref.read(userIdProvider);
+    if (uid == null) return;
+    try {
+      await ref
+          .read(mealServiceProvider)
+          .setMealNote(uid: uid, date: date, field: 'dinnerTime', value: value);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+    }
+  }
 }
 
 final mealNotifierProvider =
