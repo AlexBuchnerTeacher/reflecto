@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../models/habit.dart';
 import '../providers/habit_providers.dart';
 import '../providers/habit_template_providers.dart';
 import '../services/habit_template_service.dart';
@@ -105,17 +106,36 @@ class HabitScreen extends ConsumerWidget {
                       ],
                     ),
                     const SizedBox(height: ReflectoSpacing.s8),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: FilterChip(
-                        label: const Text('Nur fällige'),
-                        selected: showOnlyDue,
-                        onSelected: (v) =>
+                    Wrap(
+                      spacing: ReflectoSpacing.s8,
+                      children: [
+                        FilterChip(
+                          label: const Text('Nur fällige'),
+                          selected: showOnlyDue,
+                          onSelected: (v) =>
+                              ref
+                                      .read(_showOnlyDueHabitsProvider.notifier)
+                                      .state =
+                                  v,
+                        ),
+                        FilterChip(
+                          label: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('Smart Priority '),
+                              Text('🔥', style: TextStyle(fontSize: 12)),
+                            ],
+                          ),
+                          selected: ref.watch(_useSmartOrderProvider),
+                          onSelected: (v) {
+                            ref.read(_useSmartOrderProvider.notifier).state = v;
                             ref
-                                    .read(_showOnlyDueHabitsProvider.notifier)
+                                    .read(_showSmartPriorityProvider.notifier)
                                     .state =
-                                v,
-                      ),
+                                v;
+                          },
+                        ),
+                      ],
                     ),
                     const SizedBox(height: ReflectoSpacing.s8),
                     LinearProgressIndicator(
@@ -360,6 +380,14 @@ final _showOnlyDueHabitsProvider = StateProvider.autoDispose<bool>(
   (ref) => false,
 );
 
+/// UI-Status: Smart Priority anzeigen/anwenden
+final _showSmartPriorityProvider = StateProvider.autoDispose<bool>(
+  (ref) => false,
+);
+
+/// UI-Status: Smart Order anwenden (sortiert Habits nach Priorität)
+final _useSmartOrderProvider = StateProvider.autoDispose<bool>((ref) => false);
+
 Color _parseHexColor(String hexString) {
   try {
     final hex = hexString.replaceAll('#', '');
@@ -379,7 +407,7 @@ bool _isAdmin(String? uid) {
 }
 
 class _HabitGroupedList extends ConsumerWidget {
-  final List<dynamic> habits; // List<Habit>
+  final List<Habit> habits;
   final bool showOnlyDue;
   final DateTime today;
 
@@ -392,9 +420,18 @@ class _HabitGroupedList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final service = ref.watch(habitServiceProvider);
-    final filtered = showOnlyDue
+    final useSmartOrder = ref.watch(_useSmartOrderProvider);
+    final showPriority = ref.watch(_showSmartPriorityProvider);
+
+    // Filter habits
+    var filtered = showOnlyDue
         ? habits.where((h) => service.isScheduledOnDate(h, today)).toList()
         : habits.toList();
+
+    // Apply Smart Order if enabled
+    if (useSmartOrder) {
+      filtered = service.sortHabitsByPriority(filtered, referenceDate: today);
+    }
 
     // Group by category
     final Map<String, List<dynamic>> byCat = {};
@@ -468,6 +505,7 @@ class _HabitGroupedList extends ConsumerWidget {
                   for (final h in list)
                     HabitCard(
                       habit: h,
+                      showPriority: showPriority,
                       onEdit: () {
                         showDialog(
                           context: context,
