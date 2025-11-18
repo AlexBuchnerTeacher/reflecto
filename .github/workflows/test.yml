@@ -38,9 +38,65 @@ jobs:
 
       - name: Check coverage threshold
         run: |
+          # Install lcov for coverage parsing
+          sudo apt-get update && sudo apt-get install -y lcov
           COVERAGE=$(lcov --summary coverage/lcov.info 2>&1 | grep "lines" | awk '{print $2}' | sed 's/%//')
           echo "Current coverage: $COVERAGE%"
+          # Check if coverage is below 50% (using bc for float comparison)
           if (( $(echo "$COVERAGE < 50" | bc -l) )); then
-            echo "Coverage is below 50%"
+            echo "⚠️  Coverage is below 50% threshold"
             exit 1
           fi
+          echo "✅ Coverage threshold met: $COVERAGE%"
+
+  firebase-emulator:
+    name: Firebase Emulator Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Start Firebase Emulators and run tests
+        run: |
+          # Start emulators in background
+          firebase emulators:start --only firestore,auth --project demo-test &
+          EMULATOR_PID=$!
+          
+          # Wait for emulators to be ready
+          sleep 10
+          
+          # Run Firestore tests (when they exist)
+          # flutter test test/firestore/ || true
+          
+          # Kill emulators
+          kill $EMULATOR_PID || true
+        env:
+          FIRESTORE_EMULATOR_HOST: localhost:8080
+          FIREBASE_AUTH_EMULATOR_HOST: localhost:9099
+
+      - name: Verify Firestore Rules
+        run: |
+          echo "⚠️  Firestore rules tests not yet implemented"
+          # TODO: Add rules tests when test/firestore/rules_test.dart exists
+          # firebase emulators:exec --only firestore "flutter test test/firestore/rules_test.dart"
