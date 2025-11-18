@@ -113,31 +113,40 @@ class HabitScreen extends ConsumerWidget {
                     Wrap(
                       spacing: ReflectoSpacing.s8,
                       children: [
-                        FilterChip(
-                          label: const Text('Nur fällige'),
-                          selected: showOnlyDue,
-                          onSelected: (v) =>
-                              ref
-                                      .read(_showOnlyDueHabitsProvider.notifier)
-                                      .state =
-                                  v,
-                        ),
-                        FilterChip(
-                          label: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text('Smart Priority '),
-                              Text('🔥', style: TextStyle(fontSize: 12)),
-                            ],
+                        FocusTraversalOrder(
+                          order: const NumericFocusOrder(1.0),
+                          child: FilterChip(
+                            label: const Text('Nur fällige'),
+                            selected: showOnlyDue,
+                            onSelected: (v) =>
+                                ref
+                                        .read(
+                                          _showOnlyDueHabitsProvider.notifier,
+                                        )
+                                        .state =
+                                    v,
                           ),
-                          selected: ref.watch(_useSmartOrderProvider),
-                          onSelected: (v) {
-                            ref.read(_useSmartOrderProvider.notifier).state = v;
-                            ref
-                                    .read(_showSmartPriorityProvider.notifier)
-                                    .state =
-                                v;
-                          },
+                        ),
+                        FocusTraversalOrder(
+                          order: const NumericFocusOrder(2.0),
+                          child: FilterChip(
+                            label: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text('Smart Priority '),
+                                Text('🔥', style: TextStyle(fontSize: 12)),
+                              ],
+                            ),
+                            selected: ref.watch(_useSmartOrderProvider),
+                            onSelected: (v) {
+                              ref.read(_useSmartOrderProvider.notifier).state =
+                                  v;
+                              ref
+                                      .read(_showSmartPriorityProvider.notifier)
+                                      .state =
+                                  v;
+                            },
+                          ),
                         ),
                       ],
                     ),

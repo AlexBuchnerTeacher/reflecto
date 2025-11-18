@@ -152,6 +152,7 @@ class PlanningSection extends StatelessWidget {
                                 focusNode: i < goalNodes.length
                                     ? goalNodes[i]
                                     : null,
+                                focusOrder: 8.0 + i,
                                 onChanged: (_) => onGoalsChanged(),
                               ),
                             ),
@@ -211,6 +212,7 @@ class PlanningSection extends StatelessWidget {
                                 focusNode: i < todoNodes.length
                                     ? todoNodes[i]
                                     : null,
+                                focusOrder: 11.0 + i,
                                 onChanged: (_) => onTodosChanged(),
                               ),
                             ),
@@ -245,6 +247,7 @@ class PlanningSection extends StatelessWidget {
                   minLines: 1,
                   maxLines: 2,
                   focusNode: attitudeNode,
+                  focusOrder: 14.0,
                   onChanged: onReflectionChanged,
                 ),
                 const SizedBox(height: 8),
@@ -254,6 +257,7 @@ class PlanningSection extends StatelessWidget {
                   minLines: 1,
                   maxLines: 2,
                   focusNode: notesNode,
+                  focusOrder: 15.0,
                   onChanged: onNotesChanged,
                 ),
               ],
