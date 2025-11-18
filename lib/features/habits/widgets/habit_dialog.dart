@@ -187,18 +187,25 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
               const SizedBox(height: ReflectoSpacing.s8),
               SegmentedButton<String>(
                 segments: const [
-                  ButtonSegment(value: 'daily', label: Text('Täglich')),
+                  ButtonSegment(
+                    value: 'daily',
+                    label: Text('Tag'),
+                    tooltip: 'Täglich',
+                  ),
                   ButtonSegment(
                     value: 'weekly_days',
-                    label: Text('Wochentage'),
+                    label: Text('Tage'),
+                    tooltip: 'Wochentage',
                   ),
                   ButtonSegment(
                     value: 'weekly_target',
-                    label: Text('Wochen‑Ziel'),
+                    label: Text('Ziel'),
+                    tooltip: 'Wochen-Ziel',
                   ),
                   ButtonSegment(
                     value: 'irregular',
-                    label: Text('Unregelmäßig'),
+                    label: Text('Flex'),
+                    tooltip: 'Unregelmäßig',
                   ),
                 ],
                 selected: {_frequency},
