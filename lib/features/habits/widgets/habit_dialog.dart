@@ -163,9 +163,13 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
                   labelText: 'Kategorie',
                   border: OutlineInputBorder(),
                 ),
+                isExpanded: true,
                 items: _categories
                     .map(
-                      (cat) => DropdownMenuItem(value: cat, child: Text(cat)),
+                      (cat) => DropdownMenuItem(
+                        value: cat,
+                        child: Text(cat, overflow: TextOverflow.ellipsis),
+                      ),
                     )
                     .toList(),
                 onChanged: (value) {
