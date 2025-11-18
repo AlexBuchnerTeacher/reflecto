@@ -240,43 +240,24 @@ class HabitCard extends ConsumerWidget {
               ],
 
               // Actions
-              if (onEdit != null || onDelete != null) ...[
-                const SizedBox(width: ReflectoSpacing.s8),
-                PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert),
-                  onSelected: (value) {
-                    if (value == 'edit' && onEdit != null) {
-                      onEdit!();
-                    } else if (value == 'delete' && onDelete != null) {
-                      onDelete!();
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    if (onEdit != null)
-                      const PopupMenuItem(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit, size: 20),
-                            SizedBox(width: ReflectoSpacing.s8),
-                            Text('Bearbeiten'),
-                          ],
-                        ),
-                      ),
-                    if (onDelete != null)
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete, size: 20),
-                            SizedBox(width: ReflectoSpacing.s8),
-                            Text('Löschen'),
-                          ],
-                        ),
-                      ),
-                  ],
+              if (onEdit != null) ...[
+                const SizedBox(width: ReflectoSpacing.s4),
+                IconButton(
+                  icon: const Icon(Icons.edit, size: 20),
+                  onPressed: onEdit,
+                  tooltip: 'Bearbeiten',
+                  visualDensity: VisualDensity.compact,
                 ),
               ],
+              if (onDelete != null) ...[
+                IconButton(
+                  icon: const Icon(Icons.delete, size: 20),
+                  onPressed: onDelete,
+                  tooltip: 'Löschen',
+                  visualDensity: VisualDensity.compact,
+                ),
+              ],
+              const Icon(Icons.drag_handle, size: 20),
             ],
           ),
         ),
