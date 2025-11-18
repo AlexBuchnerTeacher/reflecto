@@ -105,12 +105,10 @@ class Planning {
 
   factory Planning.fromMap(Map<String, dynamic>? map) {
     if (map == null) return const Planning();
-    final goals = (map['goals'] is List)
-        ? List<String>.from(map['goals'])
-        : <String>[];
-    final todos = (map['todos'] is List)
-        ? List<String>.from(map['todos'])
-        : <String>[];
+    final goals =
+        (map['goals'] is List) ? List<String>.from(map['goals']) : <String>[];
+    final todos =
+        (map['todos'] is List) ? List<String>.from(map['todos']) : <String>[];
     return Planning(
       goals: goals,
       todos: todos,
@@ -120,11 +118,11 @@ class Planning {
   }
 
   Map<String, dynamic> toMap() => {
-    'goals': goals,
-    'todos': todos,
-    'reflection': reflection,
-    'notes': notes,
-  };
+        'goals': goals,
+        'todos': todos,
+        'reflection': reflection,
+        'notes': notes,
+      };
 
   Planning copyWith({
     List<String>? goals,
@@ -159,16 +157,16 @@ class Morning {
   }
 
   Map<String, dynamic> toMap() => {
-    'mood': mood,
-    'goodThing': goodThing,
-    'focus': focus,
-  };
+        'mood': mood,
+        'goodThing': goodThing,
+        'focus': focus,
+      };
 
   Morning copyWith({String? mood, String? goodThing, String? focus}) => Morning(
-    mood: mood ?? this.mood,
-    goodThing: goodThing ?? this.goodThing,
-    focus: focus ?? this.focus,
-  );
+        mood: mood ?? this.mood,
+        goodThing: goodThing ?? this.goodThing,
+        focus: focus ?? this.focus,
+      );
 }
 
 /// Abendreflexion.
@@ -206,24 +204,25 @@ class Evening {
   }
 
   Map<String, dynamic> toMap() => {
-    'good': good,
-    'learned': learned,
-    'improve': improve,
-    'gratitude': gratitude,
-    'todosCompletion': todosCompletion,
-  };
+        'good': good,
+        'learned': learned,
+        'improve': improve,
+        'gratitude': gratitude,
+        'todosCompletion': todosCompletion,
+      };
 
   Evening copyWith({
     String? good,
     String? learned,
     String? improve,
     String? gratitude,
-  }) => Evening(
-    good: good ?? this.good,
-    learned: learned ?? this.learned,
-    improve: improve ?? this.improve,
-    gratitude: gratitude ?? this.gratitude,
-  );
+  }) =>
+      Evening(
+        good: good ?? this.good,
+        learned: learned ?? this.learned,
+        improve: improve ?? this.improve,
+        gratitude: gratitude ?? this.gratitude,
+      );
 }
 
 /// Tagesbewertungen.
@@ -279,11 +278,11 @@ class Ratings {
   }
 
   Map<String, dynamic> toMap() => {
-    'mood': mood,
-    'focus': focus,
-    'energy': energy,
-    'happiness': happiness,
-  };
+        'mood': mood,
+        'focus': focus,
+        'energy': energy,
+        'happiness': happiness,
+      };
 
   Ratings copyWith({int? mood, int? focus, int? energy, int? happiness}) =>
       Ratings(

@@ -47,9 +47,8 @@ class EmojiBar extends StatelessWidget {
                       color: (value ?? 0) >= i ? activeBg : Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: (value ?? 0) >= i
-                            ? activeBorder
-                            : inactiveBorder,
+                        color:
+                            (value ?? 0) >= i ? activeBorder : inactiveBorder,
                       ),
                     ),
                     child: Text(

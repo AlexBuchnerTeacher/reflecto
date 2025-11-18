@@ -47,9 +47,8 @@ class DayWeekCarousel extends StatelessWidget {
                             width: 6,
                             height: 6,
                             decoration: BoxDecoration(
-                              color: isSel
-                                  ? cs.onPrimaryContainer
-                                  : cs.secondary,
+                              color:
+                                  isSel ? cs.onPrimaryContainer : cs.secondary,
                               shape: BoxShape.circle,
                             ),
                           ),

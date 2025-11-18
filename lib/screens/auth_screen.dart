@@ -109,11 +109,11 @@ class _AuthScreenState extends State<AuthScreen> {
                             onPressed: _loading
                                 ? null
                                 : () => _handle(
-                                    () => _auth.signInWithEmail(
-                                      _emailCtrl.text.trim(),
-                                      _pwdCtrl.text.trim(),
+                                      () => _auth.signInWithEmail(
+                                        _emailCtrl.text.trim(),
+                                        _pwdCtrl.text.trim(),
+                                      ),
                                     ),
-                                  ),
                           ),
                         ),
                         const SizedBox(width: ReflectoSpacing.s12),
@@ -123,11 +123,11 @@ class _AuthScreenState extends State<AuthScreen> {
                             onPressed: _loading
                                 ? null
                                 : () => _handle(
-                                    () => _auth.registerWithEmail(
-                                      _emailCtrl.text.trim(),
-                                      _pwdCtrl.text.trim(),
+                                      () => _auth.registerWithEmail(
+                                        _emailCtrl.text.trim(),
+                                        _pwdCtrl.text.trim(),
+                                      ),
                                     ),
-                                  ),
                           ),
                         ),
                       ],

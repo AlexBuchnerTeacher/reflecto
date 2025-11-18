@@ -153,9 +153,8 @@ class _ReflectoCardState extends State<ReflectoCard>
                           child: const Icon(Icons.keyboard_arrow_down),
                         ),
                         onPressed: _toggleCollapse,
-                        tooltip: _internalCollapsed
-                            ? 'Aufklappen'
-                            : 'Einklappen',
+                        tooltip:
+                            _internalCollapsed ? 'Aufklappen' : 'Einklappen',
                       ),
                   ],
                 ),

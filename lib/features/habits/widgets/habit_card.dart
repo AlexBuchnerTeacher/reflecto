@@ -156,10 +156,10 @@ class HabitCard extends ConsumerWidget {
                           final borderColor = isToday
                               ? theme.colorScheme.primary
                               : (planned
-                                    ? theme.colorScheme.secondary
-                                    : theme.colorScheme.outline.withValues(
-                                        alpha: 0.5,
-                                      ));
+                                  ? theme.colorScheme.secondary
+                                  : theme.colorScheme.outline.withValues(
+                                      alpha: 0.5,
+                                    ));
                           return Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: ReflectoSpacing.s8,
@@ -174,9 +174,8 @@ class HabitCard extends ConsumerWidget {
                               labels[index],
                               style: theme.textTheme.labelSmall?.copyWith(
                                 color: fg,
-                                fontWeight: isToday
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
+                                fontWeight:
+                                    isToday ? FontWeight.w700 : FontWeight.w500,
                               ),
                             ),
                           );

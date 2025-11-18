@@ -77,9 +77,17 @@ class MorningSection extends StatelessWidget {
                   child: _progressChip(
                     context,
                     'Felder '
-                    '${[feelingCtrl.text.trim(), goodCtrl.text.trim(), focusCtrl.text.trim()].where((e) => e.isNotEmpty).length}/3'
+                    '${[
+                      feelingCtrl.text.trim(),
+                      goodCtrl.text.trim(),
+                      focusCtrl.text.trim()
+                    ].where((e) => e.isNotEmpty).length}/3'
                     ' · Ratings '
-                    '${[mood, energy, focusRating].where((e) => e != null).length}/3',
+                    '${[
+                      mood,
+                      energy,
+                      focusRating
+                    ].where((e) => e != null).length}/3',
                   ),
                 ),
               ),
@@ -95,9 +103,8 @@ class MorningSection extends StatelessWidget {
             ],
           ),
           AnimatedCrossFade(
-            crossFadeState: expanded
-                ? CrossFadeState.showFirst
-                : CrossFadeState.showSecond,
+            crossFadeState:
+                expanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
             duration: const Duration(milliseconds: 200),
             firstChild: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,

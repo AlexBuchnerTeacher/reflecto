@@ -64,25 +64,25 @@ abstract class CardCollapseNotifier extends StateNotifier<bool> {
 /// Notifier for HabitInsightsCard collapse state
 class HabitInsightsCardCollapseNotifier extends CardCollapseNotifier {
   HabitInsightsCardCollapseNotifier({required super.prefs, super.context})
-    : super(prefKey: CardCollapseKeys.habitInsightsCard);
+      : super(prefKey: CardCollapseKeys.habitInsightsCard);
 }
 
 /// Notifier for MealTrackerCard collapse state
 class MealTrackerCardCollapseNotifier extends CardCollapseNotifier {
   MealTrackerCardCollapseNotifier({required super.prefs, super.context})
-    : super(prefKey: CardCollapseKeys.mealTrackerCard);
+      : super(prefKey: CardCollapseKeys.mealTrackerCard);
 }
 
 /// Provider for HabitInsightsCard collapse state
 final habitInsightsCardCollapseProvider =
     StateNotifierProvider<HabitInsightsCardCollapseNotifier, bool>((ref) {
-      final prefs = ref.watch(sharedPreferencesProvider);
-      return HabitInsightsCardCollapseNotifier(prefs: prefs);
-    });
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return HabitInsightsCardCollapseNotifier(prefs: prefs);
+});
 
 /// Provider for MealTrackerCard collapse state
 final mealTrackerCardCollapseProvider =
     StateNotifierProvider<MealTrackerCardCollapseNotifier, bool>((ref) {
-      final prefs = ref.watch(sharedPreferencesProvider);
-      return MealTrackerCardCollapseNotifier(prefs: prefs);
-    });
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return MealTrackerCardCollapseNotifier(prefs: prefs);
+});

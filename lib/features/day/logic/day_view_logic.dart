@@ -54,26 +54,26 @@ DayRatingsSnapshot extractDayRatings(Map<String, dynamic>? todayData) {
 
   final morningMoodFromSnap =
       readRatingIn(todayData, 'ratingsMorning', 'mood') ??
-      readRatingIn(todayData, 'ratings', 'mood');
+          readRatingIn(todayData, 'ratings', 'mood');
   final morningEnergyFromSnap =
       readRatingIn(todayData, 'ratingsMorning', 'energy') ??
-      readRatingIn(todayData, 'ratings', 'energy');
+          readRatingIn(todayData, 'ratings', 'energy');
   final morningFocusFromSnap =
       readRatingIn(todayData, 'ratingsMorning', 'focus') ??
-      readRatingIn(todayData, 'ratings', 'focus');
+          readRatingIn(todayData, 'ratings', 'focus');
 
   final eveningMoodFromSnap =
       readRatingIn(todayData, 'ratingsEvening', 'mood') ??
-      readRatingIn(todayData, 'ratings', 'mood');
+          readRatingIn(todayData, 'ratings', 'mood');
   final eveningFocusFromSnap =
       readRatingIn(todayData, 'ratingsEvening', 'focus') ??
-      readRatingIn(todayData, 'ratings', 'focus');
+          readRatingIn(todayData, 'ratings', 'focus');
   final eveningEnergyFromSnap =
       readRatingIn(todayData, 'ratingsEvening', 'energy') ??
-      readRatingIn(todayData, 'ratings', 'energy');
+          readRatingIn(todayData, 'ratings', 'energy');
   final eveningHappinessFromSnap =
       readRatingIn(todayData, 'ratingsEvening', 'happiness') ??
-      readRatingIn(todayData, 'ratings', 'happiness');
+          readRatingIn(todayData, 'ratings', 'happiness');
 
   return DayRatingsSnapshot(
     morningMood: morningMoodFromSnap,
@@ -114,11 +114,11 @@ YesterdayPlanningSnapshot extractYesterdayPlanning(
 
   final completionDyn =
       _readAt<List>(todayData, <String>['evening', 'todosCompletion']) ??
-      const <dynamic>[];
+          const <dynamic>[];
   final completion = completionDyn.map((e) => e == true).toList();
   final goalsCompletionDyn =
       _readAt<List>(todayData, <String>['evening', 'goalsCompletion']) ??
-      const <dynamic>[];
+          const <dynamic>[];
   final goalsCompletion = goalsCompletionDyn.map((e) => e == true).toList();
 
   return YesterdayPlanningSnapshot(

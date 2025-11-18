@@ -18,12 +18,12 @@ class WeeklyReflection {
   });
 
   Map<String, dynamic> toMap() => {
-    if (motto != null) 'motto': motto,
-    if (summaryText != null) 'summaryText': summaryText,
-    if (aiAnalysisText != null) 'aiAnalysisText': aiAnalysisText,
-    if (aiAnalysis != null) 'aiAnalysis': aiAnalysis,
-    'updatedAt': updatedAt,
-  };
+        if (motto != null) 'motto': motto,
+        if (summaryText != null) 'summaryText': summaryText,
+        if (aiAnalysisText != null) 'aiAnalysisText': aiAnalysisText,
+        if (aiAnalysis != null) 'aiAnalysis': aiAnalysis,
+        'updatedAt': updatedAt,
+      };
 
   factory WeeklyReflection.fromMap(String id, Map<String, dynamic> map) {
     DateTime? updated;

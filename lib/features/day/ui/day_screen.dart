@@ -328,8 +328,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
         const minGoals = 1;
         const minTodos = 2;
 
-        final planningDateChanged =
-            _lastPlanningDate == null ||
+        final planningDateChanged = _lastPlanningDate == null ||
             !DateUtils.isSameDay(_lastPlanningDate!, tomorrow);
         if (planningDateChanged) {
           // Neues "morgen": alte Planung (Controller-Inhalt) wird verworfen.
@@ -352,23 +351,21 @@ class _DayScreenState extends ConsumerState<DayScreen> {
         }
         _lastPlanningDate = tomorrow;
 
-        final desiredGoalsLenFromData = goalsFromData.isEmpty
-            ? minGoals
-            : goalsFromData.length;
-        final desiredTodosLenFromData = todosFromData.isEmpty
-            ? minTodos
-            : todosFromData.length;
+        final desiredGoalsLenFromData =
+            goalsFromData.isEmpty ? minGoals : goalsFromData.length;
+        final desiredTodosLenFromData =
+            todosFromData.isEmpty ? minTodos : todosFromData.length;
 
         final goalsLen = planningDateChanged
             ? desiredGoalsLenFromData
             : (_goalCtrls.length > desiredGoalsLenFromData
-                  ? _goalCtrls.length
-                  : desiredGoalsLenFromData);
+                ? _goalCtrls.length
+                : desiredGoalsLenFromData);
         final todosLen = planningDateChanged
             ? desiredTodosLenFromData
             : (_todoCtrls.length > desiredTodosLenFromData
-                  ? _todoCtrls.length
-                  : desiredTodosLenFromData);
+                ? _todoCtrls.length
+                : desiredTodosLenFromData);
 
         while (_goalCtrls.length > goalsLen) {
           _goalCtrls.removeLast().dispose();
@@ -483,22 +480,22 @@ class _DayScreenState extends ConsumerState<DayScreen> {
           getSelected: () => _selected,
           setSelected: (d) => _selected = d,
           setState: (fn) => setState(fn),
-          debouncedUpdate:
-              ({
-                required uid,
-                required date,
-                required fieldPath,
-                required value,
-                alsoAggregateTo,
-                aggregateBuilder,
-              }) => _debouncedUpdate(
-                uid: uid,
-                date: date,
-                fieldPath: fieldPath,
-                value: value,
-                alsoAggregateTo: alsoAggregateTo,
-                aggregateBuilder: aggregateBuilder,
-              ),
+          debouncedUpdate: ({
+            required uid,
+            required date,
+            required fieldPath,
+            required value,
+            alsoAggregateTo,
+            aggregateBuilder,
+          }) =>
+              _debouncedUpdate(
+            uid: uid,
+            date: date,
+            fieldPath: fieldPath,
+            value: value,
+            alsoAggregateTo: alsoAggregateTo,
+            aggregateBuilder: aggregateBuilder,
+          ),
           aggregateMorning: _aggregateMorning,
           saveGoals: _saveGoals,
           saveTodos: _saveTodos,

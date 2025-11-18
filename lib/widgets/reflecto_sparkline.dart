@@ -59,9 +59,8 @@ class _SparklinePainter extends CustomPainter {
 
     final path = Path();
     if (points.isEmpty) return;
-    final List<int> values = points
-        .map((e) => (e.clamp(0, 5) as num).toInt())
-        .toList();
+    final List<int> values =
+        points.map((e) => (e.clamp(0, 5) as num).toInt()).toList();
     final maxV = 5.0;
     final minV = 0.0;
     final stepX = size.width / (values.length - 1);

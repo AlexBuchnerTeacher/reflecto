@@ -67,9 +67,8 @@ class HabitScreen extends ConsumerWidget {
           // Berechne Tages-Fortschritt (nur heute fällige Habits)
           final today = DateTime.now();
           final service = ref.watch(habitServiceProvider);
-          final dueHabits = habits
-              .where((h) => service.isScheduledOnDate(h, today))
-              .toList();
+          final dueHabits =
+              habits.where((h) => service.isScheduledOnDate(h, today)).toList();
           final completedToday = dueHabits
               .where((h) => service.isCompletedOnDate(h, today))
               .length;
@@ -118,13 +117,11 @@ class HabitScreen extends ConsumerWidget {
                           child: FilterChip(
                             label: const Text('Nur fällige'),
                             selected: showOnlyDue,
-                            onSelected: (v) =>
-                                ref
-                                        .read(
-                                          _showOnlyDueHabitsProvider.notifier,
-                                        )
-                                        .state =
-                                    v,
+                            onSelected: (v) => ref
+                                .read(
+                                  _showOnlyDueHabitsProvider.notifier,
+                                )
+                                .state = v,
                           ),
                         ),
                         FocusTraversalOrder(
@@ -142,9 +139,8 @@ class HabitScreen extends ConsumerWidget {
                               ref.read(_useSmartOrderProvider.notifier).state =
                                   v;
                               ref
-                                      .read(_showSmartPriorityProvider.notifier)
-                                      .state =
-                                  v;
+                                  .read(_showSmartPriorityProvider.notifier)
+                                  .state = v;
                             },
                           ),
                         ),
@@ -471,8 +467,8 @@ class _HabitGroupedListState extends ConsumerState<_HabitGroupedList> {
     // Filter habits
     var filtered = widget.showOnlyDue
         ? widget.habits
-              .where((h) => service.isScheduledOnDate(h, widget.today))
-              .toList()
+            .where((h) => service.isScheduledOnDate(h, widget.today))
+            .toList()
         : widget.habits.toList();
 
     // Apply Smart Order if enabled, otherwise sort by sortIndex

@@ -6,13 +6,13 @@ import 'auth_providers.dart';
 
 final mealServiceProvider = Provider<MealService>((ref) => MealService());
 
-final mealForDateProvider = StreamProvider.autoDispose
-    .family<MealLog?, DateTime>((ref, date) {
-      final uid = ref.watch(userIdProvider);
-      if (uid == null) return Stream.value(null);
-      final service = ref.watch(mealServiceProvider);
-      return service.watchMealForDate(uid, date);
-    });
+final mealForDateProvider =
+    StreamProvider.autoDispose.family<MealLog?, DateTime>((ref, date) {
+  final uid = ref.watch(userIdProvider);
+  if (uid == null) return Stream.value(null);
+  final service = ref.watch(mealServiceProvider);
+  return service.watchMealForDate(uid, date);
+});
 
 class MealNotifier extends AutoDisposeAsyncNotifier<void> {
   @override
@@ -23,9 +23,7 @@ class MealNotifier extends AutoDisposeAsyncNotifier<void> {
     if (uid == null) return;
     state = const AsyncLoading();
     try {
-      await ref
-          .read(mealServiceProvider)
-          .setMealToggle(
+      await ref.read(mealServiceProvider).setMealToggle(
             uid: uid,
             date: date,
             field: 'breakfast',
@@ -70,9 +68,7 @@ class MealNotifier extends AutoDisposeAsyncNotifier<void> {
     if (uid == null) return;
     state = const AsyncLoading();
     try {
-      await ref
-          .read(mealServiceProvider)
-          .setMealNote(
+      await ref.read(mealServiceProvider).setMealNote(
             uid: uid,
             date: date,
             field: 'breakfastNote',
@@ -116,9 +112,7 @@ class MealNotifier extends AutoDisposeAsyncNotifier<void> {
     final uid = ref.read(userIdProvider);
     if (uid == null) return;
     try {
-      await ref
-          .read(mealServiceProvider)
-          .setMealNote(
+      await ref.read(mealServiceProvider).setMealNote(
             uid: uid,
             date: date,
             field: 'breakfastTime',
