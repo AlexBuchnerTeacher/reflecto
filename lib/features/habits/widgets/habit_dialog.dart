@@ -295,9 +295,11 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Text(
-                      'Farbe wird automatisch aus der Kategorie zugewiesen',
-                      style: theme.textTheme.bodySmall,
+                    Expanded(
+                      child: Text(
+                        'Farbe wird automatisch aus der Kategorie zugewiesen',
+                        style: theme.textTheme.bodySmall,
+                      ),
                     ),
                   ],
                 ),
