@@ -72,6 +72,17 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
     try {
       if (widget.habit == null) {
         // Neues Habit erstellen
+        // Auto-assign sortIndex: max existing sortIndex + 10
+        final habitsAsync = ref.read(habitsProvider);
+        final maxSortIndex = habitsAsync.when(
+          data: (habits) {
+            final service = ref.read(habitServiceProvider);
+            return service.getMaxSortIndex(habits);
+          },
+          loading: () => 0,
+          error: (_, __) => 0,
+        );
+
         await notifier.createHabit(
           title: _titleCtrl.text.trim(),
           category: _categoryCtrl.text.trim(),
@@ -82,6 +93,7 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
               : _reminderTimeCtrl?.text.trim(),
           weekdays: _frequency == 'weekly_days' ? _weekdays.toList() : null,
           weeklyTarget: _frequency == 'weekly_target' ? _weeklyTarget : null,
+          sortIndex: maxSortIndex + 10,
         );
       } else {
         // Bestehendes Habit aktualisieren

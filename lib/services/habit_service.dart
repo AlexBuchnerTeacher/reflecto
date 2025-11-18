@@ -401,4 +401,78 @@ class HabitService {
 
     return habitScores.map((e) => e.habit).toList();
   }
+
+  /// Sortiert Habits nach Custom Order (sortIndex) und Status
+  ///
+  /// Sortierlogik:
+  /// 1. Unerledigte Habits nach sortIndex (aufsteigend)
+  /// 2. Erledigte Habits nach sortIndex (aufsteigend), aber am Ende
+  ///
+  /// Habits ohne sortIndex werden nach createdAt einsortiert
+  List<Habit> sortHabitsByCustomOrder(
+    List<Habit> habits, {
+    required DateTime today,
+  }) {
+    final incomplete = <Habit>[];
+    final completed = <Habit>[];
+
+    for (final habit in habits) {
+      if (isCompletedOnDate(habit, today)) {
+        completed.add(habit);
+      } else {
+        incomplete.add(habit);
+      }
+    }
+
+    // Sortiere jeweils nach sortIndex (oder createdAt als Fallback)
+    incomplete.sort((a, b) {
+      final aIndex = a.sortIndex ?? 999999;
+      final bIndex = b.sortIndex ?? 999999;
+      if (aIndex != bIndex) return aIndex.compareTo(bIndex);
+      return a.createdAt.compareTo(b.createdAt);
+    });
+
+    completed.sort((a, b) {
+      final aIndex = a.sortIndex ?? 999999;
+      final bIndex = b.sortIndex ?? 999999;
+      if (aIndex != bIndex) return aIndex.compareTo(bIndex);
+      return a.createdAt.compareTo(b.createdAt);
+    });
+
+    return [...incomplete, ...completed];
+  }
+
+  /// Aktualisiert sortIndex für mehrere Habits (Batch-Operation)
+  ///
+  /// Wird nach Drag & Drop aufgerufen um neue Reihenfolge zu speichern
+  Future<void> reorderHabits({
+    required String uid,
+    required List<({String habitId, int sortIndex})> updates,
+  }) async {
+    final batch = _firestore.batch();
+
+    for (final update in updates) {
+      final docRef = _habitsCollection(uid).doc(update.habitId);
+      batch.update(
+        docRef.withConverter(
+          fromFirestore: (_, __) => throw UnimplementedError(),
+          toFirestore: (_, __) => {},
+        ),
+        {
+          'sortIndex': update.sortIndex,
+          'updatedAt': FieldValue.serverTimestamp(),
+        },
+      );
+    }
+
+    await batch.commit();
+  }
+
+  /// Ermittelt den höchsten sortIndex in einer Liste von Habits
+  ///
+  /// Wird beim Erstellen neuer Habits verwendet um diese ans Ende zu setzen
+  int getMaxSortIndex(List<Habit> habits) {
+    if (habits.isEmpty) return 0;
+    return habits.map((h) => h.sortIndex ?? 0).reduce((a, b) => a > b ? a : b);
+  }
 }

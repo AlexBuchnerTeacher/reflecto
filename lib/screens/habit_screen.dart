@@ -354,6 +354,18 @@ class _TemplateSheetContentState extends ConsumerState<_TemplateSheetContent> {
                           final notifier = ref.read(
                             habitNotifierProvider.notifier,
                           );
+
+                          // Auto-assign sortIndex: max existing sortIndex + 10
+                          final habitsAsync = ref.read(habitsProvider);
+                          final maxSortIndex = habitsAsync.when(
+                            data: (habits) {
+                              final service = ref.read(habitServiceProvider);
+                              return service.getMaxSortIndex(habits);
+                            },
+                            loading: () => 0,
+                            error: (_, __) => 0,
+                          );
+
                           await notifier.createHabit(
                             title: t.title,
                             category: t.category,
@@ -362,6 +374,7 @@ class _TemplateSheetContentState extends ConsumerState<_TemplateSheetContent> {
                             reminderTime: t.reminderTime,
                             weekdays: t.weekdays,
                             weeklyTarget: t.weeklyTarget,
+                            sortIndex: maxSortIndex + 10,
                           );
                           if (context.mounted) Navigator.of(context).pop();
                         },
@@ -612,15 +625,12 @@ class _HabitGroupedList extends ConsumerWidget {
                 final uid = ref.read(userIdProvider);
                 if (uid != null) {
                   final svc = ref.read(habitServiceProvider);
-                  // Vergabe neuer sortIndex in 10er-Schritten
+                  // Batch-Update mit neuen sortIndex-Werten
+                  final updates = <({String habitId, int sortIndex})>[];
                   for (int i = 0; i < list.length; i++) {
-                    final h = list[i];
-                    await svc.updateHabit(
-                      uid: uid,
-                      habitId: h.id,
-                      sortIndex: i * 10,
-                    );
+                    updates.add((habitId: list[i].id, sortIndex: i * 10));
                   }
+                  await svc.reorderHabits(uid: uid, updates: updates);
                 }
                 if (context.mounted) Navigator.of(context).pop();
               },
