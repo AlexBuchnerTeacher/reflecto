@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/habit.dart';
 import '../../../providers/habit_providers.dart';
 import '../../../theme/tokens.dart';
+import '../../../utils/category_colors.dart';
 
 /// Dialog zum Anlegen oder Bearbeiten eines Habits
 class HabitDialog extends ConsumerStatefulWidget {
@@ -20,34 +21,15 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
   late TextEditingController _titleCtrl;
   late TextEditingController _categoryCtrl;
   late String _frequency;
-  late String _color;
   TextEditingController? _reminderTimeCtrl;
   Set<int> _weekdays = <int>{};
   int _weeklyTarget = 3;
 
-  // Vordefinierte Farben
-  final List<String> _colors = [
-    '#5B50FF', // Lila (Standard)
-    '#FF5252', // Rot
-    '#FF9800', // Orange
-    '#4CAF50', // Grün
-    '#2196F3', // Blau
-    '#9C27B0', // Violett
-    '#00BCD4', // Cyan
-    '#FFEB3B', // Gelb
-  ];
+  // Get category color dynamically from selected category
+  String get _color => CategoryColors.getColorForCategory(_categoryCtrl.text);
 
-  // Vordefinierte Kategorien
-  final List<String> _categories = [
-    '🔥 GESUNDHEIT',
-    '🚴 SPORT',
-    '📘 LERNEN',
-    '⚡ KREATIVITÄT',
-    '📈 PRODUKTIVITÄT',
-    '🤝 SOZIALES',
-    '🧘 ACHTSAMKEIT',
-    '🔧 SONSTIGES',
-  ];
+  // Vordefinierte Kategorien (aus CategoryColors)
+  final List<String> _categories = CategoryColors.getAllCategoryNames();
 
   @override
   void initState() {
@@ -60,7 +42,7 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
     if (_frequency == 'weekly') {
       _frequency = 'weekly_days';
     }
-    _color = widget.habit?.color ?? _colors.first;
+    // Color is now derived from category via getter
     if (widget.habit?.weekdays != null) {
       _weekdays = widget.habit!.weekdays!.toSet();
     }
@@ -271,44 +253,36 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
                 const SizedBox(height: ReflectoSpacing.s16),
               ],
 
-              // Farbe
-              Text('Farbe', style: theme.textTheme.titleSmall),
+              // Farbe (automatisch aus Kategorie)
+              Text('Farbe (aus Kategorie)', style: theme.textTheme.titleSmall),
               const SizedBox(height: ReflectoSpacing.s8),
-              Wrap(
-                spacing: ReflectoSpacing.s8,
-                runSpacing: ReflectoSpacing.s8,
-                children: _colors.map((colorHex) {
-                  final color = _parseColor(colorHex);
-                  final isSelected = _color == colorHex;
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _color = colorHex;
-                      });
-                    },
-                    child: Container(
-                      width: 40,
-                      height: 40,
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: CategoryColors.hexToColor(_color).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: CategoryColors.hexToColor(_color),
+                    width: 2,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
                       decoration: BoxDecoration(
-                        color: color,
+                        color: CategoryColors.hexToColor(_color),
                         shape: BoxShape.circle,
-                        border: isSelected
-                            ? Border.all(
-                                color: theme.colorScheme.primary,
-                                width: 3,
-                              )
-                            : null,
                       ),
-                      child: isSelected
-                          ? const Icon(
-                              Icons.check,
-                              color: Colors.white,
-                              size: 20,
-                            )
-                          : null,
                     ),
-                  );
-                }).toList(),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Farbe wird automatisch aus der Kategorie zugewiesen',
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: ReflectoSpacing.s16),
 
@@ -345,17 +319,5 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
         ),
       ],
     );
-  }
-
-  Color _parseColor(String hexString) {
-    try {
-      final hex = hexString.replaceAll('#', '');
-      if (hex.length == 6) {
-        return Color(int.parse('FF$hex', radix: 16));
-      }
-      return const Color(0xFF5B50FF);
-    } catch (_) {
-      return const Color(0xFF5B50FF);
-    }
   }
 }

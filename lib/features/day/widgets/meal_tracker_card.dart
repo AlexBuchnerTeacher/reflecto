@@ -295,27 +295,30 @@ class _MealTrackerCardState extends ConsumerState<MealTrackerCard> {
           ),
         ),
         const SizedBox(width: 8),
-        OutlinedButton.icon(
-          onPressed: () async {
-            final parts = time.split(':');
-            final initialTime = TimeOfDay(
-              hour: int.tryParse(parts[0]) ?? 12,
-              minute: int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0,
-            );
-            final picked = await showTimePicker(
-              context: context,
-              initialTime: initialTime,
-            );
-            if (picked != null) {
-              final formatted =
-                  '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
-              onTimeChanged(formatted);
-            }
-          },
-          icon: const Icon(Icons.access_time, size: 18),
-          label: Text(time),
-          style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        SizedBox(
+          width: 100,
+          child: OutlinedButton.icon(
+            onPressed: () async {
+              final parts = time.split(':');
+              final initialTime = TimeOfDay(
+                hour: int.tryParse(parts[0]) ?? 12,
+                minute: int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0,
+              );
+              final picked = await showTimePicker(
+                context: context,
+                initialTime: initialTime,
+              );
+              if (picked != null) {
+                final formatted =
+                    '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+                onTimeChanged(formatted);
+              }
+            },
+            icon: const Icon(Icons.access_time, size: 18),
+            label: Text(time),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
           ),
         ),
       ],

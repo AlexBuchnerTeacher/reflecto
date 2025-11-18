@@ -5,6 +5,7 @@ import '../../../models/habit.dart';
 import '../../../models/habit_priority.dart';
 import '../../../providers/habit_providers.dart';
 import '../../../theme/tokens.dart';
+import '../../../utils/category_colors.dart';
 
 /// Einzelne Habit-Karte mit Checkbox, Titel, Streak und Fortschritt
 class HabitCard extends ConsumerWidget {
@@ -51,8 +52,10 @@ class HabitCard extends ConsumerWidget {
       weeklyLabel = 'Diese Woche: $done';
     }
 
-    // Farbe aus Hex-String parsen
-    final habitColor = _parseColor(habit.color);
+    // Farbe aus Kategorie holen (fest zugeordnet)
+    final habitColor = CategoryColors.getFlutterColorForCategory(
+      habit.category,
+    );
     final weekdays = habit.weekdays ?? const <int>[];
 
     return Card(
@@ -307,19 +310,6 @@ class HabitCard extends ConsumerWidget {
         return Colors.orange;
       case HabitPriority.low:
         return theme.colorScheme.outline;
-    }
-  }
-
-  /// Parst Hex-Farbe zu Color (fallback: Primary-Color)
-  Color _parseColor(String hexString) {
-    try {
-      final hex = hexString.replaceAll('#', '');
-      if (hex.length == 6) {
-        return Color(int.parse('FF$hex', radix: 16));
-      }
-      return const Color(0xFF5B50FF); // Fallback
-    } catch (_) {
-      return const Color(0xFF5B50FF);
     }
   }
 }
