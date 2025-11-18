@@ -280,7 +280,7 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
               Text('Farbe (aus Kategorie)', style: theme.textTheme.titleSmall),
               const SizedBox(height: ReflectoSpacing.s8),
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: CategoryColors.hexToColor(
                     _color,
@@ -291,24 +291,15 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
                     width: 2,
                   ),
                 ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: CategoryColors.hexToColor(_color),
-                        shape: BoxShape.circle,
-                      ),
+                child: Center(
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: CategoryColors.hexToColor(_color),
+                      shape: BoxShape.circle,
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Farbe wird automatisch aus der Kategorie zugewiesen',
-                        style: theme.textTheme.bodySmall,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
               const SizedBox(height: ReflectoSpacing.s16),
