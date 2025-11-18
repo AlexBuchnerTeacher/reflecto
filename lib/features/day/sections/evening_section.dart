@@ -131,9 +131,8 @@ class EveningSection extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           AnimatedCrossFade(
-            crossFadeState: expanded
-                ? CrossFadeState.showFirst
-                : CrossFadeState.showSecond,
+            crossFadeState:
+                expanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
             duration: const Duration(milliseconds: 200),
             firstChild: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,9 +164,8 @@ class EveningSection extends StatelessWidget {
                         onGoalCheckChanged(i, v ?? false);
                       },
                       title: Opacity(
-                        opacity: i < goalChecks.length && goalChecks[i]
-                            ? 0.6
-                            : 1.0,
+                        opacity:
+                            i < goalChecks.length && goalChecks[i] ? 0.6 : 1.0,
                         child: Text(curGoals[i]),
                       ),
                       secondary: (i >= goalChecks.length || !goalChecks[i])
@@ -202,9 +200,8 @@ class EveningSection extends StatelessWidget {
                         onTodoCheckChanged(i, v ?? false);
                       },
                       title: Opacity(
-                        opacity: i < todoChecks.length && todoChecks[i]
-                            ? 0.6
-                            : 1.0,
+                        opacity:
+                            i < todoChecks.length && todoChecks[i] ? 0.6 : 1.0,
                         child: Text(curTodos[i]),
                       ),
                       secondary: (i >= todoChecks.length || !todoChecks[i])
@@ -228,6 +225,7 @@ class EveningSection extends StatelessWidget {
                   minLines: 1,
                   maxLines: 2,
                   focusNode: goodNode,
+                  focusOrder: 4.0,
                   onChanged: (v) => onTextChanged('evening.good', v),
                 ),
                 const SizedBox(height: 8),
@@ -237,6 +235,7 @@ class EveningSection extends StatelessWidget {
                   minLines: 1,
                   maxLines: 2,
                   focusNode: learnedNode,
+                  focusOrder: 5.0,
                   onChanged: (v) => onTextChanged('evening.learned', v),
                 ),
                 const SizedBox(height: 8),
@@ -246,6 +245,7 @@ class EveningSection extends StatelessWidget {
                   minLines: 1,
                   maxLines: 2,
                   focusNode: betterNode,
+                  focusOrder: 6.0,
                   onChanged: (v) => onTextChanged('evening.improve', v),
                 ),
                 const SizedBox(height: 8),
@@ -255,6 +255,7 @@ class EveningSection extends StatelessWidget {
                   minLines: 1,
                   maxLines: 2,
                   focusNode: gratefulNode,
+                  focusOrder: 7.0,
                   onChanged: (v) => onTextChanged('evening.gratitude', v),
                 ),
                 const SizedBox(height: 12),

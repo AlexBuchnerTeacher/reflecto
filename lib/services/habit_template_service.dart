@@ -5,12 +5,10 @@ import '../models/habit_template.dart';
 class HabitTemplateService {
   final FirebaseFirestore _firestore;
   HabitTemplateService({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+      : _firestore = firestore ?? FirebaseFirestore.instance;
 
   CollectionReference<HabitTemplate> _templatesCollection() {
-    return _firestore
-        .collection('habit_templates')
-        .withConverter(
+    return _firestore.collection('habit_templates').withConverter(
           fromFirestore: (snapshot, _) {
             final data = snapshot.data();
             if (data == null) {

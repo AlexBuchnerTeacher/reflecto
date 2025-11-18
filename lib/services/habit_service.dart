@@ -8,7 +8,7 @@ class HabitService {
   final FirebaseFirestore _firestore;
 
   HabitService({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+      : _firestore = firestore ?? FirebaseFirestore.instance;
 
   /// Typisierte Habit-Collection für einen User
   CollectionReference<Habit> _habitsCollection(String uid) {
@@ -375,8 +375,8 @@ class HabitService {
     final priority = score >= 70
         ? HabitPriority.high
         : score >= 40
-        ? HabitPriority.medium
-        : HabitPriority.low;
+            ? HabitPriority.medium
+            : HabitPriority.low;
 
     return HabitPriorityScore(priority: priority, score: score);
   }

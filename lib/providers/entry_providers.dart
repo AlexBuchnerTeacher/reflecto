@@ -18,11 +18,11 @@ final todayEntryProvider = StreamProvider<JournalEntry?>((ref) {
 
 final weekEntriesProvider = FutureProvider.autoDispose
     .family<List<JournalEntry>, DateTime>((ref, anyDayInWeek) async {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return <JournalEntry>[];
-      final svc = ref.read(_svcProvider);
-      return svc.fetchWeekEntries(user.uid, anyDayInWeek);
-    });
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return <JournalEntry>[];
+  final svc = ref.read(_svcProvider);
+  return svc.fetchWeekEntries(user.uid, anyDayInWeek);
+});
 
 // Document stream for today to access snapshot metadata (pending/offline)
 final todayDocProvider = StreamProvider<DocumentSnapshot<Map<String, dynamic>>>(
@@ -38,43 +38,42 @@ final todayDocProvider = StreamProvider<DocumentSnapshot<Map<String, dynamic>>>(
 );
 
 // Weekly reflection stream provider
-final weeklyReflectionProvider = StreamProvider.autoDispose
-    .family<WeeklyReflection?, String>((ref, weekId) {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return const Stream.empty();
-      final svc = ref.read(_svcProvider);
-      return svc.weeklyReflectionStream(user.uid, weekId);
-    });
+final weeklyReflectionProvider =
+    StreamProvider.autoDispose.family<WeeklyReflection?, String>((ref, weekId) {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return const Stream.empty();
+  final svc = ref.read(_svcProvider);
+  return svc.weeklyReflectionStream(user.uid, weekId);
+});
 
 // Family providers by date for day views
-final dayEntryProvider = StreamProvider.autoDispose
-    .family<JournalEntry?, DateTime>((ref, date) {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return const Stream.empty();
-      final svc = ref.read(_svcProvider);
-      return svc.getDailyEntry(user.uid, date);
-    });
+final dayEntryProvider =
+    StreamProvider.autoDispose.family<JournalEntry?, DateTime>((ref, date) {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return const Stream.empty();
+  final svc = ref.read(_svcProvider);
+  return svc.getDailyEntry(user.uid, date);
+});
 
 final dayDocProvider = StreamProvider.autoDispose
     .family<DocumentSnapshot<Map<String, dynamic>>, DateTime>((ref, date) {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return const Stream.empty();
-      String two(int n) => n.toString().padLeft(2, '0');
-      final id = '${date.year}-${two(date.month)}-${two(date.day)}';
-      final doc = FirebaseFirestore.instance.doc(
-        'users/${user.uid}/entries/$id',
-      );
-      return doc.snapshots();
-    });
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return const Stream.empty();
+  String two(int n) => n.toString().padLeft(2, '0');
+  final id = '${date.year}-${two(date.month)}-${two(date.day)}';
+  final doc = FirebaseFirestore.instance.doc(
+    'users/${user.uid}/entries/$id',
+  );
+  return doc.snapshots();
+});
 
 // Update helpers exposed via providers
-typedef UpdateDayField =
-    Future<void> Function(
-      String uid,
-      DateTime date,
-      String field,
-      dynamic value,
-    );
+typedef UpdateDayField = Future<void> Function(
+  String uid,
+  DateTime date,
+  String field,
+  dynamic value,
+);
 
 final updateDayFieldProvider = Provider<UpdateDayField>((ref) {
   final svc = ref.read(_svcProvider);

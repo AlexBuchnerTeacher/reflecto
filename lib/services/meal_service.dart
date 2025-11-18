@@ -5,7 +5,7 @@ import '../models/meal_log.dart';
 class MealService {
   final FirebaseFirestore _firestore;
   MealService({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+      : _firestore = firestore ?? FirebaseFirestore.instance;
 
   CollectionReference<MealLog> _mealsCollection(String uid) {
     return _firestore
@@ -38,11 +38,8 @@ class MealService {
     final id = dateKey(date);
     final typedRef = _mealsCollection(uid).doc(id);
     final doc = await typedRef.get();
-    final rawRef = _firestore
-        .collection('users')
-        .doc(uid)
-        .collection('meals')
-        .doc(id);
+    final rawRef =
+        _firestore.collection('users').doc(uid).collection('meals').doc(id);
     if (!doc.exists) {
       final now = DateTime.now();
       final base = MealLog(
@@ -74,11 +71,8 @@ class MealService {
     final id = dateKey(date);
     final typedRef = _mealsCollection(uid).doc(id);
     final doc = await typedRef.get();
-    final rawRef = _firestore
-        .collection('users')
-        .doc(uid)
-        .collection('meals')
-        .doc(id);
+    final rawRef =
+        _firestore.collection('users').doc(uid).collection('meals').doc(id);
     if (!doc.exists) {
       final now = DateTime.now();
       final base = MealLog(

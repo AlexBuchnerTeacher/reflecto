@@ -86,8 +86,7 @@ class Habit {
           ? map['sortIndex'] as int
           : int.tryParse(map['sortIndex']?.toString() ?? ''),
       streak: map['streak'] as int? ?? 0,
-      completedDates:
-          (map['completedDates'] as List<dynamic>?)
+      completedDates: (map['completedDates'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           [],

@@ -44,20 +44,16 @@ class WeekStats {
 
     // Filtere leere Placeholder-Dokumente aus
     final validEntries = entries.where((e) {
-      final hasMorningData =
-          e.morning.mood.trim().isNotEmpty ||
+      final hasMorningData = e.morning.mood.trim().isNotEmpty ||
           e.morning.goodThing.trim().isNotEmpty ||
           e.morning.focus.trim().isNotEmpty;
-      final hasEveningData =
-          e.evening.good.trim().isNotEmpty ||
+      final hasEveningData = e.evening.good.trim().isNotEmpty ||
           e.evening.learned.trim().isNotEmpty ||
           e.evening.improve.trim().isNotEmpty;
-      final hasRatings =
-          e.ratingFocus != null ||
+      final hasRatings = e.ratingFocus != null ||
           e.ratingEnergy != null ||
           e.ratingHappiness != null;
-      final hasPlanning =
-          e.planning.goals.any((g) => g.trim().isNotEmpty) ||
+      final hasPlanning = e.planning.goals.any((g) => g.trim().isNotEmpty) ||
           e.planning.todos.any((t) => t.trim().isNotEmpty);
       return hasMorningData || hasEveningData || hasRatings || hasPlanning;
     }).toList();

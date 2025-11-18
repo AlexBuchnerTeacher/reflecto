@@ -55,14 +55,10 @@ class PlanningSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final nonEmptyGoals = goalCtrls
-        .map((c) => c.text.trim())
-        .where((e) => e.isNotEmpty)
-        .length;
-    final nonEmptyTodos = todoCtrls
-        .map((c) => c.text.trim())
-        .where((e) => e.isNotEmpty)
-        .length;
+    final nonEmptyGoals =
+        goalCtrls.map((c) => c.text.trim()).where((e) => e.isNotEmpty).length;
+    final nonEmptyTodos =
+        todoCtrls.map((c) => c.text.trim()).where((e) => e.isNotEmpty).length;
 
     return ReflectoCard(
       child: Column(
@@ -109,9 +105,8 @@ class PlanningSection extends StatelessWidget {
             ],
           ),
           AnimatedCrossFade(
-            crossFadeState: expanded
-                ? CrossFadeState.showFirst
-                : CrossFadeState.showSecond,
+            crossFadeState:
+                expanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
             duration: const Duration(milliseconds: 200),
             firstChild: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,9 +144,9 @@ class PlanningSection extends StatelessWidget {
                                 controller: goalCtrls[i],
                                 minLines: 1,
                                 maxLines: 2,
-                                focusNode: i < goalNodes.length
-                                    ? goalNodes[i]
-                                    : null,
+                                focusNode:
+                                    i < goalNodes.length ? goalNodes[i] : null,
+                                focusOrder: 8.0 + i,
                                 onChanged: (_) => onGoalsChanged(),
                               ),
                             ),
@@ -208,9 +203,9 @@ class PlanningSection extends StatelessWidget {
                                 controller: todoCtrls[i],
                                 minLines: 1,
                                 maxLines: 2,
-                                focusNode: i < todoNodes.length
-                                    ? todoNodes[i]
-                                    : null,
+                                focusNode:
+                                    i < todoNodes.length ? todoNodes[i] : null,
+                                focusOrder: 11.0 + i,
                                 onChanged: (_) => onTodosChanged(),
                               ),
                             ),
@@ -245,6 +240,7 @@ class PlanningSection extends StatelessWidget {
                   minLines: 1,
                   maxLines: 2,
                   focusNode: attitudeNode,
+                  focusOrder: 14.0,
                   onChanged: onReflectionChanged,
                 ),
                 const SizedBox(height: 8),
@@ -254,6 +250,7 @@ class PlanningSection extends StatelessWidget {
                   minLines: 1,
                   maxLines: 2,
                   focusNode: notesNode,
+                  focusOrder: 15.0,
                   onChanged: onNotesChanged,
                 ),
               ],

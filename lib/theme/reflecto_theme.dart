@@ -54,22 +54,20 @@ class ReflectoTheme {
   /// Light Theme
   static ThemeData light() {
     // Basis ColorScheme
-    final colorScheme =
-        ColorScheme.fromSeed(
-          seedColor: ReflectoColors.primaryMid,
-          brightness: Brightness.light,
-        ).copyWith(
-          primary: ReflectoColors.primaryMid,
-          onPrimary: Colors.white,
-          secondary: ReflectoColors.secondaryMid,
-          onSecondary: ReflectoColors.textPrimary,
-          surface: ReflectoColors.backgroundMid,
-          onSurface: ReflectoColors.textPrimary,
-
-          error: ReflectoColors.warningMid,
-          onError: Colors.white,
-          outline: ReflectoColors.borderMid,
-        );
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: ReflectoColors.primaryMid,
+      brightness: Brightness.light,
+    ).copyWith(
+      primary: ReflectoColors.primaryMid,
+      onPrimary: Colors.white,
+      secondary: ReflectoColors.secondaryMid,
+      onSecondary: ReflectoColors.textPrimary,
+      surface: ReflectoColors.backgroundMid,
+      onSurface: ReflectoColors.textPrimary,
+      error: ReflectoColors.warningMid,
+      onError: Colors.white,
+      outline: ReflectoColors.borderMid,
+    );
 
     // Typografie
     final inter = GoogleFonts.interTextTheme();
@@ -107,9 +105,9 @@ class ReflectoTheme {
 
     // Eingabefelder
     OutlineInputBorder outlineBorder(Color c) => OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide(color: c, width: 1.2),
-    );
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: c, width: 1.2),
+        );
 
     return ThemeData(
       useMaterial3: true,
@@ -240,22 +238,20 @@ class ReflectoTheme {
 
   /// Dark Theme
   static ThemeData dark() {
-    final colorScheme =
-        ColorScheme.fromSeed(
-          seedColor: ReflectoColors.primaryMid,
-          brightness: Brightness.dark,
-        ).copyWith(
-          primary: ReflectoColors.primaryMid,
-          onPrimary: Colors.white,
-          secondary: ReflectoColors.darkSecondary,
-          onSecondary: ReflectoColors.darkText,
-          surface: ReflectoColors.darkBackground,
-          onSurface: ReflectoColors.darkText,
-
-          error: ReflectoColors.warningDark,
-          onError: Colors.white,
-          outline: ReflectoColors.borderDark,
-        );
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: ReflectoColors.primaryMid,
+      brightness: Brightness.dark,
+    ).copyWith(
+      primary: ReflectoColors.primaryMid,
+      onPrimary: Colors.white,
+      secondary: ReflectoColors.darkSecondary,
+      onSecondary: ReflectoColors.darkText,
+      surface: ReflectoColors.darkBackground,
+      onSurface: ReflectoColors.darkText,
+      error: ReflectoColors.warningDark,
+      onError: Colors.white,
+      outline: ReflectoColors.borderDark,
+    );
 
     final textTheme = GoogleFonts.interTextTheme().apply(
       bodyColor: ReflectoColors.darkText,
@@ -263,9 +259,9 @@ class ReflectoTheme {
     );
 
     OutlineInputBorder outlineBorder(Color c) => OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide(color: c, width: 1.2),
-    );
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: c, width: 1.2),
+        );
 
     return ThemeData(
       useMaterial3: true,
@@ -277,13 +273,11 @@ class ReflectoTheme {
       colorScheme: colorScheme,
       scaffoldBackgroundColor: ReflectoColors.darkBackground,
       textTheme: textTheme,
-
       appBarTheme: const AppBarTheme(
         backgroundColor: ReflectoColors.darkBackground,
         foregroundColor: ReflectoColors.darkText,
         elevation: 0,
       ),
-
       cardTheme: CardThemeData(
         color: ReflectoColors.darkCard,
         elevation: 2,
@@ -291,7 +285,6 @@ class ReflectoTheme {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         margin: const EdgeInsets.all(0),
       ),
-
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: ReflectoColors.primaryMid,
@@ -305,7 +298,6 @@ class ReflectoTheme {
           ),
         ),
       ),
-
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: ReflectoColors.darkCard,
@@ -322,7 +314,6 @@ class ReflectoTheme {
         errorBorder: outlineBorder(ReflectoColors.warningDark),
         focusedErrorBorder: outlineBorder(ReflectoColors.warningMid),
       ),
-
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: ReflectoColors.darkCard,
@@ -331,7 +322,6 @@ class ReflectoTheme {
         elevation: 4,
         actionTextColor: ReflectoColors.darkSecondary,
       ),
-
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         selectedItemColor: ReflectoColors.primaryMid,
         unselectedItemColor: ReflectoColors.darkSecondary,

@@ -5,7 +5,7 @@ class HabitMigration {
   final FirebaseFirestore _firestore;
 
   HabitMigration({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+      : _firestore = firestore ?? FirebaseFirestore.instance;
 
   static const _categoryMap = {
     'GESUNDHEIT': '🔥 GESUNDHEIT',
@@ -27,10 +27,8 @@ class HabitMigration {
   };
 
   Future<int> migrateUserHabits(String uid) async {
-    final habitsRef = _firestore
-        .collection('users')
-        .doc(uid)
-        .collection('habits');
+    final habitsRef =
+        _firestore.collection('users').doc(uid).collection('habits');
 
     final snapshot = await habitsRef.get();
     int updated = 0;

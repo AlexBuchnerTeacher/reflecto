@@ -38,13 +38,13 @@ class ThemeModeNotifier extends StateNotifier<AppThemeMode> {
   }
 
   ThemeMode get materialThemeMode => switch (state) {
-    AppThemeMode.system => ThemeMode.system,
-    AppThemeMode.light => ThemeMode.light,
-    AppThemeMode.dark => ThemeMode.dark,
-  };
+        AppThemeMode.system => ThemeMode.system,
+        AppThemeMode.light => ThemeMode.light,
+        AppThemeMode.dark => ThemeMode.dark,
+      };
 }
 
 final themeModeProvider =
     StateNotifierProvider<ThemeModeNotifier, AppThemeMode>(
-      (ref) => ThemeModeNotifier(),
-    );
+  (ref) => ThemeModeNotifier(),
+);

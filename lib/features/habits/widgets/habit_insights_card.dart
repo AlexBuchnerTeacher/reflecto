@@ -29,9 +29,8 @@ class HabitInsightsCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (habits.isEmpty) return const SizedBox.shrink();
 
-    final dueHabits = habits
-        .where((h) => service.isScheduledOnDate(h, today))
-        .toList();
+    final dueHabits =
+        habits.where((h) => service.isScheduledOnDate(h, today)).toList();
 
     if (dueHabits.isEmpty) return const SizedBox.shrink();
 
@@ -66,9 +65,8 @@ class HabitInsightsCard extends ConsumerWidget {
   /// Tagesbilanz: "X von Y erledigt" + Momentum-Indikator (⭐)
   Widget _buildTagesbilanz(BuildContext context, List<Habit> dueHabits) {
     final theme = Theme.of(context);
-    final completedCount = dueHabits
-        .where((h) => service.isCompletedOnDate(h, today))
-        .length;
+    final completedCount =
+        dueHabits.where((h) => service.isCompletedOnDate(h, today)).length;
     final totalCount = dueHabits.length;
     final progressPercent = (completedCount / totalCount * 100).round();
 
@@ -210,14 +208,14 @@ class HabitInsightsCard extends ConsumerWidget {
           final trendIcon = habit.streak >= 7
               ? '▲' // Steigend
               : habit.streak >= 3
-              ? '●' // Stabil
-              : '▼'; // Fallend
+                  ? '●' // Stabil
+                  : '▼'; // Fallend
 
           final trendColor = habit.streak >= 7
               ? Colors.green
               : habit.streak >= 3
-              ? Colors.orange
-              : Colors.red;
+                  ? Colors.orange
+                  : Colors.red;
 
           return Padding(
             padding: const EdgeInsets.only(bottom: ReflectoSpacing.s4),
@@ -266,9 +264,8 @@ class HabitInsightsCard extends ConsumerWidget {
     String? lowestCat;
     double lowestRate = 1.0;
     for (final entry in categoryMap.entries) {
-      final completed = entry.value
-          .where((h) => service.isCompletedOnDate(h, today))
-          .length;
+      final completed =
+          entry.value.where((h) => service.isCompletedOnDate(h, today)).length;
       final rate = completed / entry.value.length;
       if (rate < lowestRate) {
         lowestRate = rate;
@@ -303,9 +300,8 @@ class HabitInsightsCard extends ConsumerWidget {
 
     // Zeige Fokus-Empfehlung
     final catHabits = categoryMap[lowestCat]!;
-    final completed = catHabits
-        .where((h) => service.isCompletedOnDate(h, today))
-        .length;
+    final completed =
+        catHabits.where((h) => service.isCompletedOnDate(h, today)).length;
     final total = catHabits.length;
 
     return Container(

@@ -12,15 +12,12 @@ class FirestoreService {
   static final FirestoreService instance = FirestoreService._();
   factory FirestoreService() => instance;
 
-  final CollectionReference<Map<String, dynamic>> _users = FirebaseFirestore
-      .instance
-      .collection('users');
+  final CollectionReference<Map<String, dynamic>> _users =
+      FirebaseFirestore.instance.collection('users');
 
   /// Getypter User-Dokument-Ref.
   DocumentReference<AppUser> _userDocTyped(String uid) {
-    return _users
-        .doc(uid)
-        .withConverter<AppUser>(
+    return _users.doc(uid).withConverter<AppUser>(
           fromFirestore: (snap, _) => AppUser.fromMap(snap.data() ?? {}),
           toFirestore: (user, _) => user.toMap(),
         );
@@ -32,10 +29,7 @@ class FirestoreService {
 
   /// Getypte Entries-Collection mit Konvertern für `JournalEntry`.
   CollectionReference<JournalEntry> _typedEntries(String uid) {
-    return _users
-        .doc(uid)
-        .collection('entries')
-        .withConverter<JournalEntry>(
+    return _users.doc(uid).collection('entries').withConverter<JournalEntry>(
           fromFirestore: (snap, _) {
             final data = snap.data();
             if (data == null) return JournalEntry.empty(snap.id);
@@ -244,10 +238,13 @@ class FirestoreService {
             : 0;
 
         // 2) Heutigen Abend als completed setzen (immer)
-        tx.set(todayRef, {
-          'evening': {'completed': true},
-          'updatedAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
+        tx.set(
+            todayRef,
+            {
+              'evening': {'completed': true},
+              'updatedAt': FieldValue.serverTimestamp(),
+            },
+            SetOptions(merge: true));
 
         // Wenn heute bereits gezählt wurde: nur completed setzen und fertig
         if (lastDate == todayId) {
@@ -267,12 +264,15 @@ class FirestoreService {
         final shouldChain = yCompleted && (lastDate == yId || lastDate == null);
         final next = shouldChain ? (current + 1) : 1;
         final nextLongest = next > longest ? next : longest;
-        tx.set(streakRef, {
-          'streakCount': next,
-          'longestStreak': nextLongest,
-          'lastEntryDate': todayId,
-          'updatedAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
+        tx.set(
+            streakRef,
+            {
+              'streakCount': next,
+              'longestStreak': nextLongest,
+              'lastEntryDate': todayId,
+              'updatedAt': FieldValue.serverTimestamp(),
+            },
+            SetOptions(merge: true));
       });
     } on FirebaseException catch (e) {
       debugPrint('Firestore error (markEveningCompletedAndUpdateStreak): $e');
@@ -332,9 +332,7 @@ class FirestoreService {
       final col = _typedEntries(uid);
       final snap = await col
           .orderBy(FieldPath.documentId)
-          .startAt([startId])
-          .endAt([endId])
-          .get();
+          .startAt([startId]).endAt([endId]).get();
       return snap.docs.map((d) => d.data()).toList();
     } on FirebaseException catch (e) {
       debugPrint('Firestore error (fetchWeekEntries): $e');
@@ -520,15 +518,21 @@ class FirestoreService {
         }
       }
 
-      tx.set(todayRef, {
-        'planning': {field: listToday},
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      tx.set(
+          todayRef,
+          {
+            'planning': {field: listToday},
+            'updatedAt': FieldValue.serverTimestamp(),
+          },
+          SetOptions(merge: true));
 
-      tx.set(tomorrowRef, {
-        'planning': {field: listTomorrow},
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      tx.set(
+          tomorrowRef,
+          {
+            'planning': {field: listTomorrow},
+            'updatedAt': FieldValue.serverTimestamp(),
+          },
+          SetOptions(merge: true));
     });
   }
 
@@ -593,14 +597,20 @@ class FirestoreService {
         }
       }
 
-      tx.set(fromRef, {
-        'planning': {field: listFrom},
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-      tx.set(toRef, {
-        'planning': {field: listTo},
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      tx.set(
+          fromRef,
+          {
+            'planning': {field: listFrom},
+            'updatedAt': FieldValue.serverTimestamp(),
+          },
+          SetOptions(merge: true));
+      tx.set(
+          toRef,
+          {
+            'planning': {field: listTo},
+            'updatedAt': FieldValue.serverTimestamp(),
+          },
+          SetOptions(merge: true));
     });
   }
 
@@ -636,16 +646,18 @@ class FirestoreService {
       final todos = List<String>.from(planning['todos'] ?? const <String>[]);
       final newGoals = dedupePreserveEmptySlots(goals);
       final newTodos = dedupePreserveEmptySlots(todos);
-      final changed =
-          newGoals.length != goals.length ||
+      final changed = newGoals.length != goals.length ||
           newTodos.length != todos.length ||
           !_listsEqual(newGoals, goals) ||
           !_listsEqual(newTodos, todos);
       if (changed) {
-        batch.set(doc.reference, {
-          'planning': {'goals': newGoals, 'todos': newTodos},
-          'updatedAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
+        batch.set(
+            doc.reference,
+            {
+              'planning': {'goals': newGoals, 'todos': newTodos},
+              'updatedAt': FieldValue.serverTimestamp(),
+            },
+            SetOptions(merge: true));
         ops++;
         if (ops >= 450) {
           await batch.commit();

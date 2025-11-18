@@ -77,9 +77,17 @@ class MorningSection extends StatelessWidget {
                   child: _progressChip(
                     context,
                     'Felder '
-                    '${[feelingCtrl.text.trim(), goodCtrl.text.trim(), focusCtrl.text.trim()].where((e) => e.isNotEmpty).length}/3'
+                    '${[
+                      feelingCtrl.text.trim(),
+                      goodCtrl.text.trim(),
+                      focusCtrl.text.trim()
+                    ].where((e) => e.isNotEmpty).length}/3'
                     ' · Ratings '
-                    '${[mood, energy, focusRating].where((e) => e != null).length}/3',
+                    '${[
+                      mood,
+                      energy,
+                      focusRating
+                    ].where((e) => e != null).length}/3',
                   ),
                 ),
               ),
@@ -95,9 +103,8 @@ class MorningSection extends StatelessWidget {
             ],
           ),
           AnimatedCrossFade(
-            crossFadeState: expanded
-                ? CrossFadeState.showFirst
-                : CrossFadeState.showSecond,
+            crossFadeState:
+                expanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
             duration: const Duration(milliseconds: 200),
             firstChild: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -148,6 +155,7 @@ class MorningSection extends StatelessWidget {
                   minLines: 1,
                   maxLines: 4,
                   focusNode: feelingNode,
+                  focusOrder: 1.0,
                   onChanged: (v) => onTextChanged('morning.mood', v),
                 ),
                 const SizedBox(height: 8),
@@ -157,6 +165,7 @@ class MorningSection extends StatelessWidget {
                   minLines: 1,
                   maxLines: 2,
                   focusNode: goodNode,
+                  focusOrder: 2.0,
                   onChanged: (v) => onTextChanged('morning.goodThing', v),
                 ),
                 const SizedBox(height: 8),
@@ -166,6 +175,7 @@ class MorningSection extends StatelessWidget {
                   minLines: 1,
                   maxLines: 2,
                   focusNode: focusNode,
+                  focusOrder: 3.0,
                   onChanged: (v) => onTextChanged('morning.focus', v),
                 ),
                 const SizedBox(height: 12),

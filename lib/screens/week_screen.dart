@@ -66,24 +66,21 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
       if (entryOrNull == null) continue;
 
       // Prüfe ob Entry tatsächlich Daten hat (nicht nur Placeholder)
-      final hasMorningData =
-          entryOrNull.morning.mood.trim().isNotEmpty ||
+      final hasMorningData = entryOrNull.morning.mood.trim().isNotEmpty ||
           entryOrNull.morning.goodThing.trim().isNotEmpty ||
           entryOrNull.morning.focus.trim().isNotEmpty;
 
-      final hasEveningData =
-          entryOrNull.evening.good.trim().isNotEmpty ||
+      final hasEveningData = entryOrNull.evening.good.trim().isNotEmpty ||
           entryOrNull.evening.learned.trim().isNotEmpty ||
           entryOrNull.evening.improve.trim().isNotEmpty;
 
-      final hasRatings =
-          entryOrNull.ratingFocus != null ||
+      final hasRatings = entryOrNull.ratingFocus != null ||
           entryOrNull.ratingEnergy != null ||
           entryOrNull.ratingHappiness != null;
 
       final hasPlanning =
           entryOrNull.planning.goals.any((g) => g.trim().isNotEmpty) ||
-          entryOrNull.planning.todos.any((t) => t.trim().isNotEmpty);
+              entryOrNull.planning.todos.any((t) => t.trim().isNotEmpty);
 
       // Überspringe leere Placeholder-Dokumente
       if (!hasMorningData && !hasEveningData && !hasRatings && !hasPlanning) {
@@ -108,12 +105,10 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
       if (entryOrNull.ratingHappiness != null) dayScore++;
 
       // Planung: Ziele/To-dos (max 3 Punkte)
-      final goals = entryOrNull.planning.goals
-          .where((g) => g.trim().isNotEmpty)
-          .toList();
-      final todos = entryOrNull.planning.todos
-          .where((t) => t.trim().isNotEmpty)
-          .toList();
+      final goals =
+          entryOrNull.planning.goals.where((g) => g.trim().isNotEmpty).toList();
+      final todos =
+          entryOrNull.planning.todos.where((t) => t.trim().isNotEmpty).toList();
       if (goals.isNotEmpty || todos.isNotEmpty) {
         dayScore += 1.5; // Bonus für Planung
         final totalItems =

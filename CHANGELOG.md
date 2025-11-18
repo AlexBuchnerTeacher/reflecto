@@ -2,7 +2,54 @@
 
 Alle nennenswerten Änderungen an Reflecto.
 
-## v1.6.1 (2025-11-18) - Collapsible Cards & Custom Habit Order
+## v1.6.1 (2025-11-18) - UX & Accessibility
+
+### A11y: Tab-Navigation für Desktop Keyboard Users (#115)
+- **Problem gelöst**: Desktop-User konnten nicht linear durch Formulare tabben, unvorhersehbare Fokus-Sprünge
+- **FocusTraversalOrder implementiert**:
+  - DayScreen: Morning TextFields (1-3), Evening TextFields (4-7), Planning Fields (8-15)
+  - ProfileSection: TextField (1.0) → Save Button (2.0)
+  - HabitScreen: FilterChips (1.0-2.0) für logische Reihenfolge
+- **LabeledField Widget erweitert**:
+  - Neuer `focusOrder` Parameter für NumericFocusOrder
+  - Automatisches Wrapping mit FocusTraversalOrder wenn gesetzt
+- **Akzeptanzkriterien erfüllt**:
+  - ✅ Linearer Tab-Flow top-to-bottom für alle interaktiven Felder
+  - ✅ Keine Fokus-Traps oder unerwartete Sprünge
+  - ✅ Konsistente Reihenfolge über alle Screens
+
+### Bug: Meal Time Picker zeigt AM/PM statt 24h Format (#118)
+- **Problem gelöst**: TimePicker zeigte 12-Stunden-Format statt deutsches 24h-Format (HH:mm)
+- **Fixes implementiert**:
+  - `alwaysUse24HourFormat: true` via MediaQuery.copyWith() im showTimePicker builder
+  - Auto-save default times beim ersten Toggle (06:30, 13:30, 19:00)
+  - Debounce standardisiert auf 300ms (war 400ms) via DebounceConstants
+- **Test-Infrastruktur**:
+  - fake_cloud_firestore integration für Firebase mocking
+  - 27/27 Tests passing (war 16/27 vor Bugfix)
+
+### UX/Performance: Textfeld Debounce Standardisierung (#116)
+- **Problem gelöst**: Unterschiedliche Debounce-Zeiten führten zu inkonsistentem Feedback
+- **DebounceConstants eingeführt**:
+  - `textFieldDebounce: Duration(milliseconds: 300)` - Standard für alle Textfelder
+  - `instantFeedback: Duration.zero` - Checkboxen, Buttons, Ratings
+- **Angewendet auf**: DaySyncLogic, MealTrackerCard, Planning TextFields
+- Konsistentes User-Feedback app-wide
+
+### Infrastructure: CI/CD & Test Coverage Improvements
+- **Coverage Badges**: Codecov + Tests Badges zu README.md hinzugefügt
+- **Release Workflow erweitert**:
+  - Web build artifacts mit retention (90 Tage)
+  - CHANGELOG.md auto-update aus Git commits
+  - Release notes generation mit artifact links
+- **CI/CD Dokumentation**:
+  - `docs/CI_CD_IMPROVEMENTS.md` mit vollständigem Status & Roadmap
+  - Prioritisierte Action Items (Firebase Emulator, 50% Coverage, Golden Tests)
+  - Issue management Prozess dokumentiert
+- **Neue fokussierte Issues**:
+  - #120: Firebase Emulator Integration Tests
+  - #121: 50% Test Coverage Target
+  - #122: Golden Tests für UI Regression Prevention
 
 ### Feature: Custom Habit Order mit festen Kategorienfarben (#91)
 - **Problem gelöst**: User konnten Habit-Reihenfolge nicht anpassen, Farben waren inkonsistent
@@ -26,9 +73,19 @@ Alle nennenswerten Änderungen an Reflecto.
   - sortHabitsByCustomOrder(): Sortiert nach Custom Order + Completion Status
 
 ### Geschlossene Issues
+- #115: Tab-Navigation springt bei Desktop-Nutzung
+- #118: Uhrzeitauswahl im Essen-Tracker zeigt AM/PM statt 24h-Format
+- #116: Textfelder speichern Eingaben unterschiedlich schnell
+- #114: Cards für Essen und Tagesbilanz müssen klappbar werden
 - #91: Individuelle Habit-Sortierung (Custom Order) bei fixen Kategorienfarben
 
-## v1.6.1 (2025-11-18) - Collapsible Cards
+### Issue Management & Cleanup
+- ✅ #102 als Duplicate von #107 markiert und dokumentiert
+- ✅ #103 und #107 Status-Updates mit Links zu neuen Test-Issues
+- ✅ #109 und #101 (Weekly Review) verschoben nach v1.7.0 Milestone
+- ✅ Neue Test-Issues erstellt: #120 (Firebase), #121 (Coverage), #122 (Golden Tests)
+
+## v1.6.1 (2025-11-18) - Collapsible Cards (SUPERSEDED - merged into main v1.6.1)
 
 ### UX/Bug: Collapsible Cards für Essen und Tagesbilanz (#114)
 - **Problem gelöst**: HabitInsightsCard und MealTrackerCard blockierten auf mobilen Geräten fast den gesamten Screen

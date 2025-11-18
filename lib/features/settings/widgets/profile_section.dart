@@ -71,12 +71,15 @@ class _ProfileSectionState extends State<ProfileSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TextField(
-          controller: _nameCtrl,
-          decoration: const InputDecoration(
-            labelText: 'Anzeigename',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(12)),
+        FocusTraversalOrder(
+          order: const NumericFocusOrder(1.0),
+          child: TextField(
+            controller: _nameCtrl,
+            decoration: const InputDecoration(
+              labelText: 'Anzeigename',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(12)),
+              ),
             ),
           ),
         ),
@@ -86,10 +89,13 @@ class _ProfileSectionState extends State<ProfileSection> {
         const SizedBox(height: ReflectoSpacing.s8),
         Align(
           alignment: Alignment.centerLeft,
-          child: ReflectoButton(
-            text: _loading ? 'Speichern…' : 'Profil speichern',
-            icon: Icons.save_outlined,
-            onPressed: _loading ? null : _saveProfile,
+          child: FocusTraversalOrder(
+            order: const NumericFocusOrder(2.0),
+            child: ReflectoButton(
+              text: _loading ? 'Speichern…' : 'Profil speichern',
+              icon: Icons.save_outlined,
+              onPressed: _loading ? null : _saveProfile,
+            ),
           ),
         ),
       ],

@@ -46,17 +46,17 @@ class WeekHeroCard extends StatelessWidget {
                   children: [
                     Text(
                       '$percent%',
-                      style: Theme.of(context).textTheme.displayMedium
-                          ?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: cs.primary,
-                          ),
+                      style:
+                          Theme.of(context).textTheme.displayMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: cs.primary,
+                              ),
                     ),
                     Text(
                       'vervollständigt',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: cs.onSurfaceVariant,
-                      ),
+                            color: cs.onSurfaceVariant,
+                          ),
                     ),
                   ],
                 ),
@@ -70,9 +70,9 @@ class WeekHeroCard extends StatelessWidget {
             _getMotivationText(percent),
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: cs.onSurfaceVariant,
-              fontStyle: FontStyle.italic,
-            ),
+                  color: cs.onSurfaceVariant,
+                  fontStyle: FontStyle.italic,
+                ),
           ),
         ],
       ),

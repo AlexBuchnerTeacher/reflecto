@@ -97,8 +97,7 @@ class DayCallbacks {
       required dynamic value,
       String? alsoAggregateTo,
       String Function()? aggregateBuilder,
-    })
-    debouncedUpdate,
+    }) debouncedUpdate,
     required String Function() aggregateMorning,
     required void Function(String uid, DateTime date) saveGoals,
     required void Function(String uid, DateTime date) saveTodos,
