@@ -259,7 +259,9 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: CategoryColors.hexToColor(_color).withOpacity(0.1),
+                  color: CategoryColors.hexToColor(
+                    _color,
+                  ).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: CategoryColors.hexToColor(_color),
