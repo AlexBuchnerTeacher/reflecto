@@ -1,6 +1,8 @@
 # Reflecto
 
 [![Flutter CI](https://github.com/AlexBuchnerTeacher/reflecto/actions/workflows/flutter-ci.yml/badge.svg)](https://github.com/AlexBuchnerTeacher/reflecto/actions/workflows/flutter-ci.yml)
+[![Tests](https://github.com/AlexBuchnerTeacher/reflecto/actions/workflows/test.yml/badge.svg)](https://github.com/AlexBuchnerTeacher/reflecto/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/AlexBuchnerTeacher/reflecto/branch/main/graph/badge.svg)](https://codecov.io/gh/AlexBuchnerTeacher/reflecto)
 [![Deploy Web](https://github.com/AlexBuchnerTeacher/reflecto/actions/workflows/gh-pages.yml/badge.svg)](https://github.com/AlexBuchnerTeacher/reflecto/actions/workflows/gh-pages.yml)
 
 Reflecto ist eine plattformübergreifende Flutter‑App (Web, Desktop, Mobile) für digitales Journaling und persönliche Entwicklung.
