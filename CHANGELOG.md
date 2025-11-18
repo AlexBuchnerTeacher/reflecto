@@ -2,6 +2,32 @@
 
 Alle nennenswerten Änderungen an Reflecto.
 
+## v1.6.1 (2025-11-18) - Collapsible Cards & Custom Habit Order
+
+### Feature: Custom Habit Order mit festen Kategorienfarben (#91)
+- **Problem gelöst**: User konnten Habit-Reihenfolge nicht anpassen, Farben waren inkonsistent
+- **Fixed Category Colors**:
+  - CategoryColors utility mit 10 festen Kategorie→Farbe Mappings
+  - 🔥 GESUNDHEIT: #34C759, 🚴 SPORT: #FF3B30, 📘 LERNEN: #0A84FF
+  - HabitCard verwendet Kategorienfarbe statt habit.color
+  - HabitDialog zeigt automatisch zugewiesene Farbe (kein manueller Picker mehr)
+- **Drag & Drop Reordering**:
+  - "Reihenfolge ändern" Button pro Kategorie in HabitScreen
+  - ReorderableListView Dialog für intuitive Sortierung
+  - Batch Firestore Update (reorderHabits) statt einzelner Schreibvorgänge
+  - sortIndex in 10er-Schritten vergeben (0, 10, 20, ...) für zukünftige Flexibilität
+- **Smart Sorting**:
+  - sortHabitsByCustomOrder(): Unerledigte Habits nach sortIndex, erledigte ans Ende
+  - Auto-assign sortIndex bei Habit-Erstellung (max + 10)
+  - Fallback auf createdAt bei fehlendem sortIndex
+- **Service-Erweiterungen**:
+  - reorderHabits(): Batch-Update für mehrere Habits
+  - getMaxSortIndex(): Ermittelt höchsten sortIndex für neue Habits
+  - sortHabitsByCustomOrder(): Sortiert nach Custom Order + Completion Status
+
+### Geschlossene Issues
+- #91: Individuelle Habit-Sortierung (Custom Order) bei fixen Kategorienfarben
+
 ## v1.6.1 (2025-11-18) - Collapsible Cards
 
 ### UX/Bug: Collapsible Cards für Essen und Tagesbilanz (#114)

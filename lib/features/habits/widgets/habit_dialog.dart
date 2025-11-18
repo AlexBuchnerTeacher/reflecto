@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/habit.dart';
 import '../../../providers/habit_providers.dart';
 import '../../../theme/tokens.dart';
+import '../../../utils/category_colors.dart';
 
 /// Dialog zum Anlegen oder Bearbeiten eines Habits
 class HabitDialog extends ConsumerStatefulWidget {
@@ -20,34 +21,15 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
   late TextEditingController _titleCtrl;
   late TextEditingController _categoryCtrl;
   late String _frequency;
-  late String _color;
   TextEditingController? _reminderTimeCtrl;
   Set<int> _weekdays = <int>{};
   int _weeklyTarget = 3;
 
-  // Vordefinierte Farben
-  final List<String> _colors = [
-    '#5B50FF', // Lila (Standard)
-    '#FF5252', // Rot
-    '#FF9800', // Orange
-    '#4CAF50', // Grün
-    '#2196F3', // Blau
-    '#9C27B0', // Violett
-    '#00BCD4', // Cyan
-    '#FFEB3B', // Gelb
-  ];
+  // Get category color dynamically from selected category
+  String get _color => CategoryColors.getColorForCategory(_categoryCtrl.text);
 
-  // Vordefinierte Kategorien
-  final List<String> _categories = [
-    '🔥 GESUNDHEIT',
-    '🚴 SPORT',
-    '📘 LERNEN',
-    '⚡ KREATIVITÄT',
-    '📈 PRODUKTIVITÄT',
-    '🤝 SOZIALES',
-    '🧘 ACHTSAMKEIT',
-    '🔧 SONSTIGES',
-  ];
+  // Vordefinierte Kategorien (aus CategoryColors)
+  final List<String> _categories = CategoryColors.getAllCategoryNames();
 
   @override
   void initState() {
@@ -60,7 +42,7 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
     if (_frequency == 'weekly') {
       _frequency = 'weekly_days';
     }
-    _color = widget.habit?.color ?? _colors.first;
+    // Color is now derived from category via getter
     if (widget.habit?.weekdays != null) {
       _weekdays = widget.habit!.weekdays!.toSet();
     }
@@ -90,6 +72,17 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
     try {
       if (widget.habit == null) {
         // Neues Habit erstellen
+        // Auto-assign sortIndex: max existing sortIndex + 10
+        final habitsAsync = ref.read(habitsProvider);
+        final maxSortIndex = habitsAsync.when(
+          data: (habits) {
+            final service = ref.read(habitServiceProvider);
+            return service.getMaxSortIndex(habits);
+          },
+          loading: () => 0,
+          error: (_, __) => 0,
+        );
+
         await notifier.createHabit(
           title: _titleCtrl.text.trim(),
           category: _categoryCtrl.text.trim(),
@@ -100,6 +93,7 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
               : _reminderTimeCtrl?.text.trim(),
           weekdays: _frequency == 'weekly_days' ? _weekdays.toList() : null,
           weeklyTarget: _frequency == 'weekly_target' ? _weeklyTarget : null,
+          sortIndex: maxSortIndex + 10,
         );
       } else {
         // Bestehendes Habit aktualisieren
@@ -169,9 +163,13 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
                   labelText: 'Kategorie',
                   border: OutlineInputBorder(),
                 ),
+                isExpanded: true,
                 items: _categories
                     .map(
-                      (cat) => DropdownMenuItem(value: cat, child: Text(cat)),
+                      (cat) => DropdownMenuItem(
+                        value: cat,
+                        child: Text(cat, overflow: TextOverflow.ellipsis),
+                      ),
                     )
                     .toList(),
                 onChanged: (value) {
@@ -189,18 +187,25 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
               const SizedBox(height: ReflectoSpacing.s8),
               SegmentedButton<String>(
                 segments: const [
-                  ButtonSegment(value: 'daily', label: Text('Täglich')),
+                  ButtonSegment(
+                    value: 'daily',
+                    label: Text('Tag'),
+                    tooltip: 'Täglich',
+                  ),
                   ButtonSegment(
                     value: 'weekly_days',
-                    label: Text('Wochentage'),
+                    label: Text('Tage'),
+                    tooltip: 'Wochentage',
                   ),
                   ButtonSegment(
                     value: 'weekly_target',
-                    label: Text('Wochen‑Ziel'),
+                    label: Text('Ziel'),
+                    tooltip: 'Wochen-Ziel',
                   ),
                   ButtonSegment(
                     value: 'irregular',
-                    label: Text('Unregelmäßig'),
+                    label: Text('Flex'),
+                    tooltip: 'Unregelmäßig',
                   ),
                 ],
                 selected: {_frequency},
@@ -271,44 +276,31 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
                 const SizedBox(height: ReflectoSpacing.s16),
               ],
 
-              // Farbe
-              Text('Farbe', style: theme.textTheme.titleSmall),
+              // Farbe (automatisch aus Kategorie)
+              Text('Farbe (aus Kategorie)', style: theme.textTheme.titleSmall),
               const SizedBox(height: ReflectoSpacing.s8),
-              Wrap(
-                spacing: ReflectoSpacing.s8,
-                runSpacing: ReflectoSpacing.s8,
-                children: _colors.map((colorHex) {
-                  final color = _parseColor(colorHex);
-                  final isSelected = _color == colorHex;
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _color = colorHex;
-                      });
-                    },
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: color,
-                        shape: BoxShape.circle,
-                        border: isSelected
-                            ? Border.all(
-                                color: theme.colorScheme.primary,
-                                width: 3,
-                              )
-                            : null,
-                      ),
-                      child: isSelected
-                          ? const Icon(
-                              Icons.check,
-                              color: Colors.white,
-                              size: 20,
-                            )
-                          : null,
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: CategoryColors.hexToColor(
+                    _color,
+                  ).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: CategoryColors.hexToColor(_color),
+                    width: 2,
+                  ),
+                ),
+                child: Center(
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: CategoryColors.hexToColor(_color),
+                      shape: BoxShape.circle,
                     ),
-                  );
-                }).toList(),
+                  ),
+                ),
               ),
               const SizedBox(height: ReflectoSpacing.s16),
 
@@ -345,17 +337,5 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
         ),
       ],
     );
-  }
-
-  Color _parseColor(String hexString) {
-    try {
-      final hex = hexString.replaceAll('#', '');
-      if (hex.length == 6) {
-        return Color(int.parse('FF$hex', radix: 16));
-      }
-      return const Color(0xFF5B50FF);
-    } catch (_) {
-      return const Color(0xFF5B50FF);
-    }
   }
 }

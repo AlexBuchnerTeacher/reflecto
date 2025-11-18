@@ -354,6 +354,18 @@ class _TemplateSheetContentState extends ConsumerState<_TemplateSheetContent> {
                           final notifier = ref.read(
                             habitNotifierProvider.notifier,
                           );
+
+                          // Auto-assign sortIndex: max existing sortIndex + 10
+                          final habitsAsync = ref.read(habitsProvider);
+                          final maxSortIndex = habitsAsync.when(
+                            data: (habits) {
+                              final service = ref.read(habitServiceProvider);
+                              return service.getMaxSortIndex(habits);
+                            },
+                            loading: () => 0,
+                            error: (_, __) => 0,
+                          );
+
                           await notifier.createHabit(
                             title: t.title,
                             category: t.category,
@@ -362,6 +374,7 @@ class _TemplateSheetContentState extends ConsumerState<_TemplateSheetContent> {
                             reminderTime: t.reminderTime,
                             weekdays: t.weekdays,
                             weeklyTarget: t.weeklyTarget,
+                            sortIndex: maxSortIndex + 10,
                           );
                           if (context.mounted) Navigator.of(context).pop();
                         },
@@ -410,7 +423,7 @@ bool _isAdmin(String? uid) {
   return admins.contains(uid) || kDebugMode;
 }
 
-class _HabitGroupedList extends ConsumerWidget {
+class _HabitGroupedList extends ConsumerStatefulWidget {
   final List<Habit> habits;
   final bool showOnlyDue;
   final DateTime today;
@@ -422,211 +435,131 @@ class _HabitGroupedList extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final service = ref.watch(habitServiceProvider);
-    final useSmartOrder = ref.watch(_useSmartOrderProvider);
-    final showPriority = ref.watch(_showSmartPriorityProvider);
+  ConsumerState<_HabitGroupedList> createState() => _HabitGroupedListState();
+}
+
+class _HabitGroupedListState extends ConsumerState<_HabitGroupedList> {
+  List<Habit> _sortedHabits = [];
+
+  @override
+  void didUpdateWidget(_HabitGroupedList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.habits != oldWidget.habits) {
+      _updateSortedHabits();
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _updateSortedHabits();
+  }
+
+  void _updateSortedHabits() {
+    final service = ref.read(habitServiceProvider);
+    final useSmartOrder = ref.read(_useSmartOrderProvider);
 
     // Filter habits
-    var filtered = showOnlyDue
-        ? habits.where((h) => service.isScheduledOnDate(h, today)).toList()
-        : habits.toList();
+    var filtered = widget.showOnlyDue
+        ? widget.habits
+              .where((h) => service.isScheduledOnDate(h, widget.today))
+              .toList()
+        : widget.habits.toList();
 
-    // Apply Smart Order if enabled
+    // Apply Smart Order if enabled, otherwise sort by sortIndex
     if (useSmartOrder) {
-      filtered = service.sortHabitsByPriority(filtered, referenceDate: today);
+      _sortedHabits = service.sortHabitsByPriority(
+        filtered,
+        referenceDate: widget.today,
+      );
+    } else {
+      _sortedHabits = service.sortHabitsByCustomOrder(
+        filtered,
+        today: widget.today,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final showPriority = ref.watch(_showSmartPriorityProvider);
+    final useSmartOrder = ref.watch(_useSmartOrderProvider);
+
+    // Update if order changed
+    if (useSmartOrder != ref.read(_useSmartOrderProvider)) {
+      _updateSortedHabits();
     }
 
-    // Group by category
-    final Map<String, List<dynamic>> byCat = {};
-    for (final h in filtered) {
-      byCat.putIfAbsent(h.category, () => []).add(h);
-    }
-
-    // Fixed category order, unknowns appended alphabetically
-    const preferred = <String>[
-      '🔥 GESUNDHEIT',
-      '🚴 SPORT',
-      '📘 LERNEN',
-      '⚡ KREATIVITÄT',
-      '📈 PRODUKTIVITÄT',
-      '🤝 SOZIALES',
-      '🧘 ACHTSAMKEIT',
-      '🔧 SONSTIGES',
-    ];
-    final categories = byCat.keys.toList()
-      ..sort((a, b) {
-        final ai = preferred.indexOf(a);
-        final bi = preferred.indexOf(b);
-        final aKnown = ai != -1;
-        final bKnown = bi != -1;
-        if (aKnown && bKnown) return ai.compareTo(bi);
-        if (aKnown) return -1;
-        if (bKnown) return 1;
-        return a.compareTo(b);
-      });
-
-    return ListView(
+    return ReorderableListView.builder(
       padding: const EdgeInsets.only(
         top: ReflectoSpacing.s16,
         bottom: ReflectoSpacing.s24,
       ),
-      children: [
-        for (final cat in categories) ...[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(cat, style: Theme.of(context).textTheme.titleSmall),
-                IconButton(
-                  tooltip: 'Reihenfolge ändern',
-                  icon: const Icon(Icons.swap_vert),
-                  onPressed: () {
-                    _showReorderDialogForCategory(
-                      context,
-                      ref,
-                      cat,
-                      byCat[cat]!.toList(),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-          Builder(
-            builder: (ctx) {
-              final list = byCat[cat]!
-                ..sort((a, b) {
-                  final ai = a.sortIndex ?? 999999;
-                  final bi = b.sortIndex ?? 999999;
-                  final c = ai.compareTo(bi);
-                  if (c != 0) return c;
-                  return a.title.compareTo(b.title);
-                });
-              return Column(
-                children: [
-                  for (final h in list)
-                    HabitCard(
-                      habit: h,
-                      showPriority: showPriority,
-                      onEdit: () {
-                        showDialog(
-                          context: context,
-                          builder: (_) => HabitDialog(habit: h),
-                        );
-                      },
-                      onDelete: () {
-                        showDialog(
-                          context: context,
-                          builder: (ctx) => AlertDialog(
-                            title: const Text('Habit löschen?'),
-                            content: Text(
-                              'Möchtest du "${h.title}" wirklich löschen?',
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.of(ctx).pop(),
-                                child: const Text('Abbrechen'),
-                              ),
-                              FilledButton(
-                                onPressed: () async {
-                                  ref
-                                      .read(habitNotifierProvider.notifier)
-                                      .deleteHabit(h.id);
-                                  Navigator.of(ctx).pop();
-                                },
-                                style: FilledButton.styleFrom(
-                                  backgroundColor: Theme.of(
-                                    ctx,
-                                  ).colorScheme.error,
-                                ),
-                                child: const Text('Löschen'),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
+      buildDefaultDragHandles: false,
+      itemCount: _sortedHabits.length,
+      onReorder: (oldIndex, newIndex) async {
+        if (newIndex > oldIndex) newIndex -= 1;
+
+        setState(() {
+          final item = _sortedHabits.removeAt(oldIndex);
+          _sortedHabits.insert(newIndex, item);
+        });
+
+        // Update Firestore
+        final uid = ref.read(userIdProvider);
+        if (uid != null) {
+          final svc = ref.read(habitServiceProvider);
+          final updates = <({String habitId, int sortIndex})>[];
+          for (int i = 0; i < _sortedHabits.length; i++) {
+            updates.add((habitId: _sortedHabits[i].id, sortIndex: i * 10));
+          }
+          await svc.reorderHabits(uid: uid, updates: updates);
+        }
+      },
+      itemBuilder: (context, index) {
+        final habit = _sortedHabits[index];
+        return ReorderableDragStartListener(
+          key: ValueKey(habit.id),
+          index: index,
+          child: HabitCard(
+            habit: habit,
+            showPriority: showPriority,
+            onEdit: () {
+              showDialog(
+                context: context,
+                builder: (_) => HabitDialog(habit: habit),
+              );
+            },
+            onDelete: () {
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('Habit löschen?'),
+                  content: Text(
+                    'Möchtest du "${habit.title}" wirklich löschen?',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      child: const Text('Abbrechen'),
                     ),
-                ],
+                    FilledButton(
+                      onPressed: () async {
+                        ref
+                            .read(habitNotifierProvider.notifier)
+                            .deleteHabit(habit.id);
+                        Navigator.of(ctx).pop();
+                      },
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Theme.of(ctx).colorScheme.error,
+                      ),
+                      child: const Text('Löschen'),
+                    ),
+                  ],
+                ),
               );
             },
           ),
-          const SizedBox(height: 8),
-        ],
-      ],
-    );
-  }
-
-  void _showReorderDialogForCategory(
-    BuildContext context,
-    WidgetRef ref,
-    String category,
-    List<dynamic> items,
-  ) {
-    showDialog(
-      context: context,
-      builder: (_) {
-        final list = items
-          ..sort((a, b) {
-            final ai = a.sortIndex ?? 999999;
-            final bi = b.sortIndex ?? 999999;
-            final c = ai.compareTo(bi);
-            if (c != 0) return c;
-            return a.title.compareTo(b.title);
-          });
-        return AlertDialog(
-          title: Text('Reihenfolge: $category'),
-          content: SizedBox(
-            width: 400,
-            height: 400,
-            child: StatefulBuilder(
-              builder: (context, setState) => ReorderableListView(
-                buildDefaultDragHandles: true,
-                onReorder: (oldIndex, newIndex) {
-                  setState(() {
-                    if (newIndex > oldIndex) newIndex -= 1;
-                    final item = list.removeAt(oldIndex);
-                    list.insert(newIndex, item);
-                  });
-                },
-                children: [
-                  for (int i = 0; i < list.length; i++)
-                    ListTile(
-                      key: ValueKey(list[i].id),
-                      title: Text(list[i].title),
-                      subtitle: Text(list[i].frequency),
-                      leading: const Icon(Icons.drag_handle),
-                    ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Abbrechen'),
-            ),
-            FilledButton(
-              onPressed: () async {
-                final uid = ref.read(userIdProvider);
-                if (uid != null) {
-                  final svc = ref.read(habitServiceProvider);
-                  // Vergabe neuer sortIndex in 10er-Schritten
-                  for (int i = 0; i < list.length; i++) {
-                    final h = list[i];
-                    await svc.updateHabit(
-                      uid: uid,
-                      habitId: h.id,
-                      sortIndex: i * 10,
-                    );
-                  }
-                }
-                if (context.mounted) Navigator.of(context).pop();
-              },
-              child: const Text('Speichern'),
-            ),
-          ],
         );
       },
     );
