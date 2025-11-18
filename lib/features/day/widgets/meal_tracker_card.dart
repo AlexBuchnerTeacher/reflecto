@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../theme/tokens.dart';
 import '../../../providers/meal_providers.dart';
+import '../../../providers/card_collapse_providers.dart';
+import '../../../widgets/reflecto_card.dart';
 
 class MealTrackerCard extends ConsumerStatefulWidget {
   final DateTime date;
@@ -48,95 +50,101 @@ class _MealTrackerCardState extends ConsumerState<MealTrackerCard> {
   Widget build(BuildContext context) {
     final mealAsync = ref.watch(mealForDateProvider(widget.date));
     final notifier = ref.read(mealNotifierProvider.notifier);
+    final isCollapsed = ref.watch(mealTrackerCardCollapseProvider);
+    final collapseNotifier = ref.read(mealTrackerCardCollapseProvider.notifier);
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(ReflectoSpacing.s12),
-        child: mealAsync.when(
-          loading: () => _buildContent(
-            context,
-            breakfast: false,
-            lunch: false,
-            dinner: false,
-            breakfastNote: '',
-            lunchNote: '',
-            dinnerNote: '',
-            onBreakfast: (_) {},
-            onLunch: (_) {},
-            onDinner: (_) {},
-            onBreakfastNote: (_) {},
-            onLunchNote: (_) {},
-            onDinnerNote: (_) {},
-          ),
-          error: (e, _) => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Essen'),
-              const SizedBox(height: 8),
-              Text('Fehler: $e'),
-            ],
-          ),
-          data: (log) {
-            final breakfast = log?.breakfast ?? false;
-            final lunch = log?.lunch ?? false;
-            final dinner = log?.dinner ?? false;
-            final bNote = log?.breakfastNote ?? '';
-            final lNote = log?.lunchNote ?? '';
-            final dNote = log?.dinnerNote ?? '';
-
-            // sync times from log
-            _breakfastTime = log?.breakfastTime ?? _getDefaultTime('breakfast');
-            _lunchTime = log?.lunchTime ?? _getDefaultTime('lunch');
-            _dinnerTime = log?.dinnerTime ?? _getDefaultTime('dinner');
-
-            // sync controllers if not focused
-            if (!_breakfastNode.hasFocus && _breakfastCtrl.text != bNote) {
-              _breakfastCtrl.text = bNote;
-            }
-            if (!_lunchNode.hasFocus && _lunchCtrl.text != lNote) {
-              _lunchCtrl.text = lNote;
-            }
-            if (!_dinnerNode.hasFocus && _dinnerCtrl.text != dNote) {
-              _dinnerCtrl.text = dNote;
-            }
-            return _buildContent(
-              context,
-              breakfast: breakfast,
-              lunch: lunch,
-              dinner: dinner,
-              breakfastNote: _breakfastCtrl.text,
-              lunchNote: _lunchCtrl.text,
-              dinnerNote: _dinnerCtrl.text,
-              onBreakfast: (v) => notifier.setBreakfast(widget.date, v),
-              onLunch: (v) => notifier.setLunch(widget.date, v),
-              onDinner: (v) => notifier.setDinner(widget.date, v),
-              onBreakfastNote: (v) {
-                _bTimer?.cancel();
-                _bTimer = Timer(const Duration(milliseconds: 400), () {
-                  ref
-                      .read(mealNotifierProvider.notifier)
-                      .setBreakfastNote(widget.date, v);
-                });
-              },
-              onLunchNote: (v) {
-                _lTimer?.cancel();
-                _lTimer = Timer(const Duration(milliseconds: 400), () {
-                  ref
-                      .read(mealNotifierProvider.notifier)
-                      .setLunchNote(widget.date, v);
-                });
-              },
-              onDinnerNote: (v) {
-                _dTimer?.cancel();
-                _dTimer = Timer(const Duration(milliseconds: 400), () {
-                  ref
-                      .read(mealNotifierProvider.notifier)
-                      .setDinnerNote(widget.date, v);
-                });
-              },
-            );
-          },
+    return ReflectoCard(
+      titleEmoji: '🍽️',
+      title: 'Essen',
+      isCollapsible: true,
+      isCollapsed: isCollapsed,
+      onCollapsedChanged: (collapsed) =>
+          collapseNotifier.setCollapsed(collapsed),
+      padding: const EdgeInsets.all(ReflectoSpacing.s12),
+      child: mealAsync.when(
+        loading: () => _buildContent(
+          context,
+          breakfast: false,
+          lunch: false,
+          dinner: false,
+          breakfastNote: '',
+          lunchNote: '',
+          dinnerNote: '',
+          onBreakfast: (_) {},
+          onLunch: (_) {},
+          onDinner: (_) {},
+          onBreakfastNote: (_) {},
+          onLunchNote: (_) {},
+          onDinnerNote: (_) {},
         ),
+        error: (e, _) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Essen'),
+            const SizedBox(height: 8),
+            Text('Fehler: $e'),
+          ],
+        ),
+        data: (log) {
+          final breakfast = log?.breakfast ?? false;
+          final lunch = log?.lunch ?? false;
+          final dinner = log?.dinner ?? false;
+          final bNote = log?.breakfastNote ?? '';
+          final lNote = log?.lunchNote ?? '';
+          final dNote = log?.dinnerNote ?? '';
+
+          // sync times from log
+          _breakfastTime = log?.breakfastTime ?? _getDefaultTime('breakfast');
+          _lunchTime = log?.lunchTime ?? _getDefaultTime('lunch');
+          _dinnerTime = log?.dinnerTime ?? _getDefaultTime('dinner');
+
+          // sync controllers if not focused
+          if (!_breakfastNode.hasFocus && _breakfastCtrl.text != bNote) {
+            _breakfastCtrl.text = bNote;
+          }
+          if (!_lunchNode.hasFocus && _lunchCtrl.text != lNote) {
+            _lunchCtrl.text = lNote;
+          }
+          if (!_dinnerNode.hasFocus && _dinnerCtrl.text != dNote) {
+            _dinnerCtrl.text = dNote;
+          }
+          return _buildContent(
+            context,
+            breakfast: breakfast,
+            lunch: lunch,
+            dinner: dinner,
+            breakfastNote: _breakfastCtrl.text,
+            lunchNote: _lunchCtrl.text,
+            dinnerNote: _dinnerCtrl.text,
+            onBreakfast: (v) => notifier.setBreakfast(widget.date, v),
+            onLunch: (v) => notifier.setLunch(widget.date, v),
+            onDinner: (v) => notifier.setDinner(widget.date, v),
+            onBreakfastNote: (v) {
+              _bTimer?.cancel();
+              _bTimer = Timer(const Duration(milliseconds: 400), () {
+                ref
+                    .read(mealNotifierProvider.notifier)
+                    .setBreakfastNote(widget.date, v);
+              });
+            },
+            onLunchNote: (v) {
+              _lTimer?.cancel();
+              _lTimer = Timer(const Duration(milliseconds: 400), () {
+                ref
+                    .read(mealNotifierProvider.notifier)
+                    .setLunchNote(widget.date, v);
+              });
+            },
+            onDinnerNote: (v) {
+              _dTimer?.cancel();
+              _dTimer = Timer(const Duration(milliseconds: 400), () {
+                ref
+                    .read(mealNotifierProvider.notifier)
+                    .setDinnerNote(widget.date, v);
+              });
+            },
+          );
+        },
       ),
     );
   }

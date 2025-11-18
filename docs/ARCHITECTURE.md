@@ -31,6 +31,7 @@ Riverpod Provider für reaktiven State und Business-Logik.
 - **Habits:** `habitsProvider`, `habitNotifierProvider`, `habitsSyncStatusProvider`
 - **Templates:** `habitTemplatesProvider`
 - **Meals:** `mealsProvider`, `mealNotifierProvider`
+- **Card Collapse State** [v1.6.1]: `habitInsightsCardCollapseProvider`, `mealTrackerCardCollapseProvider`
 
 **Pattern:**
 - `StreamProvider` für Firestore-Streams
@@ -209,13 +210,17 @@ Siehe [DATA_MODEL.md](DATA_MODEL.md) für Details.
 - **Typography:** Reflecto Text Styles (displayLarge, titleMedium, bodySmall)
 
 ### Reusable Widgets
-- `ReflectoCard`: Konsistente Card-Darstellung mit Shadow/Border
+- `ReflectoCard`: Konsistente Card-Darstellung mit Shadow/Border, **Collapsible Funktion** [v1.6.1]
+  - `isCollapsible`: Aktiviert Collapse-Toggle (IconButton mit 200ms Rotation)
+  - `isCollapsed`: Externer State für Collapse-Zustand
+  - `onCollapsedChanged`: Callback bei State-Änderung
+  - `SizeTransition` mit Curves.easeInOut für smooth Animation
 - `RatingsRow`: 1-5 Sterne-Rating
 - `ReflectoSparkline`: 7-Tage Sparkline
 - `WeekHeroCard`: Circular Progress mit Statistiken
 - `HabitCard`: Habit-Darstellung mit Checkbox, Streak, Fortschritt, **Priority Badge** [v1.6.0]
-- **`HabitInsightsCard`** [v1.6.0]: Mini-Analytics (Tagesbilanz, Kategorie-Progress, Trends, Spotlight)
-- `MealTrackerCard`: Essenslog mit **TimePicker** [v1.6.0]
+- **`HabitInsightsCard`** [v1.6.0]: Mini-Analytics (Tagesbilanz, Kategorie-Progress, Trends, Spotlight), **Collapsible** [v1.6.1]
+- `MealTrackerCard`: Essenslog mit **TimePicker** [v1.6.0], **Collapsible** [v1.6.1]
 
 ### Navigation
 - `HomeScreen` mit BottomNavigationBar (Tag, Woche, Habits, Einstellungen)

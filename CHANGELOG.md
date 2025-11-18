@@ -2,6 +2,33 @@
 
 Alle nennenswerten Änderungen an Reflecto.
 
+## v1.6.1 (2025-11-18) - Collapsible Cards
+
+### UX/Bug: Collapsible Cards für Essen und Tagesbilanz (#114)
+- **Problem gelöst**: HabitInsightsCard und MealTrackerCard blockierten auf mobilen Geräten fast den gesamten Screen
+- **ReflectoCard Widget erweitert**:
+  - `isCollapsible` Parameter aktiviert Collapse-Funktion
+  - IconButton mit AnimatedRotation (0° → 180°, 200ms ease)
+  - SizeTransition mit Curves.easeInOut für smooth Animation
+  - Tooltip: "Aufklappen" / "Einklappen"
+- **State Management mit SharedPreferences**:
+  - Neue Providers: `habitInsightsCardCollapseProvider`, `mealTrackerCardCollapseProvider`
+  - Persistierung: User-Präferenz bleibt nach App-Neustart erhalten
+  - Adaptive Defaults: Mobile (<600px) eingeklappt, Tablet/Desktop ausgeklappt
+- **UI Updates**:
+  - HabitInsightsCard: Titel "📊 Habit-Insights" + Collapse-Toggle
+  - MealTrackerCard: Titel "🍽️ Essen" + Collapse-Toggle
+- **Akzeptanzkriterien erfüllt**:
+  - ✅ Habits auf kleinen Screens lesbar
+  - ✅ Cards lassen sich einwandfrei auf- und zuklappen
+  - ✅ Layout springt nicht (SizeTransition mit axisAlignment: -1.0)
+  - ✅ Keine Performance-Einbußen (SingleTickerProviderStateMixin)
+
+### Geschlossene Issues
+- #114: UX/Bug - Cards für Essen und Tagesbilanz müssen klappbar werden
+
+---
+
 ## v1.6.0 (2025-11-17) - Productivity MVP
 
 ### Habit-Insights (Mini-Analytics) (#92)

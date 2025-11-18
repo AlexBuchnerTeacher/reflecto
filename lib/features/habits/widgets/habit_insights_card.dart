@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/habit.dart';
 import '../../../services/habit_service.dart';
 import '../../../theme/tokens.dart';
 import '../../../widgets/reflecto_card.dart';
+import '../../../providers/card_collapse_providers.dart';
 
 /// Mini-Analytics Karte für Habits
 ///
@@ -11,7 +13,7 @@ import '../../../widgets/reflecto_card.dart';
 /// - Kategorie-Progress: Farbbalken pro Kategorie
 /// - Trendkarte: Top 3 Streaks mit Trend-Icons
 /// - Spotlight: Fokus-Empfehlung mit optionalem CTA
-class HabitInsightsCard extends StatelessWidget {
+class HabitInsightsCard extends ConsumerWidget {
   final List<Habit> habits;
   final HabitService service;
   final DateTime today;
@@ -24,7 +26,7 @@ class HabitInsightsCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (habits.isEmpty) return const SizedBox.shrink();
 
     final dueHabits = habits
@@ -33,8 +35,19 @@ class HabitInsightsCard extends StatelessWidget {
 
     if (dueHabits.isEmpty) return const SizedBox.shrink();
 
+    final isCollapsed = ref.watch(habitInsightsCardCollapseProvider);
+    final collapseNotifier = ref.read(
+      habitInsightsCardCollapseProvider.notifier,
+    );
+
     return ReflectoCard(
       margin: const EdgeInsets.all(ReflectoSpacing.s16),
+      titleEmoji: '📊',
+      title: 'Habit-Insights',
+      isCollapsible: true,
+      isCollapsed: isCollapsed,
+      onCollapsedChanged: (collapsed) =>
+          collapseNotifier.setCollapsed(collapsed),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
