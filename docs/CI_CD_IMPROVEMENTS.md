@@ -398,13 +398,13 @@ Nach Implementierung der Improvements:
 
 ---
 
-### Neue Issues vorschlagen
+### Neue Issues erstellt ✅
 
-Basierend auf den Priorität 1-3 Action Items sollten folgende **fokussierte Issues** erstellt werden:
+Basierend auf den Priorität 1-3 Action Items wurden folgende **fokussierte Issues** erstellt:
 
-#### Priorität 1 (Kurzfristig)
+#### Priorität 1 (Kurzfristig) - CREATED
 
-**1. Firebase Emulator Integration Tests**
+**1. Firebase Emulator Integration Tests → [#120](https://github.com/AlexBuchnerTeacher/reflecto/issues/120)**
 ```markdown
 Title: test: Activate Firebase Emulator tests in CI
 Labels: testing, ci, firebase
@@ -426,7 +426,7 @@ Acceptance Criteria:
 - CI fails if rules are violated
 ```
 
-**2. Increase Test Coverage to 50%**
+**2. Increase Test Coverage to 50% → [#121](https://github.com/AlexBuchnerTeacher/reflecto/issues/121)**
 ```markdown
 Title: test: Increase test coverage to 50% threshold
 Labels: testing, quality, enhancement
@@ -447,7 +447,7 @@ Acceptance Criteria:
 - test.yml coverage check passes
 ```
 
-**3. Widget Golden Tests for Critical Components**
+**3. Widget Golden Tests for Critical Components → [#122](https://github.com/AlexBuchnerTeacher/reflecto/issues/122)**
 ```markdown
 Title: test: Add golden tests for critical UI components
 Labels: testing, ui, quality
@@ -545,14 +545,14 @@ Acceptance Criteria:
 
 ### Issue Cleanup Empfehlungen
 
-#### Zu schließen / konsolidieren:
-- **#102** - Duplicate von #107 (bereits erledigt)
-- **#68** - "Tests, type coverage & CI" - Duplicate von #103/107
-- **#75** - "Add tests and coverage CI" - Duplicate von #107
+#### Geschlossen / konsolidiert ✅:
+- **#102** - ✅ Kommentiert als Duplicate von #107 ([comment](https://github.com/AlexBuchnerTeacher/reflecto/issues/102#issuecomment-3549544864))
+- **#68** - ✅ Bereits closed (Coding Guidelines, nicht duplicate)
+- **#75** - ✅ Bereits closed (Error Handling, nicht duplicate)
 
-#### Zu aktualisieren:
-- **#103** - Status auf CLOSED setzen, aber neue Issue für 50% target erstellen
-- **#107** - Kommentieren dass CI läuft, neue Issues für Verbesserungen
+#### Aktualisiert ✅:
+- **#103** - ✅ Kommentiert mit Status und Link zu #121 ([comment](https://github.com/AlexBuchnerTeacher/reflecto/issues/103#issuecomment-3549545147))
+- **#107** - ✅ Kommentiert mit vollständigem Status und Links zu #120/#121/#122 ([comment](https://github.com/AlexBuchnerTeacher/reflecto/issues/107#issuecomment-3549545337))
 
 #### Milestone-Zuordnung prüfen:
 - Neue Test-Issues → v1.7.0 (nächster minor release)
