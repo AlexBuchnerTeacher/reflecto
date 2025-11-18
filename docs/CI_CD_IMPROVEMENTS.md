@@ -381,3 +381,224 @@ Nach Implementierung der Improvements:
 ---
 
 **Nächster Action Item:** Firebase Emulator Tests aktivieren + erste Firestore rules tests schreiben.
+
+---
+
+## 🗂️ Issue Management & Tracking
+
+### Abgeschlossene Issues (dokumentiert in diesem Update)
+
+| Issue | Titel | Status | Anmerkung |
+|-------|-------|--------|-----------|
+| [#107](https://github.com/AlexBuchnerTeacher/reflecto/issues/107) | CI aufbauen: Analyze + Tests + APK | ✅ CLOSED | `flutter-ci.yml` und `test.yml` implementiert |
+| [#103](https://github.com/AlexBuchnerTeacher/reflecto/issues/103) | Tests: Kernlogik (Streaks, Sorting, Week) | ✅ CLOSED | Basic tests vorhanden, Coverage ~40% |
+| [#102](https://github.com/AlexBuchnerTeacher/reflecto/issues/102) | CI: Analyze + Tests + APK Build | ⚠️ OPEN | Teilweise erledigt via #107 |
+
+**Aktion:** #102 kann geschlossen werden als duplicate von #107, oder umbenannt zu "Mobile Builds erweitern" (APK/AAB/IPA).
+
+---
+
+### Neue Issues vorschlagen
+
+Basierend auf den Priorität 1-3 Action Items sollten folgende **fokussierte Issues** erstellt werden:
+
+#### Priorität 1 (Kurzfristig)
+
+**1. Firebase Emulator Integration Tests**
+```markdown
+Title: test: Activate Firebase Emulator tests in CI
+Labels: testing, ci, firebase
+Milestone: v1.7.0
+
+Description:
+Firestore rules tests are prepared but commented out in test.yml.
+
+Deliverables:
+- [ ] Create test/firestore/habit_rules_test.dart
+- [ ] Test: User can only read own habits
+- [ ] Test: User cannot delete other users habits
+- [ ] Uncomment lines 82-83 in .github/workflows/test.yml
+- [ ] Add Firestore rules validation
+
+Acceptance Criteria:
+- Firebase Emulator starts in CI
+- Rules tests run and pass
+- CI fails if rules are violated
+```
+
+**2. Increase Test Coverage to 50%**
+```markdown
+Title: test: Increase test coverage to 50% threshold
+Labels: testing, quality, enhancement
+Milestone: v1.7.0
+
+Description:
+Current coverage ~40%, target 50% as documented in TEST_STRATEGY.md.
+
+Priority Services to test:
+- [ ] HabitService.sortHabitsByPriority() - Smart Priority Logic
+- [ ] HabitService.calculateStreak() - Streak calculation
+- [ ] Weekly Review Snapshot Logic (related to #101)
+- [ ] MealTrackerCard persistence logic
+
+Acceptance Criteria:
+- Coverage ≥ 50% in CI
+- All core business logic covered
+- test.yml coverage check passes
+```
+
+**3. Widget Golden Tests for Critical Components**
+```markdown
+Title: test: Add golden tests for critical UI components
+Labels: testing, ui, quality
+Milestone: v1.7.0
+
+Description:
+Prevent UI regressions with golden tests for main components.
+
+Components:
+- [ ] HabitCard (with streak, priority badge)
+- [ ] HabitInsightsCard (progress visualization)
+- [ ] DayScreen sections (Morning/Evening/Planning)
+- [ ] MealTrackerCard (collapsible + time picker)
+
+Acceptance Criteria:
+- Golden files generated in test/goldens/
+- Tests fail on visual regressions
+- CI runs golden tests on Linux (consistent rendering)
+```
+
+#### Priorität 2 (Mittelfristig)
+
+**4. Add Monitoring & Observability**
+```markdown
+Title: feat: Add Firebase Crashlytics for error tracking
+Labels: enhancement, monitoring, production
+Milestone: v1.8.0
+
+Description:
+Track production errors and crashes for proactive bug fixing.
+
+Deliverables:
+- [ ] Add firebase_crashlytics dependency
+- [ ] Configure FlutterError.onError handler
+- [ ] Add custom traces for critical flows
+- [ ] Set up Firebase Crashlytics in Firebase Console
+- [ ] Add FIREBASE_CRASHLYTICS_ENABLED to GitHub Secrets
+
+Acceptance Criteria:
+- Crashes reported to Firebase Console
+- Non-fatal errors tracked
+- Performance traces visible
+```
+
+**5. Integration Tests for Critical User Flows**
+```markdown
+Title: test: Add E2E integration tests for critical flows
+Labels: testing, e2e, quality
+Milestone: v1.8.0
+
+Description:
+End-to-end tests against Firebase Emulator for critical user journeys.
+
+Critical Flows:
+- [ ] Login → Create Habit → Complete Habit → Verify Streak
+- [ ] Morning Reflection → Evening Reflection → Planning
+- [ ] Weekly Review Generation → Export/Import
+
+Setup:
+- [ ] Create integration_test/ directory
+- [ ] Configure flutter_test integration_test package
+- [ ] Add integration test workflow to CI
+
+Acceptance Criteria:
+- All critical flows pass in CI
+- Tests run against Firebase Emulator
+- Failures block PR merge
+```
+
+#### Priorität 3 (Langfristig)
+
+**6. Multi-Platform Release Builds**
+```markdown
+Title: ci: Add multi-platform release builds to release workflow
+Labels: ci, release, enhancement
+Milestone: v1.9.0
+
+Description:
+Extend release.yml to build artifacts for all platforms.
+
+Deliverables:
+- [ ] Android APK/AAB build
+- [ ] iOS IPA build (requires macOS runner)
+- [ ] Windows MSIX installer
+- [ ] Linux AppImage
+- [ ] Upload all artifacts to GitHub Release
+
+Acceptance Criteria:
+- Tag push triggers multi-platform builds
+- All artifacts uploaded to release
+- Build time < 20 minutes total
+```
+
+---
+
+### Issue Cleanup Empfehlungen
+
+#### Zu schließen / konsolidieren:
+- **#102** - Duplicate von #107 (bereits erledigt)
+- **#68** - "Tests, type coverage & CI" - Duplicate von #103/107
+- **#75** - "Add tests and coverage CI" - Duplicate von #107
+
+#### Zu aktualisieren:
+- **#103** - Status auf CLOSED setzen, aber neue Issue für 50% target erstellen
+- **#107** - Kommentieren dass CI läuft, neue Issues für Verbesserungen
+
+#### Milestone-Zuordnung prüfen:
+- Neue Test-Issues → v1.7.0 (nächster minor release)
+- Monitoring → v1.8.0 (Feature-fokussiert)
+- Multi-Platform Builds → v1.9.0 (Langfristig)
+
+---
+
+### Dokumentations-Updates bei Issue-Änderungen
+
+**Wenn Issues geschlossen/verschoben werden:**
+
+1. **Kommentar im Issue hinzufügen:**
+   ```markdown
+   ✅ Resolved in PR #XYZ
+   
+   Implementation details:
+   - flutter-ci.yml: Format, analyze, tests, coverage
+   - test.yml: Firebase Emulator prepared, Codecov integration
+   - Coverage: Currently ~40%, target 50% tracked in new issue #ABC
+   
+   See docs/CI_CD_IMPROVEMENTS.md for complete status.
+   ```
+
+2. **Dieses Dokument aktualisieren:**
+   - Abschnitt "Abgeschlossene Issues" erweitern
+   - Status-Tabelle pflegen
+   - Links zu neuen Follow-up Issues
+
+3. **CHANGELOG.md aktualisieren:**
+   ```markdown
+   ## [1.6.1] - 2025-11-18
+   ### Infrastructure
+   - ✅ CI/CD: Flutter CI pipeline with coverage (#107)
+   - ✅ Tests: Core logic tests for habits (#103)
+   - ✅ Docs: Comprehensive CI/CD improvements documented
+   ```
+
+4. **ROADMAP.md aktualisieren:**
+   - Milestone v1.6.0 als completed markieren
+   - v1.7.0 Ziele definieren (50% Coverage, Firebase Tests)
+
+---
+
+**Nächster Schritt für Issue Management:**
+1. Review bestehende Issues #102, #68, #75 → Schließen als duplicate
+2. Erstelle neue fokussierte Issues für Priorität 1 (Firebase Emulator, 50% Coverage, Golden Tests)
+3. Weise Milestone v1.7.0 zu
+4. Kommentiere geschlossene Issues mit Link zu diesem Dokument
