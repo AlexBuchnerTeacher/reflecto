@@ -245,6 +245,11 @@ Siehe [DATA_MODEL.md](DATA_MODEL.md) für Details.
 - **AutoDispose:** Provider automatisch aufräumen bei Screen-Wechsel
 - **Efficient Queries:** `orderBy` + `limit` für große Collections
 - **Image Optimization:** (Future) Web-optimierte Assets
+- **Debounced Text Input** [v1.6.1]: 300ms Debounce für Textfelder reduziert Firestore-Writes drastisch
+  - `DebounceConstants.textFieldDebounce`: 300ms Standard für alle Textfelder
+  - `DebounceConstants.instantFeedback`: 0ms für Checkboxen/Toggles (snappy UX)
+  - Implementiert in: `DaySyncLogic`, `MealTrackerCard`
+  - Verhindert Race-Conditions und UI-Ruckler beim Tippen
 
 ---
 

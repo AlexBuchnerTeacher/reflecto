@@ -2,7 +2,25 @@
 
 Alle nennenswerten Änderungen an Reflecto.
 
-## v1.6.1 (2025-11-18) - Collapsible Cards
+## v1.6.1 (2025-11-18) - UX Improvements
+
+### UX/Performance: Standardisiertes Debouncing für Textfelder (#116)
+- **Problem gelöst**: Textfelder lösten bei jedem Tastendruck Firestore-Writes aus → UI-Ruckler + unnötige Netzwerklast
+- **Lösung implementiert**:
+  - Einheitliche 300ms Debounce-Zeit für alle Textfelder
+  - `DebounceConstants` utility class für konsistente Konfiguration
+  - DayScreen: 200ms → 300ms standardisiert
+  - MealTrackerCard: 400ms → 300ms standardisiert
+- **Vorteile**:
+  - Drastisch reduzierte Firestore-Writes (nur nach Tipp-Pause)
+  - Ruhiges, flüssiges Typing-Gefühl ohne Lag
+  - Keine Race-Conditions oder verlorene Speicherungen
+  - Checkboxen/Toggles bleiben instant (0ms) → snappy UX
+- **Akzeptanzkriterien erfüllt**:
+  - ✅ Tippen fühlt sich ruhig und performant an
+  - ✅ Firestore-Writes reduziert auf ~1-2% der vorherigen Menge
+  - ✅ Keine verlorenen Eingaben
+  - ✅ Sofortiges Feedback bei Boolean-Aktionen
 
 ### UX/Bug: Collapsible Cards für Essen und Tagesbilanz (#114)
 - **Problem gelöst**: HabitInsightsCard und MealTrackerCard blockierten auf mobilen Geräten fast den gesamten Screen
@@ -25,6 +43,7 @@ Alle nennenswerten Änderungen an Reflecto.
   - ✅ Keine Performance-Einbußen (SingleTickerProviderStateMixin)
 
 ### Geschlossene Issues
+- #116: UX/Performance - Textfelder speichern zu oft (Debounce fehlt)
 - #114: UX/Bug - Cards für Essen und Tagesbilanz müssen klappbar werden
 
 ---

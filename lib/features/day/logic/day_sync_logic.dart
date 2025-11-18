@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../providers/entry_providers.dart';
 import '../../../services/firestore_service.dart';
+import '../../../utils/debounce_constants.dart';
 
 class DaySyncLogic {
   final Map<String, Timer> _debouncers = {};
@@ -47,7 +48,7 @@ class DaySyncLogic {
   }) {
     final key = '${_dateId(date)}|$fieldPath';
     _debouncers[key]?.cancel();
-    _debouncers[key] = Timer(const Duration(milliseconds: 200), () async {
+    _debouncers[key] = Timer(DebounceConstants.textFieldDebounce, () async {
       try {
         if (value is! FieldValue) {
           final prev = _valueAtPath(_docCache[_dateId(date)], fieldPath);

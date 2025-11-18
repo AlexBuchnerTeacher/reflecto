@@ -6,6 +6,7 @@ import '../../../theme/tokens.dart';
 import '../../../providers/meal_providers.dart';
 import '../../../providers/card_collapse_providers.dart';
 import '../../../widgets/reflecto_card.dart';
+import '../../../utils/debounce_constants.dart';
 
 class MealTrackerCard extends ConsumerStatefulWidget {
   final DateTime date;
@@ -121,7 +122,7 @@ class _MealTrackerCardState extends ConsumerState<MealTrackerCard> {
             onDinner: (v) => notifier.setDinner(widget.date, v),
             onBreakfastNote: (v) {
               _bTimer?.cancel();
-              _bTimer = Timer(const Duration(milliseconds: 400), () {
+              _bTimer = Timer(DebounceConstants.textFieldDebounce, () {
                 ref
                     .read(mealNotifierProvider.notifier)
                     .setBreakfastNote(widget.date, v);
@@ -129,7 +130,7 @@ class _MealTrackerCardState extends ConsumerState<MealTrackerCard> {
             },
             onLunchNote: (v) {
               _lTimer?.cancel();
-              _lTimer = Timer(const Duration(milliseconds: 400), () {
+              _lTimer = Timer(DebounceConstants.textFieldDebounce, () {
                 ref
                     .read(mealNotifierProvider.notifier)
                     .setLunchNote(widget.date, v);
@@ -137,7 +138,7 @@ class _MealTrackerCardState extends ConsumerState<MealTrackerCard> {
             },
             onDinnerNote: (v) {
               _dTimer?.cancel();
-              _dTimer = Timer(const Duration(milliseconds: 400), () {
+              _dTimer = Timer(DebounceConstants.textFieldDebounce, () {
                 ref
                     .read(mealNotifierProvider.notifier)
                     .setDinnerNote(widget.date, v);
