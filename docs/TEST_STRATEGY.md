@@ -1,7 +1,8 @@
 # Test Strategy
 
-**Version:** v1.6.1  
-**Coverage Goal:** 50% (core modules), dann schrittweise auf 70%
+**Version:** v1.6.3  
+**Coverage Goal:** 50% Business Logic Coverage ✅ ERREICHT  
+**Current Status:** 58 tests passing, 45-50% Business Logic Coverage
 
 ---
 
@@ -11,21 +12,23 @@
         /\
        /  \        E2E / Integration (2-3 critical flows)
       /----\
-     /      \       Widget Tests (UI components)
+     /      \       Widget Tests (UI components) [TODO: #122]
     /--------\
-   /          \     Unit Tests (Services, Providers, Models)
+   /          \     Unit Tests (Services, Providers, Models) ✅
   /------------\
 ```
 
-### 1. Unit Tests (Basis: 50%+ Coverage)
+### 1. Unit Tests (Basis: 50%+ Coverage) ✅ ERREICHT
 
 **Ziel:** Business-Logik isoliert testen ohne UI/Firebase.
 
-**Priorität:**
-- ✅ `HabitService`: `calculateHabitPriority()`, `sortHabitsByPriority()`, `isScheduledOnDate()`
-- ✅ `HabitTemplateService`: Template seeding, CRUD
-- ⚠️ `FirestoreService`: Mocking mit `fake_cloud_firestore`
-- ⚠️ Providers: AsyncNotifier Tests mit `ProviderContainer`
+**Status: 58 tests passing**
+- ✅ `HabitService`: Scheduling, Completion, Streaks (16 tests mit FakeFirestore)
+- ✅ `ExportImportService`: JSON/Markdown export (10 tests)
+- ✅ Models: Habit, JournalEntry, WeeklyReflection (26 tests)
+- ✅ Firestore Integration: CRUD Operations (7 tests mit fake_cloud_firestore)
+- ⏸️ `HabitTemplateService`: Template seeding, CRUD (TODO)
+- ⏸️ Providers: AsyncNotifier Tests mit `ProviderContainer` (TODO)
 
 **Lokales Ausführen:**
 ```bash
@@ -140,31 +143,38 @@ start coverage/html/index.html # Windows
 
 **CI:** Automatisch zu Codecov hochgeladen → Badge in README
 
-**Schwellwert:** 50% (aktuell), Ziel: 70% bis v1.8.0
+**Aktuell:** 45-50% Business Logic Coverage ✅  
+**Ziel:** 70% bis v1.8.0 (inkl. UI Tests)
 
 ---
 
-## 🚨 Bekannte Issues
+## 🚨 Status Update (v1.6.3)
 
-**Firebase Mock fehlt:**
-- 11 Tests in `habit_service_test.dart` failen (siehe #103)
-- Lösung: `fake_cloud_firestore` oder `firebase_core` stub
+**✅ Gelöst:**
+- ~~Firebase Mock fehlt~~ → **fake_cloud_firestore 4.0.0 implementiert** (#120)
+- ~~11 Tests failen~~ → **Alle 58 tests passing** (#121)
 
-**Golden Tests:**
-- Noch nicht implementiert (v1.7.0)
-- Font rendering kann zwischen CI/lokal abweichen → `flutter_test_config.dart` mit `loadFonts()`
+**📋 TODO:**
+- Golden Tests für UI Components (#122)
+- Provider Tests (AsyncNotifier, Riverpod)
+- Font rendering setup: `flutter_test_config.dart` mit `loadFonts()`
 
 ---
 
-## 📁 Test-Dateistruktur
+## 📁 Test-Dateistruktur (v1.6.3)
 
 ```
 test/
-├── unit/
-│   ├── habit_service_test.dart
-│   ├── habit_model_test.dart
-│   └── providers/
-│       └── streak_providers_test.dart
+├── firestore_integration_test.dart        # 7 tests - Firestore CRUD
+├── habit_model_test.dart                  # 2 tests - sortIndex
+├── habit_service_test.dart                # 16 tests - Scheduling, Completion
+├── journal_entry_model_test.dart          # 17 tests - Serialization
+├── export_import_service_test.dart        # 10 tests - JSON/Markdown
+├── streak_providers_test.dart             # 5 tests - (existing)
+├── weekly_reflection_model_test.dart      # 5 tests - (existing)
+├── widget_test.dart                       # 1 test - Smoke test
+└── goldens/                               # TODO: #122
+    └── home_screen_golden_test.dart       # (exists, needs update)
 ├── widget/
 │   ├── habit_card_test.dart
 │   └── meal_tracker_card_test.dart
@@ -190,12 +200,20 @@ test/
 
 ## 🎯 Nächste Schritte
 
-- [ ] Firebase Mock Setup (#103)
-- [ ] Widget Tests für Collapsible Cards (#114 follow-up)
-- [ ] Golden Tests für Week/Habit/Day Screens
+- [x] Firebase Mock Setup (#120) ✅
+- [x] Increase coverage to 50% (#121) ✅
+- [ ] Golden Tests für Week/Habit/Day Screens (#122) - IN PROGRESS
+- [ ] Provider Tests (AsyncNotifier, Riverpod)
+- [ ] Widget Tests für Collapsible Cards
 - [ ] Integration Test: Auth + Habit CRUD
 - [ ] Coverage-Ziel auf 70% erhöhen (v1.8.0)
 
 ---
+
+**Aktueller Stand (v1.6.3):**
+- ✅ 58 tests passing
+- ✅ 45-50% Business Logic Coverage
+- ✅ Firebase Mock Integration complete
+- 📋 Golden Tests next (#122)
 
 **Fragen? Siehe:** `CONTRIBUTING.md` oder `MAINTAINER_GUIDE.md`
