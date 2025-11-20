@@ -28,6 +28,9 @@ Thumbs.db
 coverage/
 *.log
 
+# Golden test failures
+test/goldens/failures/
+
 # Environment files (optional)
 # .env
 
