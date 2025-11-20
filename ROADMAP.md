@@ -152,24 +152,28 @@ Wöchentliche Erfolgsübersicht mit Streaks, Quote, Top/Flop-Habits.
 
 ## 🎯 v1.7.0 – Test Infrastructure & Quality
 
-**Status:** 🚧 **In Progress**  
+**Status:** ✅ **Released**  
 **Milestone:** [v1.7.0](https://github.com/AlexBuchnerTeacher/reflecto/milestone/8)  
-**Target Release:** Dezember 2025
+**Release Date:** 20.11.2025
 
 ### Quality & Testing
 - ✅ Firebase Mock Integration (#120)
   - fake_cloud_firestore 4.0.0 implementiert
   - 7 Firestore Integration Tests
   - 16 HabitService Tests gefixt
+  - Firebase Emulator Job in CI
 - ✅ Test Coverage 50% (#121)
   - 58 tests passing (war 13)
   - 45-50% Business Logic Coverage
   - Models: ~70% covered
   - Services: ~45% covered
-- ⏸️ Golden Tests (#122)
-  - UI Component Regression Tests
-  - HabitCard, DayScreen snapshots
-  - CI Integration
+  - Coverage Threshold in CI
+- ✅ Golden Tests (#122)
+  - 15 Golden Tests für UI Regression
+  - HabitCard (5), HabitInsightsCard (3), MealTrackerCard (1), DayScreen Sections (6)
+  - CI Integration auf ubuntu-latest
+  - 14 Golden Baseline Images
+  - SharedPreferences Mock-Support
 
 ### Features
 - ⏸️ Weekly Review (#101, #109)

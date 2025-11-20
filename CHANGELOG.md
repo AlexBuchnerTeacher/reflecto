@@ -1,3 +1,33 @@
+## [1.7.0] - 2025-11-20
+
+### Test Infrastructure & Quality ✅
+
+**Firebase Emulator Tests (#120)**
+- test: Activate Firebase Emulator tests in CI (021f188)
+- 7 Firestore Integration Tests implementiert
+- 16 HabitService Unit Tests gefixt
+- fake_cloud_firestore 4.0.0 Integration
+- Firebase Emulator Job in CI Pipeline
+
+**Test Coverage 50% (#121)**
+- test: Increase test coverage from 13 to 58 tests
+- 45-50% Business Logic Coverage erreicht
+- Models: ~70% Coverage (e725e99, 06ade58, 9331aa5)
+- Services: ~45% Coverage
+- Coverage Threshold Check in CI (50% Minimum)
+
+**Golden Tests (#122)**
+- test: Add golden tests for UI regression prevention
+- 15 Golden Tests (5 HabitCard, 3 HabitInsightsCard, 1 MealTracker, 6 DayScreen Sections)
+- SharedPreferences Mock-Integration (0c20c58)
+- CI Integration mit golden-tests Job (884a4c8)
+- 14 Golden Baseline Images committed (2ca8c16)
+
+**Test Status:** 73 tests total (58 unit + 15 golden) - all passing ✅
+
+**Closed Issues:** #120, #121, #122
+**Closed Milestone:** v1.7.0 (Test Infrastructure & Quality)
+
 ## [1.6.3] - 2025-11-20
 
 - build: Bump version to 1.6.3+9 (6ed5b01)
