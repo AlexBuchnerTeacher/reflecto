@@ -47,7 +47,7 @@ class DaySyncLogic {
   }) {
     final key = '${_dateId(date)}|$fieldPath';
     _debouncers[key]?.cancel();
-    _debouncers[key] = Timer(const Duration(milliseconds: 200), () async {
+    _debouncers[key] = Timer(const Duration(milliseconds: 300), () async {
       try {
         if (value is! FieldValue) {
           final prev = _valueAtPath(_docCache[_dateId(date)], fieldPath);

@@ -121,7 +121,7 @@ class _MealTrackerCardState extends ConsumerState<MealTrackerCard> {
             onDinner: (v) => notifier.setDinner(widget.date, v),
             onBreakfastNote: (v) {
               _bTimer?.cancel();
-              _bTimer = Timer(const Duration(milliseconds: 400), () {
+              _bTimer = Timer(const Duration(milliseconds: 300), () {
                 ref
                     .read(mealNotifierProvider.notifier)
                     .setBreakfastNote(widget.date, v);
@@ -129,7 +129,7 @@ class _MealTrackerCardState extends ConsumerState<MealTrackerCard> {
             },
             onLunchNote: (v) {
               _lTimer?.cancel();
-              _lTimer = Timer(const Duration(milliseconds: 400), () {
+              _lTimer = Timer(const Duration(milliseconds: 300), () {
                 ref
                     .read(mealNotifierProvider.notifier)
                     .setLunchNote(widget.date, v);
@@ -137,7 +137,7 @@ class _MealTrackerCardState extends ConsumerState<MealTrackerCard> {
             },
             onDinnerNote: (v) {
               _dTimer?.cancel();
-              _dTimer = Timer(const Duration(milliseconds: 400), () {
+              _dTimer = Timer(const Duration(milliseconds: 300), () {
                 ref
                     .read(mealNotifierProvider.notifier)
                     .setDinnerNote(widget.date, v);
