@@ -156,7 +156,7 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
 
               // Kategorie (Dropdown)
               DropdownButtonFormField<String>(
-                value: _categoryCtrl.text.isEmpty
+                initialValue: _categoryCtrl.text.isEmpty
                     ? _categories.first
                     : _categoryCtrl.text,
                 decoration: const InputDecoration(
