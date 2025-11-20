@@ -2,20 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:reflecto/features/habits/widgets/habit_insights_card.dart';
 import 'package:reflecto/models/habit.dart';
+import 'package:reflecto/providers/card_collapse_providers.dart';
 import 'package:reflecto/services/habit_service.dart';
 
 void main() {
   group('HabitInsightsCard Golden Tests', () {
     late HabitService habitService;
     late DateTime testDate;
+    late SharedPreferences mockPrefs;
 
-    setUp(() {
+    setUp(() async {
       final fakeFirestore = FakeFirebaseFirestore();
       habitService = HabitService(firestore: fakeFirestore);
       testDate = DateTime(2025, 11, 20); // Mittwoch
+
+      // Initialize SharedPreferences for tests
+      SharedPreferences.setMockInitialValues({});
+      mockPrefs = await SharedPreferences.getInstance();
     });
 
     testWidgets('HabitInsightsCard - with habits and progress', (tester) async {
@@ -58,6 +65,9 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(mockPrefs),
+          ],
           child: MaterialApp(
             theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
@@ -83,6 +93,9 @@ void main() {
     testWidgets('HabitInsightsCard - empty state', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(mockPrefs),
+          ],
           child: MaterialApp(
             theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
@@ -154,6 +167,9 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(mockPrefs),
+          ],
           child: MaterialApp(
             theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
