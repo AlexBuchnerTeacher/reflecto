@@ -1,3 +1,4 @@
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reflecto/models/habit.dart';
 import 'package:reflecto/services/habit_service.dart';
@@ -117,9 +118,11 @@ void main() {
 
   group('HabitService - Scheduling Logic', () {
     late HabitService service;
+    late FakeFirebaseFirestore firestore;
 
     setUp(() {
-      service = HabitService();
+      firestore = FakeFirebaseFirestore();
+      service = HabitService(firestore: firestore);
     });
 
     test('daily habit is scheduled every day', () {
@@ -207,9 +210,11 @@ void main() {
 
   group('HabitService - Weekly Completion', () {
     late HabitService service;
+    late FakeFirebaseFirestore firestore;
 
     setUp(() {
-      service = HabitService();
+      firestore = FakeFirebaseFirestore();
+      service = HabitService(firestore: firestore);
     });
 
     test('counts completions in current week', () {
@@ -309,9 +314,11 @@ void main() {
 
   group('HabitService - Completion Status', () {
     late HabitService service;
+    late FakeFirebaseFirestore firestore;
 
     setUp(() {
-      service = HabitService();
+      firestore = FakeFirebaseFirestore();
+      service = HabitService(firestore: firestore);
     });
 
     test('isCompletedOnDate returns true for completed date', () {
