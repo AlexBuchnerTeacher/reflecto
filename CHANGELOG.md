@@ -2,6 +2,48 @@
 
 Alle nennenswerten Änderungen an Reflecto.
 
+## v1.6.2 (2025-11-20) - Post-Release Fixes
+
+### Bug: Drag blockiert Scrollen auf Habit-Screen (#124, #125, #126, #127)
+- **Problem gelöst**: ReorderableListView triggerte Drag auf gesamter HabitCard, blockierte Scroll-Gesten
+- **Drag-Handle Pattern implementiert**:
+  - Dediziertes Drag-Icon (Icons.drag_indicator_rounded) rechts in Card
+  - ReorderableDragStartListener wrapped nur Handle, nicht gesamte Card
+  - Scroll-Gesten haben Priorität, Drag ist bewusste Aktion
+  - Built-in LongPress-Delay verhindert versehentliches Dragging
+- **Mobile UX deutlich verbessert**:
+  - ✅ Scrollen funktioniert ohne Blockierung
+  - ✅ Drag nur am Handle möglich
+  - ✅ Reorder-Funktionalität bleibt voll erhalten
+  - ✅ Professionelle Interaktion wie Notion, Todoist, Apple Reminders
+- **Code Changes**:
+  - HabitCard: Neuer optionaler `dragHandle` parameter
+  - HabitScreen: ReorderableDragStartListener nur für Handle-Icon
+  - Dokumentiert mit Inline-Comments für Issue-Referenzen
+
+### Fix: Meal Time Picker 24h Format fehlte im Release (#118)
+- **Problem**: v1.6.1 CHANGELOG dokumentierte Fix, aber Code hatte ihn nicht
+- **Root Cause**: Fix ging während PR #123 Squash Merge verloren
+- **Re-Applied**: `alwaysUse24HourFormat: true` in showTimePicker MediaQuery builder
+- **Status**: Jetzt korrekt implementiert (commit acac9b6)
+
+### Fix: Debounce-Timing Standardisierung nicht vollständig (#116)
+- **Problem**: CHANGELOG versprach 300ms Standard, aber Code hatte inkonsistente Werte
+- **Korrekturen**:
+  - MealTrackerCard: 400ms → 300ms (alle 3 Meal-Note Felder)
+  - DaySyncLogic: 200ms → 300ms (Text field updates)
+- **Ergebnis**: Konsistentes User-Feedback app-wide (commit 38b6fce)
+
+### Geschlossene Issues
+- #124: Drag blockiert Scrollen auf Habit-Screen
+- #125: Drag-Handle für Habit-Reordering einbauen
+- #126: Drag nur nach LongPress starten
+- #127: Scroll- und Drag-Gesten korrekt priorisieren
+- #118: Meal Time Picker 24h Format (re-applied)
+- #116: Debounce-Timing Standardisierung (korrigiert)
+
+---
+
 ## v1.6.1 (2025-11-18) - UX & Accessibility
 
 ### A11y: Tab-Navigation für Desktop Keyboard Users (#115)
