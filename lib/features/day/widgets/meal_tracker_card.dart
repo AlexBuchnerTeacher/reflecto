@@ -307,6 +307,14 @@ class _MealTrackerCardState extends ConsumerState<MealTrackerCard> {
               final picked = await showTimePicker(
                 context: context,
                 initialTime: initialTime,
+                builder: (context, child) {
+                  return MediaQuery(
+                    data: MediaQuery.of(context).copyWith(
+                      alwaysUse24HourFormat: true,
+                    ),
+                    child: child!,
+                  );
+                },
               );
               if (picked != null) {
                 final formatted =
