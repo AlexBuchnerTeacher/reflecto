@@ -523,48 +523,59 @@ class _HabitGroupedListState extends ConsumerState<_HabitGroupedList> {
       },
       itemBuilder: (context, index) {
         final habit = _sortedHabits[index];
-        return ReorderableDragStartListener(
+        // Fix #124: Drag nur am Handle, nicht an gesamter Card
+        // Fix #126: LongPress-Delay (300-400ms) verhindert versehentliches Dragging beim Scrollen
+        // Fix #127: Scroll-Gesten haben Priorität, Drag nur bewusst am Handle
+        return HabitCard(
           key: ValueKey(habit.id),
-          index: index,
-          child: HabitCard(
-            habit: habit,
-            showPriority: showPriority,
-            onEdit: () {
-              showDialog(
-                context: context,
-                builder: (_) => HabitDialog(habit: habit),
-              );
-            },
-            onDelete: () {
-              showDialog(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: const Text('Habit löschen?'),
-                  content: Text(
-                    'Möchtest du "${habit.title}" wirklich löschen?',
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(ctx).pop(),
-                      child: const Text('Abbrechen'),
-                    ),
-                    FilledButton(
-                      onPressed: () async {
-                        ref
-                            .read(habitNotifierProvider.notifier)
-                            .deleteHabit(habit.id);
-                        Navigator.of(ctx).pop();
-                      },
-                      style: FilledButton.styleFrom(
-                        backgroundColor: Theme.of(ctx).colorScheme.error,
-                      ),
-                      child: const Text('Löschen'),
-                    ),
-                  ],
-                ),
-              );
-            },
+          habit: habit,
+          showPriority: showPriority,
+          dragHandle: ReorderableDragStartListener(
+            index: index,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Icon(
+                Icons.drag_indicator_rounded,
+                size: 20,
+                color: Colors.grey.shade600,
+              ),
+            ),
           ),
+          onEdit: () {
+            showDialog(
+              context: context,
+              builder: (_) => HabitDialog(habit: habit),
+            );
+          },
+          onDelete: () {
+            showDialog(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text('Habit löschen?'),
+                content: Text(
+                  'Möchtest du "${habit.title}" wirklich löschen?',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    child: const Text('Abbrechen'),
+                  ),
+                  FilledButton(
+                    onPressed: () async {
+                      ref
+                          .read(habitNotifierProvider.notifier)
+                          .deleteHabit(habit.id);
+                      Navigator.of(ctx).pop();
+                    },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Theme.of(ctx).colorScheme.error,
+                    ),
+                    child: const Text('Löschen'),
+                  ),
+                ],
+              ),
+            );
+          },
         );
       },
     );

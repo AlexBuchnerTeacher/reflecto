@@ -8,12 +8,17 @@ import '../../../theme/tokens.dart';
 import '../../../utils/category_colors.dart';
 
 /// Einzelne Habit-Karte mit Checkbox, Titel, Streak und Fortschritt
+///
+/// Drag & Drop Fix (#124):
+/// - dragHandle Widget wird separat übergeben (ReorderableDragStartListener)
+/// - Verhindert Scroll-Blockierung durch gezieltes Drag nur am Handle
 class HabitCard extends ConsumerWidget {
   final Habit habit;
   final VoidCallback? onTap;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final bool showPriority;
+  final Widget? dragHandle;
 
   const HabitCard({
     super.key,
@@ -22,6 +27,7 @@ class HabitCard extends ConsumerWidget {
     this.onEdit,
     this.onDelete,
     this.showPriority = false,
+    this.dragHandle,
   });
 
   @override
@@ -256,7 +262,8 @@ class HabitCard extends ConsumerWidget {
                   visualDensity: VisualDensity.compact,
                 ),
               ],
-              const Icon(Icons.drag_handle, size: 20),
+              // Drag-Handle (#124): Wird separat als ReorderableDragStartListener übergeben
+              if (dragHandle != null) dragHandle!
             ],
           ),
         ),
