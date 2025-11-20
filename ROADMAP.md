@@ -148,26 +148,46 @@ Wöchentliche Erfolgsübersicht mit Streaks, Quote, Top/Flop-Habits.
 
 ---
 
-## 🎯 v1.7.0 – Scaling & UX
+---
 
-**Status:** 🔮 **Geplant**  
-**Milestone:** [v1.7.0](https://github.com/AlexBuchnerTeacher/reflecto/milestone/8)
+## 🎯 v1.7.0 – Test Infrastructure & Quality
 
-### Planned Features
-- Offline-Strategie (Caching)
-- Crashlytics Integration
-- Performance Profiling
-- Dark Mode Check + A11y Improvements
-- Push Notifications (#47)
+**Status:** 🚧 **In Progress**  
+**Milestone:** [v1.7.0](https://github.com/AlexBuchnerTeacher/reflecto/milestone/8)  
+**Target Release:** Dezember 2025
+
+### Quality & Testing
+- ✅ Firebase Mock Integration (#120)
+  - fake_cloud_firestore 4.0.0 implementiert
+  - 7 Firestore Integration Tests
+  - 16 HabitService Tests gefixt
+- ✅ Test Coverage 50% (#121)
+  - 58 tests passing (war 13)
+  - 45-50% Business Logic Coverage
+  - Models: ~70% covered
+  - Services: ~45% covered
+- ⏸️ Golden Tests (#122)
+  - UI Component Regression Tests
+  - HabitCard, DayScreen snapshots
+  - CI Integration
+
+### Features
+- ⏸️ Weekly Review (#101, #109)
+  - Wöchentliche Erfolgsübersicht
+  - Top/Flop-Habits
+  - Automatischer Snapshot (Sonntag 20:00)
+- ⏸️ Push Notifications (#47)
   - Tägliche Erinnerungen
   - Streak-Warnungen
   - Smart Timing
+- ⏸️ Week Screen Redesign (#86, #87)
+  - Combined Approach
+  - Dashboard mit Karussell
 
-### UI/UX Enhancements
-- Animations & Transitions
-- Micro-Interactions
-- Haptic Feedback
-- Onboarding Flow
+### Tech Debt
+- Dark Mode Check + A11y Improvements
+- Performance Profiling
+- Offline-Strategie (Caching)
 
 ---
 
