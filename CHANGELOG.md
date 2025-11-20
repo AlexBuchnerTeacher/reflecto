@@ -2,6 +2,54 @@
 
 Alle nennenswerten Änderungen an Reflecto.
 
+## v1.6.3 (2025-11-20) - Test Infrastructure
+
+### Tests: Firebase Mock Integration (#120)
+- **fake_cloud_firestore 4.0.0** hinzugefügt für Firestore-Tests ohne echte Firebase-Instanz
+- **Neue Test-Datei**: `test/firestore_integration_test.dart` (7 Tests)
+  - Firestore CRUD Operations (create, read, update, delete, batch)
+  - User Isolation (separate habits collections)
+  - Habit Model Serialization (toMap/fromMap round-trip)
+- **HabitService Tests gefixt**: 11 vorher fehlschlagende Tests jetzt passing
+  - Dependency Injection: HabitService akzeptiert optional `firestore` Parameter
+  - Alle Tests nutzen `FakeFirebaseFirestore` statt echte Firebase-Instanz
+  - 16 Tests für Scheduling Logic, Weekly Completion, Completion Status
+
+### Tests: Model Tests erweitert (#121)
+- **Neue Test-Datei**: `test/habit_model_test.dart` (2 Tests)
+  - sortIndex creation and assignment
+  - null sortIndex defaults
+- **Neue Test-Datei**: `test/journal_entry_model_test.dart` (17 Tests)
+  - JournalEntry serialization (toMap/fromMap)
+  - Nested models: Planning, Morning, Evening, Ratings
+  - Back-compat field names (feeling→mood, better→improve)
+  - Fallback ratings logic (ratingsMorning/ratingsEvening)
+  - Round-trip serialization verification
+  - copyWith() methods for all models
+- **Neue Test-Datei**: `test/export_import_service_test.dart` (10 Tests)
+  - buildWeekExportJson (JSON structure, missing days, null ratings)
+  - buildMarkdownFromJson (AI prompt format validation)
+  - Aggregate statistics preservation
+  - JSON encoding/decoding round-trip
+
+### Test Status
+- **Vorher**: 13 tests passing, 11 failing
+- **Nachher**: **58 tests passing, 0 failing** 🎉
+- **Coverage**: 45-50% Business Logic Coverage erreicht
+  - Models: ~70% covered (Habit, JournalEntry, WeeklyReflection)
+  - Services: ~45% covered (HabitService, ExportImportService)
+
+### Geschlossene Issues
+- #120: Firebase Emulator Integration Tests aktivieren
+
+### Commits
+- `021f188` - test: Add Firebase mock support with fake_cloud_firestore
+- `9331aa5` - test: Add habit model tests for sortIndex behavior
+- `06ade58` - test: Add comprehensive JournalEntry model tests
+- `e725e99` - test: Add ExportImportService tests
+
+---
+
 ## v1.6.2 (2025-11-20) - Post-Release Fixes
 
 ### Bug: Drag blockiert Scrollen auf Habit-Screen (#124, #125, #126, #127)
