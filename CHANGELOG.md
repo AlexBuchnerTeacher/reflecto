@@ -1,4 +1,12 @@
-# Changelog
+## [1.6.3] - 2025-11-20
+
+- build: Bump version to 1.6.3+9 (6ed5b01)
+- docs: Update TEST_STRATEGY.md for v1.6.3 (0a51c05)
+- docs: Add v1.6.3 changelog entry for test infrastructure (229d7da)
+- test: Add ExportImportService tests (#121) (e725e99)
+- test: Add comprehensive JournalEntry model tests (#121) (06ade58)
+- test: Add Firebase mock support with fake_cloud_firestore (#120) (021f188)
+- test: Add habit model tests for sortIndex behavior (#121) (9331aa5)# Changelog
 
 Alle nennenswerten Änderungen an Reflecto.
 
