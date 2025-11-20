@@ -100,3 +100,43 @@ jobs:
           echo "⚠️  Firestore rules tests not yet implemented"
           # TODO: Add rules tests when test/firestore/rules_test.dart exists
           # firebase emulators:exec --only firestore "flutter test test/firestore/rules_test.dart"
+
+  golden-tests:
+    name: Golden Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Run golden tests
+        run: flutter test test/goldens/
+
+      - name: Check for golden test failures
+        if: failure()
+        run: |
+          echo "❌ Golden tests failed!"
+          echo "Golden baseline images differ from current rendering."
+          echo "If UI changes were intentional, update golden baselines:"
+          echo "  flutter test test/goldens/ --update-goldens"
+          echo "  git add test/goldens/goldens/"
+          echo "  git commit -m 'test: Update golden baselines'"
+          exit 1
+
+      - name: Upload golden test failures (if any)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-test-failures
+          path: test/goldens/failures/
+          retention-days: 7
