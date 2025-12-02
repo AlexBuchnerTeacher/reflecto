@@ -8,13 +8,13 @@ service cloud.firestore {
       // Journal entries: only owner, validate date format (yyyy-MM-dd)
       match /entries/{entryId} {
         allow read, write: if request.auth != null && request.auth.uid == uid &&
-          entryId.matches('^\\d{4}-\\d{2}-\\d{2}$');
+          entryId.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
       }
 
       // Weekly reflections: only owner, validate week format (yyyy-ww)
       match /weekly_reflections/{weekId} {
         allow read, write: if request.auth != null && request.auth.uid == uid &&
-          weekId.matches('^\\d{4}-\\d{2}$');
+          weekId.matches('^[0-9]{4}-[0-9]{2}$');
       }
 
       // Habits: only owner can CRUD their habits
@@ -25,7 +25,7 @@ service cloud.firestore {
       // Meals: only owner, validate date format (yyyy-MM-dd)
       match /meals/{mealId} {
         allow read, write: if request.auth != null && request.auth.uid == uid &&
-          mealId.matches('^\\d{4}-\\d{2}-\\d{2}$');
+          mealId.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
       }
     }
 
