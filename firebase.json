@@ -1,1 +1,17 @@
-{"flutter":{"platforms":{"dart":{"lib/firebase_options.dart":{"projectId":"reflecto-web","configurations":{"web":"1:390391613197:web:a766d0e82b976057cd5244"}}}}}}
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "flutter": {
+    "platforms": {
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "reflecto-web",
+          "configurations": {
+            "web": "1:390391613197:web:a766d0e82b976057cd5244"
+          }
+        }
+      }
+    }
+  }
+}
