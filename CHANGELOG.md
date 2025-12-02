@@ -1,3 +1,18 @@
+## [1.7.1] - 2025-12-02
+
+### Bugfix: Firestore Security Rules 🔒
+
+- **Security Rules Update**: Production-ready Firestore rules deployed
+  - Added rules for `habits` collection
+  - Added rules for `meals` collection  
+  - Added read-only access to `habit_templates` for authenticated users
+  - Fixed test mode expiration issue (3-day warning)
+- **firebase.json**: Added Firestore rules deployment target
+
+**Commit:** f09026f
+
+---
+
 ## [1.7.0] - 2025-11-20
 
 ### Test Infrastructure & Quality ✅
