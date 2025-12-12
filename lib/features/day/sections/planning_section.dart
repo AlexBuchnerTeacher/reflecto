@@ -61,49 +61,17 @@ class PlanningSection extends StatelessWidget {
         todoCtrls.map((c) => c.text.trim()).where((e) => e.isNotEmpty).length;
 
     return ReflectoCard(
+      title: '\u{1F5D3} Planung für morgen',
+      headerWidget: _progressChip(
+        context,
+        'Ziele $nonEmptyGoals/${goalCtrls.length} · To-dos $nonEmptyTodos/${todoCtrls.length}',
+      ),
+      isCollapsible: true,
+      isCollapsed: !expanded,
+      onCollapsedChanged: (collapsed) => onToggleExpanded(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  '\u{1F5D3} Planung für morgen',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  softWrap: false,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    fontFamilyFallback: [
-                      'Segoe UI Emoji',
-                      'Apple Color Emoji',
-                      'Noto Color Emoji',
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: _progressChip(
-                    context,
-                    'Ziele $nonEmptyGoals/${goalCtrls.length} · To-dos $nonEmptyTodos/${todoCtrls.length}',
-                  ),
-                ),
-              ),
-              IconButton(
-                tooltip: expanded ? 'Einklappen' : 'Aufklappen',
-                icon: Icon(
-                  expanded
-                      ? Icons.keyboard_arrow_up_rounded
-                      : Icons.keyboard_arrow_down_rounded,
-                ),
-                onPressed: onToggleExpanded,
-              ),
-            ],
-          ),
           AnimatedCrossFade(
             crossFadeState:
                 expanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
