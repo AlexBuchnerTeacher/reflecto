@@ -99,13 +99,16 @@ class _HabitScreenState extends ConsumerState<HabitScreen> {
                 child: Padding(
                   padding:
                       const EdgeInsets.symmetric(vertical: ReflectoSpacing.s8),
-                  child: DayWeekCarousel(
-                    selected: _selectedDate,
-                    onSelected: (date) {
-                      setState(() {
-                        _selectedDate = date;
-                      });
-                    },
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: DayWeekCarousel(
+                      selected: _selectedDate,
+                      onSelected: (date) {
+                        setState(() {
+                          _selectedDate = date;
+                        });
+                      },
+                    ),
                   ),
                 ),
               ),
