@@ -573,6 +573,7 @@ class _HabitGroupedListState extends ConsumerState<_HabitGroupedList> {
         return HabitCard(
           key: ValueKey(habit.id),
           habit: habit,
+          today: widget.today,
           showPriority: showPriority,
           dragHandle: ReorderableDragStartListener(
             index: index,

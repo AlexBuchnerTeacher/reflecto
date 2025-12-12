@@ -19,6 +19,7 @@ class HabitCard extends ConsumerWidget {
   final VoidCallback? onDelete;
   final bool showPriority;
   final Widget? dragHandle;
+  final DateTime? today;
 
   const HabitCard({
     super.key,
@@ -28,15 +29,16 @@ class HabitCard extends ConsumerWidget {
     this.onDelete,
     this.showPriority = false,
     this.dragHandle,
+    this.today,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final service = ref.watch(habitServiceProvider);
-    final today = DateTime.now();
-    final isCompletedToday = service.isCompletedOnDate(habit, today);
-    final canToggleToday = service.isScheduledOnDate(habit, today);
+    final effectiveToday = today ?? DateTime.now();
+    final isCompletedToday = service.isCompletedOnDate(habit, effectiveToday);
+    final canToggleToday = service.isScheduledOnDate(habit, effectiveToday);
 
     // Wochenfortschritt berechnen
     final freq = habit.frequency;
@@ -44,23 +46,23 @@ class HabitCard extends ConsumerWidget {
     int? weeklyTotal;
     String? weeklyLabel;
     if (freq == 'weekly_days' || freq == 'weekly') {
-      weeklyDone = service.countPlannedCompletionsInWeek(habit, today);
+      weeklyDone = service.countPlannedCompletionsInWeek(habit, effectiveToday);
       weeklyTotal = service.plannedDaysInWeek(habit);
       weeklyLabel = '$weeklyDone/$weeklyTotal';
     } else if (freq == 'weekly_target') {
-      final done = service.countCompletionsInWeek(habit, today);
+      final done = service.countCompletionsInWeek(habit, effectiveToday);
       final target = service.plannedDaysInWeek(habit);
       weeklyDone = done > target ? target : done;
       weeklyTotal = target;
       weeklyLabel = '$weeklyDone/$weeklyTotal';
     } else if (freq == 'monthly_target') {
-      final done = service.countCompletionsInMonth(habit, today);
+      final done = service.countCompletionsInMonth(habit, effectiveToday);
       final target = habit.monthlyTarget ?? 0;
       weeklyDone = done > target ? target : done;
       weeklyTotal = target;
       weeklyLabel = '$weeklyDone/$weeklyTotal Monat';
     } else if (freq == 'irregular') {
-      final done = service.countCompletionsInWeek(habit, today);
+      final done = service.countCompletionsInWeek(habit, effectiveToday);
       weeklyLabel = 'Diese Woche: $done';
     }
 
@@ -90,11 +92,11 @@ class HabitCard extends ConsumerWidget {
                         if (value == true) {
                           await ref
                               .read(habitNotifierProvider.notifier)
-                              .markCompleted(habit.id, today);
+                              .markCompleted(habit.id, effectiveToday);
                         } else {
                           await ref
                               .read(habitNotifierProvider.notifier)
-                              .markUncompleted(habit.id, today);
+                              .markUncompleted(habit.id, effectiveToday);
                         }
                       }
                     : null,
@@ -158,7 +160,7 @@ class HabitCard extends ConsumerWidget {
                           ];
                           final dayNum = index + 1; // 1..7
                           final planned = weekdays.contains(dayNum);
-                          final isToday = today.weekday == dayNum;
+                          final isToday = effectiveToday.weekday == dayNum;
                           final bg = planned
                               ? theme.colorScheme.secondaryContainer
                               : Colors.transparent;
