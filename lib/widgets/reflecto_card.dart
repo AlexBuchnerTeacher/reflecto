@@ -8,6 +8,7 @@ class ReflectoCard extends StatefulWidget {
   final String? titleEmoji;
   final String? title;
   final String? subtitle;
+  final Widget? headerWidget;
   final bool isActive;
   final VoidCallback? onTap;
   final bool? isCollapsible;
@@ -22,6 +23,7 @@ class ReflectoCard extends StatefulWidget {
     this.titleEmoji,
     this.title,
     this.subtitle,
+    this.headerWidget,
     this.isActive = false,
     this.onTap,
     this.isCollapsible = false,
@@ -121,7 +123,9 @@ class _ReflectoCardState extends State<ReflectoCard>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (widget.title != null || widget.subtitle != null)
+            if (widget.title != null ||
+                widget.subtitle != null ||
+                widget.headerWidget != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Row(
@@ -145,7 +149,12 @@ class _ReflectoCardState extends State<ReflectoCard>
                         ],
                       ),
                     ),
-                    if (widget.isCollapsible == true)
+                    if (widget.headerWidget != null) ...[
+                      const SizedBox(width: 8),
+                      widget.headerWidget!,
+                    ],
+                    if (widget.isCollapsible == true) ...[
+                      const SizedBox(width: 8),
                       IconButton(
                         icon: AnimatedRotation(
                           turns: _internalCollapsed ? 0 : 0.5,
@@ -156,6 +165,7 @@ class _ReflectoCardState extends State<ReflectoCard>
                         tooltip:
                             _internalCollapsed ? 'Aufklappen' : 'Einklappen',
                       ),
+                    ],
                   ],
                 ),
               ),

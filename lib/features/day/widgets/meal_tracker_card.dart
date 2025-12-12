@@ -53,9 +53,21 @@ class _MealTrackerCardState extends ConsumerState<MealTrackerCard> {
     final isCollapsed = ref.watch(mealTrackerCardCollapseProvider);
     final collapseNotifier = ref.read(mealTrackerCardCollapseProvider.notifier);
 
+    // Calculate status for collapsed state
+    final meal = mealAsync.value;
+    final breakfast = meal?.breakfast ?? false;
+    final lunch = meal?.lunch ?? false;
+    final dinner = meal?.dinner ?? false;
+    final done = (breakfast ? 1 : 0) + (lunch ? 1 : 0) + (dinner ? 1 : 0);
+    final statusText = '$done / 3 erfasst';
+
     return ReflectoCard(
       titleEmoji: '🍽️',
       title: 'Essen',
+      headerWidget: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: _progressChip(context, statusText),
+      ),
       isCollapsible: true,
       isCollapsed: isCollapsed,
       onCollapsedChanged: (collapsed) =>
@@ -362,5 +374,31 @@ class _MealTrackerCardState extends ConsumerState<MealTrackerCard> {
       default:
         return '12:00';
     }
+  }
+
+  /// Fortschritts-Chip (Design wie Morning/Evening Sections)
+  static Widget _progressChip(BuildContext context, String text) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: cs.outlineVariant, width: 1),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: cs.onSurface,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          fontFamilyFallback: const [
+            'Segoe UI Emoji',
+            'Apple Color Emoji',
+            'Noto Color Emoji',
+          ],
+        ),
+      ),
+    );
   }
 }

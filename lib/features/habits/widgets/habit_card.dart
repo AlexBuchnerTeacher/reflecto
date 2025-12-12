@@ -53,6 +53,12 @@ class HabitCard extends ConsumerWidget {
       weeklyDone = done > target ? target : done;
       weeklyTotal = target;
       weeklyLabel = '$weeklyDone/$weeklyTotal';
+    } else if (freq == 'monthly_target') {
+      final done = service.countCompletionsInMonth(habit, today);
+      final target = habit.monthlyTarget ?? 0;
+      weeklyDone = done > target ? target : done;
+      weeklyTotal = target;
+      weeklyLabel = '$weeklyDone/$weeklyTotal Monat';
     } else if (freq == 'irregular') {
       final done = service.countCompletionsInWeek(habit, today);
       weeklyLabel = 'Diese Woche: $done';

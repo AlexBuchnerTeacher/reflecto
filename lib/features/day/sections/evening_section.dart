@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../widgets/emoji_bar.dart';
 import '../widgets/labeled_field.dart';
 import '../../../widgets/reflecto_card.dart';
-import '../../../theme/tokens.dart';
 
 class EveningSection extends StatelessWidget {
   final bool expanded;
@@ -78,58 +77,23 @@ class EveningSection extends StatelessWidget {
 
     final fieldsFilled = [
       goodCtrl.text.trim(),
-      learnedCtrl.text.trim(),
-      betterCtrl.text.trim(),
       gratefulCtrl.text.trim(),
     ].where((e) => e.isNotEmpty).length;
 
     return ReflectoCard(
+      title: '\u{1F307} Abendreflexion',
+      headerWidget: _progressChip(
+        context,
+        'Ziele $goalsChecked/${visibleGoalIndices.length}'
+        ' · To-dos $todosChecked/${visibleTodoIndices.length}'
+        ' · Felder $fieldsFilled/2',
+      ),
+      isCollapsible: true,
+      isCollapsed: !expanded,
+      onCollapsedChanged: (collapsed) => onToggleExpanded(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  '\u{1F307} Abendreflexion',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  softWrap: false,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    fontFamilyFallback: [
-                      'Segoe UI Emoji',
-                      'Apple Color Emoji',
-                      'Noto Color Emoji',
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: ReflectoSpacing.s8),
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: _progressChip(
-                    context,
-                    'Ziele $goalsChecked/${visibleGoalIndices.length}'
-                    ' · To-dos $todosChecked/${visibleTodoIndices.length}'
-                    ' · Felder $fieldsFilled/4',
-                  ),
-                ),
-              ),
-              IconButton(
-                tooltip: expanded ? 'Einklappen' : 'Aufklappen',
-                icon: Icon(
-                  expanded
-                      ? Icons.keyboard_arrow_up_rounded
-                      : Icons.keyboard_arrow_down_rounded,
-                ),
-                onPressed: onToggleExpanded,
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
           AnimatedCrossFade(
             crossFadeState:
                 expanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
@@ -223,39 +187,19 @@ class EveningSection extends StatelessWidget {
                   label: 'Was lief heute gut?',
                   controller: goodCtrl,
                   minLines: 1,
-                  maxLines: 2,
+                  maxLines: 3,
                   focusNode: goodNode,
                   focusOrder: 4.0,
                   onChanged: (v) => onTextChanged('evening.good', v),
                 ),
                 const SizedBox(height: 8),
                 LabeledField(
-                  label: 'Was habe ich gelernt oder erkannt?',
-                  controller: learnedCtrl,
-                  minLines: 1,
-                  maxLines: 2,
-                  focusNode: learnedNode,
-                  focusOrder: 5.0,
-                  onChanged: (v) => onTextChanged('evening.learned', v),
-                ),
-                const SizedBox(height: 8),
-                LabeledField(
-                  label: 'Was h\u00E4tte besser laufen k\u00F6nnen?',
-                  controller: betterCtrl,
-                  minLines: 1,
-                  maxLines: 2,
-                  focusNode: betterNode,
-                  focusOrder: 6.0,
-                  onChanged: (v) => onTextChanged('evening.improve', v),
-                ),
-                const SizedBox(height: 8),
-                LabeledField(
-                  label: 'Wof\u00FCr bin ich dankbar?',
+                  label: 'Wofür bin ich dankbar?',
                   controller: gratefulCtrl,
                   minLines: 1,
-                  maxLines: 2,
+                  maxLines: 3,
                   focusNode: gratefulNode,
-                  focusOrder: 7.0,
+                  focusOrder: 5.0,
                   onChanged: (v) => onTextChanged('evening.gratitude', v),
                 ),
                 const SizedBox(height: 12),
