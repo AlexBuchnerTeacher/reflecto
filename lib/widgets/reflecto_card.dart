@@ -135,22 +135,9 @@ class _ReflectoCardState extends State<ReflectoCard>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           if (widget.title != null)
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    '${widget.titleEmoji ?? ''}${widget.titleEmoji != null ? ' ' : ''}${widget.title}',
-                                    style:
-                                        Theme.of(context).textTheme.titleLarge,
-                                  ),
-                                ),
-                                if (widget.headerWidget != null) ...[
-                                  const SizedBox(width: 8),
-                                  Flexible(
-                                    child: widget.headerWidget!,
-                                  ),
-                                ],
-                              ],
+                            Text(
+                              '${widget.titleEmoji ?? ''}${widget.titleEmoji != null ? ' ' : ''}${widget.title}',
+                              style: Theme.of(context).textTheme.titleLarge,
                             ),
                           if (widget.subtitle != null) ...[
                             const SizedBox(height: 4),
@@ -162,7 +149,12 @@ class _ReflectoCardState extends State<ReflectoCard>
                         ],
                       ),
                     ),
-                    if (widget.isCollapsible == true)
+                    if (widget.headerWidget != null) ...[
+                      const SizedBox(width: 8),
+                      widget.headerWidget!,
+                    ],
+                    if (widget.isCollapsible == true) ...[
+                      const SizedBox(width: 8),
                       IconButton(
                         icon: AnimatedRotation(
                           turns: _internalCollapsed ? 0 : 0.5,
@@ -173,6 +165,7 @@ class _ReflectoCardState extends State<ReflectoCard>
                         tooltip:
                             _internalCollapsed ? 'Aufklappen' : 'Einklappen',
                       ),
+                    ],
                   ],
                 ),
               ),

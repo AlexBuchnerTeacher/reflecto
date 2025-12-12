@@ -1,22 +1,16 @@
-## [1.9.0] - 2025-01-12
+## [1.8.0] - 2025-12-12
 
-### Major Features
+### Major Features & UX Improvements
 
 **Monthly Target Habits:**
 - Added `monthly_target` frequency type for habits
-- UI: New "Monat" button in habit dialog frequency selector
+- UI: New "Monat" button in habit dialog frequency selector  
 - Users can set target 1-31 times per month
 - HabitCard displays monthly progress: "X/Y Monat"
 - Model: Added `monthlyTarget` field to Habit model
 - Service: New `getMonthWindow()` and `countCompletionsInMonth()` methods
 - Logic: `isScheduledOnDate()` now supports monthly_target
 - plannedDaysInWeek() calculates monthly average: ceil(monthlyTarget / 4)
-
-**Meal Status Chip:**
-- Meal tracker card now uses Material 3 chip design when collapsed
-- Matches Morning/Evening section chip styling
-- headerWidget parameter added to ReflectoCard for flexible header content
-- Clean, consistent progress display across all sections
 
 **Date Carousel for Habits:**
 - HabitScreen now has date navigation like DayScreen
@@ -26,17 +20,11 @@
 - Converted HabitScreen from ConsumerWidget to ConsumerStatefulWidget
 - Dynamic header: Shows "Heute" for today, formatted date otherwise
 
-**Technical Changes:**
-- ReflectoCard: Added optional `headerWidget` parameter for custom headers
-- HabitScreen: State management for `_selectedDate`
-- All habit date references now use selected date instead of hardcoded today
-- Version bumped: 1.8.0+12 → 1.9.0+13
-
----
-
-## [1.8.0] - 2025-12-12
-
-### UX Improvements & Feature Enhancements
+**Meal Status Chip:**
+- Meal tracker card now uses Material 3 chip design
+- Matches Morning/Evening section chip styling
+- Always visible (collapsed and expanded)
+- Clean, consistent progress display across all sections
 
 **User Feedback Fixes:**
 - **Meal Card Status**: Status (X/3 erfasst) now visible when collapsed
