@@ -1,3 +1,27 @@
+## [1.8.1] - 2025-12-12
+
+### Bug Fixes
+
+**Date Carousel Completion Bug:**
+- Fixed: HabitCard now respects selected date from date carousel
+- Previously: Checkbox always toggled completion for today, regardless of selected date
+- Now: When selecting a different date (e.g., Monday), completion is correctly tracked for that date
+- Impact: Date carousel now works as expected - selecting Dienstag only marks Dienstag as complete, not Montag
+
+---
+
+## [1.8.1] - 2025-12-12
+
+### Bug Fixes
+
+**Date Carousel Completion Bug:**
+- Fixed: HabitCard now respects selected date from date carousel
+- Previously: Checkbox always toggled completion for today, regardless of selected date
+- Now: When selecting a different date (e.g., Monday), completion is correctly tracked for that date
+- Impact: Date carousel now works as expected - selecting Dienstag only marks Dienstag as complete, not Montag
+
+---
+
 ## [1.8.0] - 2025-12-12
 
 ### Major Features & UX Improvements
