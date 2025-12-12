@@ -67,6 +67,7 @@ class HabitNotifier extends AutoDisposeAsyncNotifier<void> {
     String? reminderTime,
     List<int>? weekdays,
     int? weeklyTarget,
+    int? monthlyTarget,
     int? sortIndex,
   }) async {
     final uid = ref.read(userIdProvider);
@@ -84,6 +85,7 @@ class HabitNotifier extends AutoDisposeAsyncNotifier<void> {
         reminderTime: reminderTime,
         weekdays: weekdays,
         weeklyTarget: weeklyTarget,
+        monthlyTarget: monthlyTarget,
         sortIndex: sortIndex,
       );
       state = const AsyncData(null);
@@ -104,6 +106,7 @@ class HabitNotifier extends AutoDisposeAsyncNotifier<void> {
     String? reminderTime,
     List<int>? weekdays,
     int? weeklyTarget,
+    int? monthlyTarget,
     int? sortIndex,
   }) async {
     final uid = ref.read(userIdProvider);
@@ -122,6 +125,7 @@ class HabitNotifier extends AutoDisposeAsyncNotifier<void> {
         reminderTime: reminderTime,
         weekdays: weekdays,
         weeklyTarget: weeklyTarget,
+        monthlyTarget: monthlyTarget,
         sortIndex: sortIndex,
       );
       state = const AsyncData(null);

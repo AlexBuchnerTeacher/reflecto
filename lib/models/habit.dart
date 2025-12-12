@@ -20,7 +20,7 @@ class Habit {
   /// Hex-Farbe für UI-Darstellung (z.B. "#5B50FF")
   final String color;
 
-  /// Frequenz: "daily" | "weekly_days" | "weekly_target" | "irregular"
+  /// Frequenz: "daily" | "weekly_days" | "weekly_target" | "monthly_target" | "irregular"
   ///
   /// Hinweis: Ältere Daten können noch "weekly" enthalten. Diese werden wie
   /// "weekly_days" behandelt (ohne gesetzte Wochentage ergibt das effektiv 0 geplante Tage).
@@ -31,6 +31,9 @@ class Habit {
 
   /// Für "weekly_target": Anzahl der Ziel-Tage pro Woche (z. B. 3).
   final int? weeklyTarget;
+
+  /// Für "monthly_target": Anzahl der Ziel-Tage pro Monat (z. B. 10).
+  final int? monthlyTarget;
 
   /// Optional: Erinnerungszeit im Format "HH:mm" (z.B. "19:00")
   final String? reminderTime;
@@ -58,6 +61,7 @@ class Habit {
     required this.frequency,
     this.weekdays,
     this.weeklyTarget,
+    this.monthlyTarget,
     this.reminderTime,
     this.sortIndex,
     required this.streak,
@@ -81,6 +85,9 @@ class Habit {
       weeklyTarget: (map['weeklyTarget'] is int)
           ? map['weeklyTarget'] as int
           : int.tryParse(map['weeklyTarget']?.toString() ?? ''),
+      monthlyTarget: (map['monthlyTarget'] is int)
+          ? map['monthlyTarget'] as int
+          : int.tryParse(map['monthlyTarget']?.toString() ?? ''),
       reminderTime: map['reminderTime'] as String?,
       sortIndex: (map['sortIndex'] is int)
           ? map['sortIndex'] as int
@@ -104,6 +111,7 @@ class Habit {
       'frequency': frequency,
       if (weekdays != null) 'weekdays': weekdays,
       if (weeklyTarget != null) 'weeklyTarget': weeklyTarget,
+      if (monthlyTarget != null) 'monthlyTarget': monthlyTarget,
       if (reminderTime != null) 'reminderTime': reminderTime,
       if (sortIndex != null) 'sortIndex': sortIndex,
       'streak': streak,
@@ -124,6 +132,7 @@ class Habit {
     String? frequency,
     List<int>? weekdays,
     int? weeklyTarget,
+    int? monthlyTarget,
     String? reminderTime,
     int? sortIndex,
     int? streak,
@@ -139,6 +148,7 @@ class Habit {
       frequency: frequency ?? this.frequency,
       weekdays: weekdays ?? this.weekdays,
       weeklyTarget: weeklyTarget ?? this.weeklyTarget,
+      monthlyTarget: monthlyTarget ?? this.monthlyTarget,
       reminderTime: reminderTime ?? this.reminderTime,
       sortIndex: sortIndex ?? this.sortIndex,
       streak: streak ?? this.streak,

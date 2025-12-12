@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../models/habit.dart';
 import '../providers/habit_providers.dart';
@@ -12,13 +13,27 @@ import '../theme/tokens.dart';
 import '../features/habits/widgets/habit_card.dart';
 import '../features/habits/widgets/habit_dialog.dart';
 import '../features/habits/widgets/habit_insights_card.dart';
+import '../features/day/widgets/day_week_carousel.dart';
 
 /// Hauptscreen für Habit-Tracking
-class HabitScreen extends ConsumerWidget {
+class HabitScreen extends ConsumerStatefulWidget {
   const HabitScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HabitScreen> createState() => _HabitScreenState();
+}
+
+class _HabitScreenState extends ConsumerState<HabitScreen> {
+  late DateTime _selectedDate;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDate = DateTime.now();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final habitsAsync = ref.watch(habitsProvider);
     final theme = Theme.of(context);
     final showOnlyDue = ref.watch(_showOnlyDueHabitsProvider);
@@ -64,111 +79,137 @@ class HabitScreen extends ConsumerWidget {
             );
           }
 
-          // Berechne Tages-Fortschritt (nur heute fällige Habits)
-          final today = DateTime.now();
+          // Berechne Tages-Fortschritt (nur für gewähltes Datum fällige Habits)
           final service = ref.watch(habitServiceProvider);
-          final dueHabits =
-              habits.where((h) => service.isScheduledOnDate(h, today)).toList();
+          final dueHabits = habits
+              .where((h) => service.isScheduledOnDate(h, _selectedDate))
+              .toList();
           final completedToday = dueHabits
-              .where((h) => service.isCompletedOnDate(h, today))
+              .where((h) => service.isCompletedOnDate(h, _selectedDate))
               .length;
           final totalHabits = dueHabits.length;
           final progressPercent = totalHabits > 0
               ? (completedToday / totalHabits * 100).round()
               : 0;
 
-          return Column(
-            children: [
+          return CustomScrollView(
+            slivers: [
+              // Date Carousel
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: ReflectoSpacing.s8),
+                  child: DayWeekCarousel(
+                    selected: _selectedDate,
+                    onSelected: (date) {
+                      setState(() {
+                        _selectedDate = date;
+                      });
+                    },
+                  ),
+                ),
+              ),
+
               // Mini-Analytics Karte
-              HabitInsightsCard(habits: habits, service: service, today: today),
+              SliverToBoxAdapter(
+                child: HabitInsightsCard(
+                    habits: habits, service: service, today: _selectedDate),
+              ),
 
               // Fortschritts-Header
-              Container(
-                padding: const EdgeInsets.all(ReflectoSpacing.s16),
-                color: theme.colorScheme.primaryContainer.withValues(
-                  alpha: 0.3,
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Heute',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        Text(
-                          '$completedToday / $totalHabits',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: ReflectoSpacing.s8),
-                    Wrap(
-                      spacing: ReflectoSpacing.s8,
-                      children: [
-                        FocusTraversalOrder(
-                          order: const NumericFocusOrder(1.0),
-                          child: FilterChip(
-                            label: const Text('Nur fällige'),
-                            selected: showOnlyDue,
-                            onSelected: (v) => ref
-                                .read(
-                                  _showOnlyDueHabitsProvider.notifier,
-                                )
-                                .state = v,
-                          ),
-                        ),
-                        FocusTraversalOrder(
-                          order: const NumericFocusOrder(2.0),
-                          child: FilterChip(
-                            label: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text('Smart Priority '),
-                                Text('🔥', style: TextStyle(fontSize: 12)),
-                              ],
+              SliverToBoxAdapter(
+                child: Container(
+                  padding: const EdgeInsets.all(ReflectoSpacing.s16),
+                  color: theme.colorScheme.primaryContainer.withValues(
+                    alpha: 0.3,
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            DateUtils.isSameDay(_selectedDate, DateTime.now())
+                                ? 'Heute'
+                                : DateFormat('EEE, d. MMM', 'de_DE')
+                                    .format(_selectedDate),
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
                             ),
-                            selected: ref.watch(_useSmartOrderProvider),
-                            onSelected: (v) {
-                              ref.read(_useSmartOrderProvider.notifier).state =
-                                  v;
-                              ref
-                                  .read(_showSmartPriorityProvider.notifier)
-                                  .state = v;
-                            },
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: ReflectoSpacing.s8),
-                    LinearProgressIndicator(
-                      value: totalHabits > 0 ? completedToday / totalHabits : 0,
-                      minHeight: 8,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    const SizedBox(height: ReflectoSpacing.s8),
-                    Text(
-                      '$progressPercent % erfüllt',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                          Text(
+                            '$completedToday / $totalHabits',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: ReflectoSpacing.s8),
+                      Wrap(
+                        spacing: ReflectoSpacing.s8,
+                        children: [
+                          FocusTraversalOrder(
+                            order: const NumericFocusOrder(1.0),
+                            child: FilterChip(
+                              label: const Text('Nur fällige'),
+                              selected: showOnlyDue,
+                              onSelected: (v) => ref
+                                  .read(
+                                    _showOnlyDueHabitsProvider.notifier,
+                                  )
+                                  .state = v,
+                            ),
+                          ),
+                          FocusTraversalOrder(
+                            order: const NumericFocusOrder(2.0),
+                            child: FilterChip(
+                              label: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text('Smart Priority '),
+                                  Text('🔥', style: TextStyle(fontSize: 12)),
+                                ],
+                              ),
+                              selected: ref.watch(_useSmartOrderProvider),
+                              onSelected: (v) {
+                                ref
+                                    .read(_useSmartOrderProvider.notifier)
+                                    .state = v;
+                                ref
+                                    .read(_showSmartPriorityProvider.notifier)
+                                    .state = v;
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: ReflectoSpacing.s8),
+                      LinearProgressIndicator(
+                        value:
+                            totalHabits > 0 ? completedToday / totalHabits : 0,
+                        minHeight: 8,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      const SizedBox(height: ReflectoSpacing.s8),
+                      Text(
+                        '$progressPercent % erfüllt',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
 
               // Habit-Liste
-              Expanded(
+              SliverFillRemaining(
                 child: _HabitGroupedList(
                   habits: habits,
                   showOnlyDue: showOnlyDue,
-                  today: today,
+                  today: _selectedDate,
                 ),
               ),
             ],

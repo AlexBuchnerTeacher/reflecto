@@ -24,6 +24,7 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
   TextEditingController? _reminderTimeCtrl;
   Set<int> _weekdays = <int>{};
   int _weeklyTarget = 3;
+  int _monthlyTarget = 12;
 
   // Get category color dynamically from selected category
   String get _color => CategoryColors.getColorForCategory(_categoryCtrl.text);
@@ -48,6 +49,9 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
     }
     if (widget.habit?.weeklyTarget != null) {
       _weeklyTarget = widget.habit!.weeklyTarget!.clamp(1, 7);
+    }
+    if (widget.habit?.monthlyTarget != null) {
+      _monthlyTarget = widget.habit!.monthlyTarget!.clamp(1, 31);
     }
     if (widget.habit?.reminderTime != null) {
       _reminderTimeCtrl = TextEditingController(
@@ -93,6 +97,7 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
               : _reminderTimeCtrl?.text.trim(),
           weekdays: _frequency == 'weekly_days' ? _weekdays.toList() : null,
           weeklyTarget: _frequency == 'weekly_target' ? _weeklyTarget : null,
+          monthlyTarget: _frequency == 'monthly_target' ? _monthlyTarget : null,
           sortIndex: maxSortIndex + 10,
         );
       } else {
@@ -108,6 +113,7 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
               : _reminderTimeCtrl?.text.trim(),
           weekdays: _frequency == 'weekly_days' ? _weekdays.toList() : <int>[],
           weeklyTarget: _frequency == 'weekly_target' ? _weeklyTarget : null,
+          monthlyTarget: _frequency == 'monthly_target' ? _monthlyTarget : null,
         );
       }
 
@@ -199,8 +205,13 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
                   ),
                   ButtonSegment(
                     value: 'weekly_target',
-                    label: Text('Ziel'),
+                    label: Text('Woche'),
                     tooltip: 'Wochen-Ziel',
+                  ),
+                  ButtonSegment(
+                    value: 'monthly_target',
+                    label: Text('Monat'),
+                    tooltip: 'Monats-Ziel',
                   ),
                   ButtonSegment(
                     value: 'irregular',

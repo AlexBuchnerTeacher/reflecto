@@ -60,6 +60,7 @@ class HabitService {
     String? reminderTime,
     List<int>? weekdays,
     int? weeklyTarget,
+    int? monthlyTarget,
     int? sortIndex,
   }) async {
     final now = DateTime.now();
@@ -71,6 +72,7 @@ class HabitService {
       frequency: frequency,
       weekdays: weekdays,
       weeklyTarget: weeklyTarget,
+      monthlyTarget: monthlyTarget,
       reminderTime: reminderTime,
       sortIndex: sortIndex,
       streak: 0,
@@ -94,6 +96,7 @@ class HabitService {
     String? reminderTime,
     List<int>? weekdays,
     int? weeklyTarget,
+    int? monthlyTarget,
     int? sortIndex,
   }) async {
     final updates = <String, dynamic>{
@@ -109,6 +112,7 @@ class HabitService {
     }
     if (weekdays != null) updates['weekdays'] = weekdays;
     if (weeklyTarget != null) updates['weeklyTarget'] = weeklyTarget;
+    if (monthlyTarget != null) updates['monthlyTarget'] = monthlyTarget;
     if (sortIndex != null) updates['sortIndex'] = sortIndex;
 
     await _habitsCollection(uid).doc(habitId).update(updates);
@@ -123,6 +127,13 @@ class HabitService {
     return (start: start, end: end);
   }
 
+  /// Gibt Monatsfenster (1. bis letzter Tag des Monats) für ein Datum zurück
+  ({DateTime start, DateTime end}) getMonthWindow(DateTime date) {
+    final start = DateTime(date.year, date.month, 1);
+    final end = DateTime(date.year, date.month + 1, 0, 23, 59, 59, 999);
+    return (start: start, end: end);
+  }
+
   /// Prüft, ob ein Habit an einem Datum planmäßig ist
   bool isScheduledOnDate(Habit habit, DateTime date) {
     final freq = habit.frequency;
@@ -134,6 +145,9 @@ class HabitService {
     if (freq == 'weekly_target') {
       return true; // beliebige Tage in der Woche zulässig
     }
+    if (freq == 'monthly_target') {
+      return true; // beliebige Tage im Monat zulässig
+    }
     if (freq == 'irregular') {
       return true; // immer zulässig, kein Plan
     }
@@ -143,6 +157,19 @@ class HabitService {
   /// Anzahl eindeutiger Erledigungs-Tage innerhalb der Woche des angegebenen Datums
   int countCompletionsInWeek(Habit habit, DateTime date) {
     final window = getWeekWindow(date);
+    final start = window.start;
+    final end = window.end;
+    int count = 0;
+    for (int i = 0; i <= end.difference(start).inDays; i++) {
+      final cur = start.add(Duration(days: i));
+      if (isCompletedOnDate(habit, cur)) count++;
+    }
+    return count;
+  }
+
+  /// Anzahl eindeutiger Erledigungs-Tage innerhalb des Monats des angegebenen Datums
+  int countCompletionsInMonth(Habit habit, DateTime date) {
+    final window = getMonthWindow(date);
     final start = window.start;
     final end = window.end;
     int count = 0;
@@ -177,6 +204,11 @@ class HabitService {
     }
     if (freq == 'weekly_target') {
       return habit.weeklyTarget ?? 0;
+    }
+    if (freq == 'monthly_target') {
+      // Zeige durchschnittlich erwartete Anzahl pro Woche
+      final monthlyTarget = habit.monthlyTarget ?? 0;
+      return (monthlyTarget / 4).ceil();
     }
     // irregular: kein Nenner
     return 0;
