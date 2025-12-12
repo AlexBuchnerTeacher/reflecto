@@ -6,6 +6,7 @@ import '../models/journal_entry.dart';
 import '../services/firestore_service.dart';
 import '../services/export_import_service.dart';
 import '../providers/entry_providers.dart';
+import '../providers/habit_providers.dart';
 import '../features/week/logic/week_stats.dart';
 import '../features/week/widgets/week_navigation_bar.dart';
 import '../features/week/widgets/week_stats_card.dart';
@@ -146,6 +147,7 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
     final weekId = FirestoreService.weekIdFrom(_anchor);
     final entriesAsync = ref.watch(weekEntriesProvider(_anchor));
     final weeklyAsync = ref.watch(weeklyReflectionProvider(weekId));
+    final habitsAsync = ref.watch(habitsProvider);
     final exportSvc = ExportImportService();
 
     return Scaffold(
@@ -186,11 +188,13 @@ class _WeekScreenState extends ConsumerState<WeekScreen> {
                       error: (e, st) => Center(child: Text('Fehler: $e')),
                       data: (entries) {
                         final stats = WeekStats.aggregate(entries, range);
+                        final habits = habitsAsync.valueOrNull ?? [];
                         final jsonData = exportSvc.buildWeekExportJson(
                           weekId,
                           range,
                           entries,
                           stats.toJson(),
+                          habits: habits.isEmpty ? null : habits,
                         );
 
                         // Berechne Wochenvervollständigung

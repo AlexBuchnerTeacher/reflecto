@@ -53,9 +53,18 @@ class _MealTrackerCardState extends ConsumerState<MealTrackerCard> {
     final isCollapsed = ref.watch(mealTrackerCardCollapseProvider);
     final collapseNotifier = ref.read(mealTrackerCardCollapseProvider.notifier);
 
+    // Calculate status for collapsed state
+    final meal = mealAsync.value;
+    final breakfast = meal?.breakfast ?? false;
+    final lunch = meal?.lunch ?? false;
+    final dinner = meal?.dinner ?? false;
+    final done = (breakfast ? 1 : 0) + (lunch ? 1 : 0) + (dinner ? 1 : 0);
+    final statusText = '$done / 3 erfasst';
+
     return ReflectoCard(
       titleEmoji: '🍽️',
       title: 'Essen',
+      subtitle: isCollapsed ? statusText : null,
       isCollapsible: true,
       isCollapsed: isCollapsed,
       onCollapsedChanged: (collapsed) =>

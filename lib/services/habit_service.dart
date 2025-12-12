@@ -402,44 +402,29 @@ class HabitService {
     return habitScores.map((e) => e.habit).toList();
   }
 
-  /// Sortiert Habits nach Custom Order (sortIndex) und Status
+  /// Sortiert Habits nach Custom Order (sortIndex)
   ///
   /// Sortierlogik:
-  /// 1. Unerledigte Habits nach sortIndex (aufsteigend)
-  /// 2. Erledigte Habits nach sortIndex (aufsteigend), aber am Ende
+  /// - Habits nach sortIndex (aufsteigend)
+  /// - Habits ohne sortIndex werden nach createdAt einsortiert
   ///
-  /// Habits ohne sortIndex werden nach createdAt einsortiert
+  /// Hinweis: Diese Funktion sortiert NICHT nach completed/incomplete Status.
+  /// Die manuelle Sortierung soll täglich gleich bleiben, unabhängig vom Status.
   List<Habit> sortHabitsByCustomOrder(
     List<Habit> habits, {
     required DateTime today,
   }) {
-    final incomplete = <Habit>[];
-    final completed = <Habit>[];
+    final sorted = List<Habit>.from(habits);
 
-    for (final habit in habits) {
-      if (isCompletedOnDate(habit, today)) {
-        completed.add(habit);
-      } else {
-        incomplete.add(habit);
-      }
-    }
-
-    // Sortiere jeweils nach sortIndex (oder createdAt als Fallback)
-    incomplete.sort((a, b) {
+    // Sortiere nur nach sortIndex (oder createdAt als Fallback)
+    sorted.sort((a, b) {
       final aIndex = a.sortIndex ?? 999999;
       final bIndex = b.sortIndex ?? 999999;
       if (aIndex != bIndex) return aIndex.compareTo(bIndex);
       return a.createdAt.compareTo(b.createdAt);
     });
 
-    completed.sort((a, b) {
-      final aIndex = a.sortIndex ?? 999999;
-      final bIndex = b.sortIndex ?? 999999;
-      if (aIndex != bIndex) return aIndex.compareTo(bIndex);
-      return a.createdAt.compareTo(b.createdAt);
-    });
-
-    return [...incomplete, ...completed];
+    return sorted;
   }
 
   /// Aktualisiert sortIndex für mehrere Habits (Batch-Operation)

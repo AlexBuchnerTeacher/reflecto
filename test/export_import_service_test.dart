@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reflecto/models/journal_entry.dart';
+import 'package:reflecto/models/habit.dart';
 import 'package:reflecto/services/export_import_service.dart';
 
 void main() {
@@ -265,6 +266,120 @@ void main() {
         final decoded = jsonDecode(jsonString) as Map<String, dynamic>;
         expect(decoded['weekId'], '2025-W47');
         expect(decoded['entries'], hasLength(7));
+      });
+    });
+
+    group('Habits in Export', () {
+      test('includes habits in export when provided', () {
+        final range = DateTimeRange(
+          start: DateTime(2025, 11, 17),
+          end: DateTime(2025, 11, 23),
+        );
+
+        final habits = [
+          Habit(
+            id: 'habit-1',
+            title: 'Daily Reading',
+            category: '📘 LERNEN',
+            color: '#0A84FF',
+            frequency: 'daily',
+            streak: 3,
+            completedDates: ['2025-11-17', '2025-11-18', '2025-11-19'],
+            createdAt: DateTime(2025, 11, 1),
+            updatedAt: DateTime(2025, 11, 19),
+          ),
+          Habit(
+            id: 'habit-2',
+            title: 'Workout',
+            category: '🚴 SPORT',
+            color: '#FF3B30',
+            frequency: 'weekly_target',
+            weeklyTarget: 3,
+            streak: 1,
+            completedDates: ['2025-11-17', '2025-11-20'],
+            createdAt: DateTime(2025, 11, 1),
+            updatedAt: DateTime(2025, 11, 20),
+          ),
+        ];
+
+        final json = service.buildWeekExportJson(
+          '2025-W47',
+          range,
+          [],
+          {},
+          habits: habits,
+        );
+
+        expect(json.containsKey('habits'), true);
+        expect(json['habits']['total'], 2);
+        expect(json['habits']['list'], hasLength(2));
+
+        final habit1 = json['habits']['list'][0] as Map<String, dynamic>;
+        expect(habit1['title'], 'Daily Reading');
+        expect(habit1['category'], '📘 LERNEN');
+        expect(habit1['completionsThisWeek'], 3);
+        expect(
+          habit1['completedDates'],
+          ['2025-11-17', '2025-11-18', '2025-11-19'],
+        );
+
+        final habit2 = json['habits']['list'][1] as Map<String, dynamic>;
+        expect(habit2['title'], 'Workout');
+        expect(habit2['weeklyTarget'], 3);
+        expect(habit2['completionsThisWeek'], 2);
+      });
+
+      test('omits habits when not provided', () {
+        final range = DateTimeRange(
+          start: DateTime(2025, 11, 17),
+          end: DateTime(2025, 11, 23),
+        );
+
+        final json = service.buildWeekExportJson(
+          '2025-W47',
+          range,
+          [],
+          {},
+        );
+
+        expect(json.containsKey('habits'), false);
+      });
+
+      test('only includes completions from current week', () {
+        final range = DateTimeRange(
+          start: DateTime(2025, 11, 17),
+          end: DateTime(2025, 11, 23),
+        );
+
+        final habit = Habit(
+          id: 'habit-3',
+          title: 'Meditation',
+          category: '🧘 ACHTSAMKEIT',
+          color: '#AF52DE',
+          frequency: 'daily',
+          streak: 10,
+          completedDates: [
+            '2025-11-10', // Previous week
+            '2025-11-11', // Previous week
+            '2025-11-17', // This week
+            '2025-11-18', // This week
+            '2025-11-24', // Next week
+          ],
+          createdAt: DateTime(2025, 11, 1),
+          updatedAt: DateTime(2025, 11, 18),
+        );
+
+        final json = service.buildWeekExportJson(
+          '2025-W47',
+          range,
+          [],
+          {},
+          habits: [habit],
+        );
+
+        final habitData = json['habits']['list'][0] as Map<String, dynamic>;
+        expect(habitData['completionsThisWeek'], 2);
+        expect(habitData['completedDates'], ['2025-11-17', '2025-11-18']);
       });
     });
   });

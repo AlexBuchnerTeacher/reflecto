@@ -1,3 +1,29 @@
+## [1.8.0] - 2025-12-12
+
+### UX Improvements & Feature Enhancements
+
+**User Feedback Fixes:**
+- **Meal Card Status**: Status (X/3 erfasst) now visible when collapsed
+- **Reflection Questions**: Reduced evening reflection from 4 to 2 questions
+  - Kept: "Was lief heute gut?" + "Wofür bin ich dankbar?"  
+  - Removed: "Was habe ich gelernt?" + "Was hätte besser laufen können?"
+- **Habit Order Fix**: Manual habit sorting now persists daily
+  - Previously: Completed habits moved to bottom and stayed there next day
+  - Now: Habits return to manual order each day, regardless of completion status
+  - sortHabitsByCustomOrder() simplified to sort only by sortIndex
+
+**Habits in Weekly Export:**
+- Habits now included in weekly export JSON
+- Includes: title, category, frequency, streak, weekly completions
+- Only exports completions from current week
+- Added 3 tests for habit export functionality
+
+**Testing:**
+- export_import_service_test.dart: 13 tests (3 new for habits)
+- All tests passing ✅
+
+---
+
 ## [1.7.1] - 2025-12-02
 
 ### Bugfix: Firestore Security Rules 🔒

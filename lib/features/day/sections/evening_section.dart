@@ -78,8 +78,6 @@ class EveningSection extends StatelessWidget {
 
     final fieldsFilled = [
       goodCtrl.text.trim(),
-      learnedCtrl.text.trim(),
-      betterCtrl.text.trim(),
       gratefulCtrl.text.trim(),
     ].where((e) => e.isNotEmpty).length;
 
@@ -114,7 +112,7 @@ class EveningSection extends StatelessWidget {
                     context,
                     'Ziele $goalsChecked/${visibleGoalIndices.length}'
                     ' · To-dos $todosChecked/${visibleTodoIndices.length}'
-                    ' · Felder $fieldsFilled/4',
+                    ' · Felder $fieldsFilled/2',
                   ),
                 ),
               ),
@@ -223,39 +221,19 @@ class EveningSection extends StatelessWidget {
                   label: 'Was lief heute gut?',
                   controller: goodCtrl,
                   minLines: 1,
-                  maxLines: 2,
+                  maxLines: 3,
                   focusNode: goodNode,
                   focusOrder: 4.0,
                   onChanged: (v) => onTextChanged('evening.good', v),
                 ),
                 const SizedBox(height: 8),
                 LabeledField(
-                  label: 'Was habe ich gelernt oder erkannt?',
-                  controller: learnedCtrl,
-                  minLines: 1,
-                  maxLines: 2,
-                  focusNode: learnedNode,
-                  focusOrder: 5.0,
-                  onChanged: (v) => onTextChanged('evening.learned', v),
-                ),
-                const SizedBox(height: 8),
-                LabeledField(
-                  label: 'Was h\u00E4tte besser laufen k\u00F6nnen?',
-                  controller: betterCtrl,
-                  minLines: 1,
-                  maxLines: 2,
-                  focusNode: betterNode,
-                  focusOrder: 6.0,
-                  onChanged: (v) => onTextChanged('evening.improve', v),
-                ),
-                const SizedBox(height: 8),
-                LabeledField(
-                  label: 'Wof\u00FCr bin ich dankbar?',
+                  label: 'Wofür bin ich dankbar?',
                   controller: gratefulCtrl,
                   minLines: 1,
-                  maxLines: 2,
+                  maxLines: 3,
                   focusNode: gratefulNode,
-                  focusOrder: 7.0,
+                  focusOrder: 5.0,
                   onChanged: (v) => onTextChanged('evening.gratitude', v),
                 ),
                 const SizedBox(height: 12),

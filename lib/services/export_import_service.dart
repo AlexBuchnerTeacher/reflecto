@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart' show DateTimeRange;
 import '../models/journal_entry.dart';
+import '../models/habit.dart';
 // Removed unused Firestore import
 
 class ExportImportService {
@@ -8,8 +9,9 @@ class ExportImportService {
     String weekId,
     DateTimeRange range,
     List<JournalEntry> entries,
-    Map<String, dynamic> aggregates,
-  ) {
+    Map<String, dynamic> aggregates, {
+    List<Habit>? habits,
+  }) {
     List<Map<String, dynamic>> items = [];
     for (var i = 0; i < 7; i++) {
       final day = range.start.add(Duration(days: i));
@@ -31,7 +33,8 @@ class ExportImportService {
         },
       });
     }
-    return {
+
+    final result = {
       'weekId': weekId,
       'range': {
         'start': range.start.toIso8601String().substring(0, 10),
@@ -45,6 +48,38 @@ class ExportImportService {
         'moodCurve': aggregates['moodCurve'],
       },
     };
+
+    // Add habits if provided
+    if (habits != null && habits.isNotEmpty) {
+      result['habits'] = {
+        'total': habits.length,
+        'list': habits.map((h) {
+          // Calculate completions for this week
+          final weekCompletions = <String>[];
+          for (var i = 0; i < 7; i++) {
+            final day = range.start.add(Duration(days: i));
+            final dateStr =
+                '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
+            if (h.completedDates.contains(dateStr)) {
+              weekCompletions.add(dateStr);
+            }
+          }
+
+          return {
+            'title': h.title,
+            'category': h.category,
+            'frequency': h.frequency,
+            'weeklyTarget': h.weeklyTarget,
+            'weekdays': h.weekdays,
+            'streak': h.streak,
+            'completionsThisWeek': weekCompletions.length,
+            'completedDates': weekCompletions,
+          };
+        }).toList(),
+      };
+    }
+
+    return result;
   }
 
   String buildMarkdownFromJson(Map<String, dynamic> jsonData) {
