@@ -287,6 +287,37 @@ class _HabitDialogState extends ConsumerState<HabitDialog> {
                 const SizedBox(height: ReflectoSpacing.s16),
               ],
 
+              if (_frequency == 'monthly_target') ...[
+                Text('Monats‑Ziel', style: theme.textTheme.titleSmall),
+                const SizedBox(height: ReflectoSpacing.s8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _monthlyTarget = (_monthlyTarget - 1).clamp(1, 31);
+                        });
+                      },
+                      icon: const Icon(Icons.remove_circle_outline),
+                    ),
+                    Text(
+                      '$_monthlyTarget / Monat',
+                      style: theme.textTheme.titleMedium,
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _monthlyTarget = (_monthlyTarget + 1).clamp(1, 31);
+                        });
+                      },
+                      icon: const Icon(Icons.add_circle_outline),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: ReflectoSpacing.s16),
+              ],
+
               // Farbe (automatisch aus Kategorie)
               Text('Farbe (aus Kategorie)', style: theme.textTheme.titleSmall),
               const SizedBox(height: ReflectoSpacing.s8),
