@@ -48,60 +48,24 @@ class MorningSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ReflectoCard(
+      title: '\u{1F305} Morgenreflexion',
+      headerWidget: _progressChip(
+        context,
+        'Felder '
+        '${[
+          feelingCtrl.text.trim(),
+          goodCtrl.text.trim(),
+          focusCtrl.text.trim()
+        ].where((e) => e.isNotEmpty).length}/3'
+        ' · Ratings '
+        '${[mood, energy, focusRating].where((e) => e != null).length}/3',
+      ),
+      isCollapsible: true,
+      isCollapsed: !expanded,
+      onCollapsedChanged: (collapsed) => onToggleExpanded(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  '\u{1F305} Morgenreflexion',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  softWrap: false,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    fontFamilyFallback: [
-                      'Segoe UI Emoji',
-                      'Apple Color Emoji',
-                      'Noto Color Emoji',
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: _progressChip(
-                    context,
-                    'Felder '
-                    '${[
-                      feelingCtrl.text.trim(),
-                      goodCtrl.text.trim(),
-                      focusCtrl.text.trim()
-                    ].where((e) => e.isNotEmpty).length}/3'
-                    ' · Ratings '
-                    '${[
-                      mood,
-                      energy,
-                      focusRating
-                    ].where((e) => e != null).length}/3',
-                  ),
-                ),
-              ),
-              IconButton(
-                tooltip: expanded ? 'Einklappen' : 'Aufklappen',
-                icon: Icon(
-                  expanded
-                      ? Icons.keyboard_arrow_up_rounded
-                      : Icons.keyboard_arrow_down_rounded,
-                ),
-                onPressed: onToggleExpanded,
-              ),
-            ],
-          ),
           AnimatedCrossFade(
             crossFadeState:
                 expanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,

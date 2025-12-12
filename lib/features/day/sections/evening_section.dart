@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../widgets/emoji_bar.dart';
 import '../widgets/labeled_field.dart';
 import '../../../widgets/reflecto_card.dart';
-import '../../../theme/tokens.dart';
 
 class EveningSection extends StatelessWidget {
   final bool expanded;
@@ -82,52 +81,19 @@ class EveningSection extends StatelessWidget {
     ].where((e) => e.isNotEmpty).length;
 
     return ReflectoCard(
+      title: '\u{1F307} Abendreflexion',
+      headerWidget: _progressChip(
+        context,
+        'Ziele $goalsChecked/${visibleGoalIndices.length}'
+        ' · To-dos $todosChecked/${visibleTodoIndices.length}'
+        ' · Felder $fieldsFilled/2',
+      ),
+      isCollapsible: true,
+      isCollapsed: !expanded,
+      onCollapsedChanged: (collapsed) => onToggleExpanded(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  '\u{1F307} Abendreflexion',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  softWrap: false,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    fontFamilyFallback: [
-                      'Segoe UI Emoji',
-                      'Apple Color Emoji',
-                      'Noto Color Emoji',
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: ReflectoSpacing.s8),
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: _progressChip(
-                    context,
-                    'Ziele $goalsChecked/${visibleGoalIndices.length}'
-                    ' · To-dos $todosChecked/${visibleTodoIndices.length}'
-                    ' · Felder $fieldsFilled/2',
-                  ),
-                ),
-              ),
-              IconButton(
-                tooltip: expanded ? 'Einklappen' : 'Aufklappen',
-                icon: Icon(
-                  expanded
-                      ? Icons.keyboard_arrow_up_rounded
-                      : Icons.keyboard_arrow_down_rounded,
-                ),
-                onPressed: onToggleExpanded,
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
           AnimatedCrossFade(
             crossFadeState:
                 expanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
