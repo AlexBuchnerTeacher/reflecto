@@ -30,7 +30,6 @@ class _HabitScreenState extends ConsumerState<HabitScreen> {
   @override
   Widget build(BuildContext context) {
     final habitsAsync = ref.watch(habitsProvider);
-    final theme = Theme.of(context);
 
     return Scaffold(
       body: habitsAsync.when(

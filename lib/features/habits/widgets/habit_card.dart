@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../models/habit.dart';
-import '../../../models/habit_priority.dart';
 import '../../../providers/habit_providers.dart';
 import '../../../theme/tokens.dart';
 import '../../../utils/category_colors.dart';
@@ -121,11 +120,6 @@ class HabitCard extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        // Priority Badge (wenn aktiviert)
-                        if (showPriority) ...[
-                          _buildPriorityBadge(context, ref),
-                          const SizedBox(width: ReflectoSpacing.s8),
-                        ],
                         Expanded(
                           child: Text(
                             habit.title,
@@ -277,34 +271,5 @@ class HabitCard extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  /// Baut Priority Badge für Smart Habits
-  Widget _buildPriorityBadge(BuildContext context, WidgetRef ref) {
-    final service = ref.watch(habitServiceProvider);
-    final priorityScore = service.calculateHabitPriority(habit);
-    final priority = priorityScore.priority;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: _getPriorityColor(context, priority).withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(priority.icon, style: const TextStyle(fontSize: 14)),
-    );
-  }
-
-  /// Gibt Farbe für Priority-Level zurück
-  Color _getPriorityColor(BuildContext context, HabitPriority priority) {
-    final theme = Theme.of(context);
-    switch (priority) {
-      case HabitPriority.high:
-        return Colors.red;
-      case HabitPriority.medium:
-        return Colors.orange;
-      case HabitPriority.low:
-        return theme.colorScheme.outline;
-    }
   }
 }

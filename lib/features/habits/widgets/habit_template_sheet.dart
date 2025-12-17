@@ -2,11 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../models/habit.dart';
 import '../../../providers/auth_providers.dart';
 import '../../../providers/habit_providers.dart';
 import '../../../providers/habit_template_providers.dart';
-import '../../../services/habit_service.dart';
 import '../../../services/habit_template_seed.dart';
 import '../../../services/habit_template_service.dart';
 import 'habit_dialog.dart';
