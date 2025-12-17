@@ -1,12 +1,46 @@
-## [1.8.1] - 2025-12-12
+## [1.9.0] - 2025-12-17
+
+### Features
+
+**Habit Screen Enhancements:**
+- Kompaktes Datums-Karussell (nur Wochentag oder dd.MM Format)
+- Checkmark im Karussell entfernt für cleane Optik
+- Filter-Chips entfernt (Smart Priority und "Nur fällige" waren ungenutzt)
+- Intelligente Auto-Filterung: Habits werden automatisch nur für geplante Tage angezeigt
+- Zwei-Gruppen-System: Offene Habits (oben) und Erledigte Habits (unten)
+- Visual Separator zwischen Gruppen für bessere Übersicht
+- Drag & Drop nur für offene Habits aktiviert
+- Habits bewegen sich sofort beim Abhaken in die Erledigt-Gruppe
+
+### Code Quality
+
+**Major Refactoring:**
+- habit_screen.dart: Von 666 auf ~130 Zeilen reduziert (-80%)
+- habit_service.dart: Von 528 auf ~420 Zeilen reduziert (-20%)
+- 5 neue Widget-Dateien für bessere Organisation:
+  - `habit_template_sheet.dart` - Template-Auswahl Bottom Sheet
+  - `habit_grouped_list.dart` - Gruppierte Habit-Liste mit Drag & Drop
+  - `habit_empty_state.dart` - Leere-Liste Anzeige
+  - `habit_delete_dialog.dart` - Lösch-Bestätigung
+  - `habit_progress_header.dart` - Fortschritts-Header
+
+**Code Cleanup:**
+- Smart Priority Feature komplett entfernt (war ungenutzt)
+- Tote Code-Pfade eliminiert
+- Bessere Wartbarkeit und Testbarkeit
 
 ### Bug Fixes
 
-**Date Carousel Completion Bug:**
-- Fixed: HabitCard now respects selected date from date carousel
-- Previously: Checkbox always toggled completion for today, regardless of selected date
-- Now: When selecting a different date (e.g., Monday), completion is correctly tracked for that date
-- Impact: Date carousel now works as expected - selecting Dienstag only marks Dienstag as complete, not Montag
+- Fixed: Habits bewegen sich jetzt sofort beim Abhaken nach unten
+- Fixed: Habits direkt aus Provider lesen statt aus veralteten Widget-Props
+- Fixed: AsyncValue korrekt mit valueOrNull behandelt
+- Fixed: Vereinfachte Gruppierungs-Logik (nur noch isCompletedOnDate)
+
+### Technical Details
+
+- Neue Methode: `HabitService.hasReachedGoal()` für Wochen-/Monatsziele
+- Reactive Updates mit Riverpod korrekt implementiert
+- Gruppierung nach einfacher Regel: heute abgehakt → erledigt
 
 ---
 
