@@ -32,10 +32,7 @@ class _HabitGroupedListState extends ConsumerState<HabitGroupedList> {
   @override
   void didUpdateWidget(HabitGroupedList oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Immer neu berechnen wenn sich Habits ändern (auch bei Completions)
-    if (widget.habits != oldWidget.habits || widget.today != oldWidget.today) {
-      _updateHabitGroups();
-    }
+    _updateHabitGroups();
   }
 
   @override
@@ -47,8 +44,11 @@ class _HabitGroupedListState extends ConsumerState<HabitGroupedList> {
   void _updateHabitGroups() {
     final service = ref.read(habitServiceProvider);
 
+    // Aktuelle Habits direkt aus Provider lesen (nicht aus widget.habits)
+    final currentHabits = ref.read(habitsProvider);
+
     // 1. Nur fällige Habits für den gewählten Tag
-    final dueHabits = widget.habits
+    final dueHabits = currentHabits
         .where((h) => service.isScheduledOnDate(h, widget.today))
         .toList();
 
@@ -85,10 +85,8 @@ class _HabitGroupedListState extends ConsumerState<HabitGroupedList> {
 
   @override
   Widget build(BuildContext context) {
-    // Watch habits um sicherzustellen dass UI bei Änderungen neu baut
-    // Trigger auch _updateHabitGroups bei jedem Build (z.B. nach Completion)
+    // Watch habits um UI bei Änderungen neu zu bauen
     ref.watch(habitsProvider);
-    _updateHabitGroups();
 
     final theme = Theme.of(context);
     final totalItems = _openHabits.length + _completedHabits.length;
