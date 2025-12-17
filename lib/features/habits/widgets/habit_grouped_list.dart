@@ -45,7 +45,8 @@ class _HabitGroupedListState extends ConsumerState<HabitGroupedList> {
     final service = ref.read(habitServiceProvider);
 
     // Aktuelle Habits direkt aus Provider lesen (nicht aus widget.habits)
-    final currentHabits = ref.read(habitsProvider);
+    final habitsAsync = ref.read(habitsProvider);
+    final currentHabits = habitsAsync.valueOrNull ?? [];
 
     // 1. Nur fällige Habits für den gewählten Tag
     final dueHabits = currentHabits
