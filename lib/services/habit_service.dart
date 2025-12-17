@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/habit.dart';
-import '../models/habit_priority.dart';
 
 /// Service für Habit-Management: CRUD, Streak-Berechnung, Firestore-Sync
 class HabitService {
@@ -378,117 +377,6 @@ class HabitService {
     }
 
     return completedCount / days;
-  }
-
-  /// Berechnet Smart Priority Score für ein Habit
-  ///
-  /// Score-Formel basiert auf:
-  /// - Streak-Länge (0-30 Punkte): Längere Streaks = höhere Priorität
-  /// - 7-Tage-Konsistenz (0-40 Punkte): Regelmäßige Completion = höher
-  /// - Skip-Count letzte 7 Tage (0-30 Punkte): Weniger Skips = höher
-  ///
-  /// Gesamt: 0-100 Punkte
-  /// - High (🔥): >= 70
-  /// - Medium (⬆️): >= 40
-  /// - Low (⬇️): < 40
-  HabitPriorityScore calculateHabitPriority(
-    Habit habit, {
-    DateTime? referenceDate,
-  }) {
-    final date = referenceDate ?? DateTime.now();
-    double score = 0.0;
-
-    // 1. Streak-Komponente (0-30 Punkte)
-    // Längere Streaks erhöhen Priorität (Momentum beibehalten)
-    final streakScore = (habit.streak / 10).clamp(0.0, 3.0) * 10;
-    score += streakScore;
-
-    // 2. Konsistenz letzte 7 Tage (0-40 Punkte)
-    // Hohe Completion-Rate = hohe Priorität
-    final completionRate = getCompletionRate(
-      habit: habit,
-      days: 7,
-      endDate: date,
-    );
-    final consistencyScore = completionRate * 40;
-    score += consistencyScore;
-
-    // 3. Skip-Analyse letzte 7 Tage (0-30 Punkte)
-    // Zähle geplante aber nicht erledigte Tage
-    int skippedDays = 0;
-    int scheduledDays = 0;
-    for (int i = 0; i < 7; i++) {
-      final checkDate = date.subtract(Duration(days: i));
-      if (isScheduledOnDate(habit, checkDate)) {
-        scheduledDays++;
-        if (!isCompletedOnDate(habit, checkDate)) {
-          skippedDays++;
-        }
-      }
-    }
-
-    // Je weniger Skips, desto höher der Score
-    final skipPenalty = scheduledDays > 0 ? (skippedDays / scheduledDays) : 0.0;
-    final skipScore = (1.0 - skipPenalty) * 30;
-    score += skipScore;
-
-    // Score auf 0-100 clampen
-    score = score.clamp(0.0, 100.0);
-
-    // Prioritätslevel bestimmen
-    final priority = score >= 70
-        ? HabitPriority.high
-        : score >= 40
-            ? HabitPriority.medium
-            : HabitPriority.low;
-
-    return HabitPriorityScore(priority: priority, score: score);
-  }
-
-  /// Sortiert Habits nach Smart Priority (höchste zuerst)
-  List<Habit> sortHabitsByPriority(
-    List<Habit> habits, {
-    DateTime? referenceDate,
-  }) {
-    final habitScores = <({Habit habit, double score})>[];
-
-    for (final habit in habits) {
-      final priorityScore = calculateHabitPriority(
-        habit,
-        referenceDate: referenceDate,
-      );
-      habitScores.add((habit: habit, score: priorityScore.score));
-    }
-
-    // Sortiere nach Score (höchste zuerst)
-    habitScores.sort((a, b) => b.score.compareTo(a.score));
-
-    return habitScores.map((e) => e.habit).toList();
-  }
-
-  /// Sortiert Habits nach Custom Order (sortIndex)
-  ///
-  /// Sortierlogik:
-  /// - Habits nach sortIndex (aufsteigend)
-  /// - Habits ohne sortIndex werden nach createdAt einsortiert
-  ///
-  /// Hinweis: Diese Funktion sortiert NICHT nach completed/incomplete Status.
-  /// Die manuelle Sortierung soll täglich gleich bleiben, unabhängig vom Status.
-  List<Habit> sortHabitsByCustomOrder(
-    List<Habit> habits, {
-    required DateTime today,
-  }) {
-    final sorted = List<Habit>.from(habits);
-
-    // Sortiere nur nach sortIndex (oder createdAt als Fallback)
-    sorted.sort((a, b) {
-      final aIndex = a.sortIndex ?? 999999;
-      final bIndex = b.sortIndex ?? 999999;
-      if (aIndex != bIndex) return aIndex.compareTo(bIndex);
-      return a.createdAt.compareTo(b.createdAt);
-    });
-
-    return sorted;
   }
 
   /// Aktualisiert sortIndex für mehrere Habits (Batch-Operation)
