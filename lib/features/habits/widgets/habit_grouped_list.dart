@@ -86,7 +86,9 @@ class _HabitGroupedListState extends ConsumerState<HabitGroupedList> {
   @override
   Widget build(BuildContext context) {
     // Watch habits um sicherzustellen dass UI bei Änderungen neu baut
+    // Trigger auch _updateHabitGroups bei jedem Build (z.B. nach Completion)
     ref.watch(habitsProvider);
+    _updateHabitGroups();
 
     final theme = Theme.of(context);
     final totalItems = _openHabits.length + _completedHabits.length;
