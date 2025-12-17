@@ -36,7 +36,6 @@ class _HabitScreenState extends ConsumerState<HabitScreen> {
   Widget build(BuildContext context) {
     final habitsAsync = ref.watch(habitsProvider);
     final theme = Theme.of(context);
-    final showOnlyDue = ref.watch(_showOnlyDueHabitsProvider);
 
     return Scaffold(
       body: habitsAsync.when(
@@ -150,45 +149,6 @@ class _HabitScreenState extends ConsumerState<HabitScreen> {
                         ],
                       ),
                       const SizedBox(height: ReflectoSpacing.s8),
-                      Wrap(
-                        spacing: ReflectoSpacing.s8,
-                        children: [
-                          FocusTraversalOrder(
-                            order: const NumericFocusOrder(1.0),
-                            child: FilterChip(
-                              label: const Text('Nur fällige'),
-                              selected: showOnlyDue,
-                              onSelected: (v) => ref
-                                  .read(
-                                    _showOnlyDueHabitsProvider.notifier,
-                                  )
-                                  .state = v,
-                            ),
-                          ),
-                          FocusTraversalOrder(
-                            order: const NumericFocusOrder(2.0),
-                            child: FilterChip(
-                              label: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text('Smart Priority '),
-                                  Text('🔥', style: TextStyle(fontSize: 12)),
-                                ],
-                              ),
-                              selected: ref.watch(_useSmartOrderProvider),
-                              onSelected: (v) {
-                                ref
-                                    .read(_useSmartOrderProvider.notifier)
-                                    .state = v;
-                                ref
-                                    .read(_showSmartPriorityProvider.notifier)
-                                    .state = v;
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: ReflectoSpacing.s8),
                       LinearProgressIndicator(
                         value:
                             totalHabits > 0 ? completedToday / totalHabits : 0,
@@ -211,7 +171,6 @@ class _HabitScreenState extends ConsumerState<HabitScreen> {
               SliverFillRemaining(
                 child: _HabitGroupedList(
                   habits: habits,
-                  showOnlyDue: showOnlyDue,
                   today: _selectedDate,
                 ),
               ),
@@ -441,19 +400,6 @@ class _TemplateSheetContentState extends ConsumerState<_TemplateSheetContent> {
   }
 }
 
-/// UI-Status: Filter nur fällige Habits anzeigen
-final _showOnlyDueHabitsProvider = StateProvider.autoDispose<bool>(
-  (ref) => false,
-);
-
-/// UI-Status: Smart Priority anzeigen/anwenden
-final _showSmartPriorityProvider = StateProvider.autoDispose<bool>(
-  (ref) => false,
-);
-
-/// UI-Status: Smart Order anwenden (sortiert Habits nach Priorität)
-final _useSmartOrderProvider = StateProvider.autoDispose<bool>((ref) => false);
-
 Color _parseHexColor(String hexString) {
   try {
     final hex = hexString.replaceAll('#', '');
@@ -474,12 +420,10 @@ bool _isAdmin(String? uid) {
 
 class _HabitGroupedList extends ConsumerStatefulWidget {
   final List<Habit> habits;
-  final bool showOnlyDue;
   final DateTime today;
 
   const _HabitGroupedList({
     required this.habits,
-    required this.showOnlyDue,
     required this.today,
   });
 
@@ -488,141 +432,227 @@ class _HabitGroupedList extends ConsumerStatefulWidget {
 }
 
 class _HabitGroupedListState extends ConsumerState<_HabitGroupedList> {
-  List<Habit> _sortedHabits = [];
+  List<Habit> _openHabits = [];
+  List<Habit> _completedHabits = [];
 
   @override
   void didUpdateWidget(_HabitGroupedList oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.habits != oldWidget.habits) {
-      _updateSortedHabits();
+    if (widget.habits != oldWidget.habits || widget.today != oldWidget.today) {
+      _updateHabitGroups();
     }
   }
 
   @override
   void initState() {
     super.initState();
-    _updateSortedHabits();
+    _updateHabitGroups();
   }
 
-  void _updateSortedHabits() {
+  void _updateHabitGroups() {
     final service = ref.read(habitServiceProvider);
-    final useSmartOrder = ref.read(_useSmartOrderProvider);
 
-    // Filter habits
-    var filtered = widget.showOnlyDue
-        ? widget.habits
-            .where((h) => service.isScheduledOnDate(h, widget.today))
-            .toList()
-        : widget.habits.toList();
+    // 1. Nur fällige Habits für den gewählten Tag
+    final dueHabits = widget.habits
+        .where((h) => service.isScheduledOnDate(h, widget.today))
+        .toList();
 
-    // Apply Smart Order if enabled, otherwise sort by sortIndex
-    if (useSmartOrder) {
-      _sortedHabits = service.sortHabitsByPriority(
-        filtered,
-        referenceDate: widget.today,
-      );
-    } else {
-      _sortedHabits = service.sortHabitsByCustomOrder(
-        filtered,
-        today: widget.today,
-      );
+    // 2. In zwei Gruppen aufteilen: offen vs. erledigt
+    final open = <Habit>[];
+    final completed = <Habit>[];
+
+    for (final habit in dueHabits) {
+      if (service.hasReachedGoal(habit, widget.today)) {
+        completed.add(habit);
+      } else {
+        open.add(habit);
+      }
     }
+
+    // 3. Beide Gruppen nach sortIndex sortieren
+    open.sort((a, b) {
+      final aIndex = a.sortIndex ?? 999999;
+      final bIndex = b.sortIndex ?? 999999;
+      return aIndex.compareTo(bIndex);
+    });
+
+    completed.sort((a, b) {
+      final aIndex = a.sortIndex ?? 999999;
+      final bIndex = b.sortIndex ?? 999999;
+      return aIndex.compareTo(bIndex);
+    });
+
+    setState(() {
+      _openHabits = open;
+      _completedHabits = completed;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final showPriority = ref.watch(_showSmartPriorityProvider);
-    final useSmartOrder = ref.watch(_useSmartOrderProvider);
+    final theme = Theme.of(context);
+    final totalItems = _openHabits.length + _completedHabits.length;
+    final hasCompleted = _completedHabits.isNotEmpty;
 
-    // Update if order changed
-    if (useSmartOrder != ref.read(_useSmartOrderProvider)) {
-      _updateSortedHabits();
+    if (totalItems == 0) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(ReflectoSpacing.s24),
+          child: Text('Keine Habits für diesen Tag geplant'),
+        ),
+      );
     }
 
-    return ReorderableListView.builder(
-      padding: const EdgeInsets.only(
-        top: ReflectoSpacing.s16,
-        bottom: ReflectoSpacing.s24,
-      ),
-      buildDefaultDragHandles: false,
-      itemCount: _sortedHabits.length,
-      onReorder: (oldIndex, newIndex) async {
-        if (newIndex > oldIndex) newIndex -= 1;
+    return CustomScrollView(
+      slivers: [
+        // Offene Habits (mit Drag & Drop)
+        if (_openHabits.isNotEmpty)
+          SliverReorderableList(
+            itemCount: _openHabits.length,
+            onReorder: (oldIndex, newIndex) async {
+              if (newIndex > oldIndex) newIndex -= 1;
 
-        setState(() {
-          final item = _sortedHabits.removeAt(oldIndex);
-          _sortedHabits.insert(newIndex, item);
-        });
+              setState(() {
+                final item = _openHabits.removeAt(oldIndex);
+                _openHabits.insert(newIndex, item);
+              });
 
-        // Update Firestore
-        final uid = ref.read(userIdProvider);
-        if (uid != null) {
-          final svc = ref.read(habitServiceProvider);
-          final updates = <({String habitId, int sortIndex})>[];
-          for (int i = 0; i < _sortedHabits.length; i++) {
-            updates.add((habitId: _sortedHabits[i].id, sortIndex: i * 10));
-          }
-          await svc.reorderHabits(uid: uid, updates: updates);
-        }
-      },
-      itemBuilder: (context, index) {
-        final habit = _sortedHabits[index];
-        // Fix #124: Drag nur am Handle, nicht an gesamter Card
-        // Fix #126: LongPress-Delay (300-400ms) verhindert versehentliches Dragging beim Scrollen
-        // Fix #127: Scroll-Gesten haben Priorität, Drag nur bewusst am Handle
-        return HabitCard(
-          key: ValueKey(habit.id),
-          habit: habit,
-          today: widget.today,
-          showPriority: showPriority,
-          dragHandle: ReorderableDragStartListener(
-            index: index,
+              // Update Firestore: Alle Habits (open + completed) neu nummerieren
+              final uid = ref.read(userIdProvider);
+              if (uid != null) {
+                final svc = ref.read(habitServiceProvider);
+                final allHabits = [..._openHabits, ..._completedHabits];
+                final updates = <({String habitId, int sortIndex})>[];
+                for (int i = 0; i < allHabits.length; i++) {
+                  updates.add((habitId: allHabits[i].id, sortIndex: i * 10));
+                }
+                await svc.reorderHabits(uid: uid, updates: updates);
+              }
+            },
+            itemBuilder: (context, index) {
+              final habit = _openHabits[index];
+              return ReorderableDelayedDragStartListener(
+                key: ValueKey(habit.id),
+                index: index,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: ReflectoSpacing.s16,
+                    vertical: ReflectoSpacing.s4,
+                  ),
+                  child: HabitCard(
+                    habit: habit,
+                    today: widget.today,
+                    showPriority: false,
+                    dragHandle: Icon(
+                      Icons.drag_indicator_rounded,
+                      size: 20,
+                      color: Colors.grey.shade600,
+                    ),
+                    onEdit: () {
+                      showDialog(
+                        context: context,
+                        builder: (_) => HabitDialog(habit: habit),
+                      );
+                    },
+                    onDelete: () => _showDeleteDialog(context, habit),
+                  ),
+                ),
+              );
+            },
+          ),
+
+        // Separator (wenn erledigte Habits vorhanden)
+        if (hasCompleted)
+          SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Icon(
-                Icons.drag_indicator_rounded,
-                size: 20,
-                color: Colors.grey.shade600,
+              padding: const EdgeInsets.symmetric(
+                horizontal: ReflectoSpacing.s16,
+                vertical: ReflectoSpacing.s16,
+              ),
+              child: Row(
+                children: [
+                  Expanded(child: Divider(color: theme.colorScheme.outline)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: ReflectoSpacing.s8,
+                    ),
+                    child: Text(
+                      'Erledigt',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  Expanded(child: Divider(color: theme.colorScheme.outline)),
+                ],
               ),
             ),
           ),
-          onEdit: () {
-            showDialog(
-              context: context,
-              builder: (_) => HabitDialog(habit: habit),
-            );
-          },
-          onDelete: () {
-            showDialog(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                title: const Text('Habit löschen?'),
-                content: Text(
-                  'Möchtest du "${habit.title}" wirklich löschen?',
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(ctx).pop(),
-                    child: const Text('Abbrechen'),
+
+        // Erledigte Habits (ohne Drag & Drop)
+        if (hasCompleted)
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final habit = _completedHabits[index];
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: ReflectoSpacing.s16,
+                    vertical: ReflectoSpacing.s4,
                   ),
-                  FilledButton(
-                    onPressed: () async {
-                      ref
-                          .read(habitNotifierProvider.notifier)
-                          .deleteHabit(habit.id);
-                      Navigator.of(ctx).pop();
+                  child: HabitCard(
+                    key: ValueKey(habit.id),
+                    habit: habit,
+                    today: widget.today,
+                    showPriority: false,
+                    dragHandle: null, // Kein Drag-Handle für erledigte
+                    onEdit: () {
+                      showDialog(
+                        context: context,
+                        builder: (_) => HabitDialog(habit: habit),
+                      );
                     },
-                    style: FilledButton.styleFrom(
-                      backgroundColor: Theme.of(ctx).colorScheme.error,
-                    ),
-                    child: const Text('Löschen'),
+                    onDelete: () => _showDeleteDialog(context, habit),
                   ),
-                ],
-              ),
-            );
-          },
-        );
-      },
+                );
+              },
+              childCount: _completedHabits.length,
+            ),
+          ),
+
+        // Bottom Padding
+        const SliverToBoxAdapter(
+          child: SizedBox(height: ReflectoSpacing.s24),
+        ),
+      ],
+    );
+  }
+
+  void _showDeleteDialog(BuildContext context, Habit habit) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Habit löschen?'),
+        content: Text(
+          'Möchtest du "${habit.title}" wirklich löschen?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Abbrechen'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              ref.read(habitNotifierProvider.notifier).deleteHabit(habit.id);
+              Navigator.of(ctx).pop();
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+            ),
+            child: const Text('Löschen'),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -214,6 +214,38 @@ class HabitService {
     return 0;
   }
 
+  /// Prüft ob ein Habit sein Ziel am angegebenen Datum erreicht hat
+  ///
+  /// - daily/weekly_days: Muss am gegebenen Tag abgehakt sein
+  /// - weekly_target: Muss weeklyTarget in der Woche erreicht haben
+  /// - monthly_target: Muss monthlyTarget im Monat erreicht haben
+  /// - irregular: Immer false (kein Ziel)
+  bool hasReachedGoal(Habit habit, DateTime date) {
+    final freq = habit.frequency;
+
+    if (freq == 'daily' || freq == 'weekly_days' || freq == 'weekly') {
+      // Tägliche/Wochentag-Habits: Ziel = heute abgehakt
+      return isCompletedOnDate(habit, date);
+    }
+
+    if (freq == 'weekly_target') {
+      // Wochen-Ziel: X mal in der Woche
+      final target = habit.weeklyTarget ?? 0;
+      final completions = countCompletionsInWeek(habit, date);
+      return completions >= target;
+    }
+
+    if (freq == 'monthly_target') {
+      // Monats-Ziel: X mal im Monat
+      final target = habit.monthlyTarget ?? 0;
+      final completions = countCompletionsInMonth(habit, date);
+      return completions >= target;
+    }
+
+    // irregular hat kein Ziel
+    return false;
+  }
+
   /// Habit löschen
   Future<void> deleteHabit(String uid, String habitId) async {
     await _habitsCollection(uid).doc(habitId).delete();

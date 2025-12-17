@@ -36,6 +36,7 @@ class DayWeekCarousel extends StatelessWidget {
                   final bool isToday = DateUtils.isSameDay(d, DateTime.now());
                   return ChoiceChip(
                     selected: isSel,
+                    showCheckmark: false,
                     side: isToday && !isSel
                         ? BorderSide(color: cs.secondary)
                         : null,
@@ -53,9 +54,11 @@ class DayWeekCarousel extends StatelessWidget {
                             ),
                           ),
                         if (isToday) const SizedBox(height: 2),
-                        Text(DateFormat.E('de_DE').format(d)),
-                        const SizedBox(height: 2),
-                        Text('${d.day}'),
+                        Text(
+                          isSel
+                              ? DateFormat('dd.MM').format(d)
+                              : DateFormat.E('de_DE').format(d),
+                        ),
                       ],
                     ),
                     selectedColor: cs.primaryContainer,
