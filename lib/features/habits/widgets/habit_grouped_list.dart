@@ -54,11 +54,14 @@ class _HabitGroupedListState extends ConsumerState<HabitGroupedList> {
         .toList();
 
     // 2. In zwei Gruppen aufteilen: offen vs. erledigt
+    // Regel: Wenn heute abgehakt → erledigt, sonst offen
     final open = <Habit>[];
     final completed = <Habit>[];
 
     for (final habit in dueHabits) {
-      if (service.hasReachedGoal(habit, widget.today)) {
+      final isCompletedToday = service.isCompletedOnDate(habit, widget.today);
+
+      if (isCompletedToday) {
         completed.add(habit);
       } else {
         open.add(habit);
